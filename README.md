@@ -2,45 +2,105 @@
 
 > A thesis management system for universities — managing skripsi submissions, bimbingan, sidang requests, document versioning, grading, and real-time notifications.
 
-![Laravel](https://img.shields.io/badge/Laravel-13-red?style=flat-square)
-![PHP](https://img.shields.io/badge/PHP-8.3-blue?style=flat-square)
-![Tailwind](https://img.shields.io/badge/Tailwind-v4-teal?style=flat-square)
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Alpine.js](https://img.shields.io/badge/Alpine.js-3-8BC0D0?style=flat-square&logo=alpine.js&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-gray?style=flat-square)
 
 ---
 
-## Roles
+## Overview
 
-| Role | Access scope |
-|------|-------------|
-| Kaprodi | Global operator — full CRUD, assignments, approvals |
-| Dosen | Reviewer-scoped — assigned skripsi only |
-| Mahasiswa | Owner-scoped — own records only |
+TA Cloud is a role-based academic management platform built for universities to digitize and streamline the entire thesis (skripsi) lifecycle — from proposal submission through to final grading and archiving. It supports three user roles with scoped access, real-time notifications via WebSocket, and a modular Blade UI component system.
 
 ---
 
-## Feature status
+## Development workflow
 
-| Feature | Status |
-|---------|--------|
-| Realtime notification system | ✅ Done |
-| Kaprodi, Dosen & Mahasiswa layers | ✅ Done |
-| Document versioning & bimbingan flow | ✅ Done |
-| Reusable Blade UI components | ✅ Done |
-| Final submission wiring | 🔄 In progress |
-| Skripsi export / rekap | 📋 Todo |
-| Google OAuth login | 📋 Todo |
-| Super Admin & advanced RBAC | 📋 Todo |
+```mermaid
+flowchart LR
+  PRD["PRD\nClaude / ChatGPT"] --> Mockup["Mockup\nGoogle Stitch"]
+  Mockup --> Design["Design\nFigma"]
+  Design --> Code["Code\nCodex CLI"]
+  Code --> Deploy["Deploy\nGit / GitHub"]
+```
+
+---
+
+## System role flow
+
+```mermaid
+flowchart LR
+  M["Mahasiswa\nSubmit skripsi, upload docs"]
+  D["Dosen\nBimbingan, grading, sidang"]
+  K["Kaprodi\nMonitor, assign, approve"]
+
+  M -- assigned to --> D
+  D -- requests --> K
+  K -- approves --> M
+```
+
+---
+
+## Notification flow
+
+```mermaid
+flowchart TD
+  M["Mahasiswa"] -- proposal_submitted --> K["Kaprodi"]
+  D["Dosen"] -- bimbingan_note_added --> M
+  D -- sidang_request_submitted --> K
+  K -- proposal_approved / rejected --> M
+  K -- reviewer_assigned --> D
+```
 
 ---
 
 ## Tech stack
 
-**Backend** — Laravel 13, PHP 8.3, Eloquent ORM, Laravel Reverb
+```mermaid
+flowchart TB
+  Reverb["Laravel Reverb — realtime WebSocket broadcast"]
+  subgraph Backend
+    L["Laravel 13 · PHP 8.3\nControllers, models, services, Pest tests"]
+  end
+  subgraph Frontend
+    TW["Tailwind CSS v4 · Alpine.js\nBlade views, Vite build pipeline"]
+  end
+  DB["MySQL · Eloquent ORM\nSkripsi · Bimbingan · Grades · Documents · Notifications"]
 
-**Frontend** — Blade views, Tailwind CSS v4, Alpine.js, Vite
+  Reverb --> Backend
+  Reverb --> Frontend
+  Backend --> DB
+```
 
-**Infra & QA** — MySQL, Laravel Breeze, Pest, Laravel Herd
+---
+
+## Roles & permissions
+
+| Role      | Scope                 | Key capabilities                                                              |
+| --------- | --------------------- | ----------------------------------------------------------------------------- |
+| Kaprodi   | Global                | CRUD master data, assign pembimbing/penguji, approve sidang, view grade recap |
+| Dosen     | Assigned skripsi only | Bimbingan notes, penilaian input, sidang request submission                   |
+| Mahasiswa | Own records only      | Skripsi CRUD, document upload, bimbingan response, non-skripsi record         |
+
+---
+
+## Feature status
+
+| Feature                                  | Status         |
+| ---------------------------------------- | -------------- |
+| Realtime notification system via Reverb  | ✅ Done        |
+| Kaprodi, Dosen & Mahasiswa role layers   | ✅ Done        |
+| Document versioning & bimbingan flow     | ✅ Done        |
+| Sidang request & approval workflow       | ✅ Done        |
+| Reusable Blade UI component library      | ✅ Done        |
+| Role-based middleware & ownership checks | ✅ Done        |
+| Final submission wiring (Mahasiswa)      | 🔄 In progress |
+| Skripsi export & rekap                   | 📋 Planned     |
+| Google OAuth login                       | 📋 Planned     |
+| Super Admin & advanced RBAC              | 📋 Planned     |
 
 ---
 
@@ -70,22 +130,23 @@ php artisan reverb:start
 ```
 app/
 ├── Http/Controllers/
-│   ├── Kaprodi/       # Kaprodi-scoped controllers
-│   ├── Dosen/         # Dosen-scoped controllers
-│   └── Mahasiswa/     # Mahasiswa-scoped controllers
-├── Models/            # Eloquent models
-├── Services/          # Business logic services
-└── Notifications/     # Laravel notification classes
+│   ├── Kaprodi/            # Kaprodi-scoped controllers
+│   ├── Dosen/              # Dosen-scoped controllers
+│   └── Mahasiswa/          # Mahasiswa-scoped controllers
+├── Models/                 # Eloquent models
+├── Services/               # Business logic & notification services
+└── Notifications/          # Laravel notification classes
 resources/views/
-├── kaprodi/           # Kaprodi views
-├── dosen/             # Dosen views
-├── mahasiswa/         # Mahasiswa views
-└── partials/          # Reusable Blade components
-routes/web/            # Role-scoped route files
+├── kaprodi/                # Kaprodi views
+├── dosen/                  # Dosen views
+├── mahasiswa/              # Mahasiswa views
+└── partials/               # Reusable Blade components
+routes/web/                 # Role-scoped route files
+tests/Feature/              # Pest feature tests per role
 ```
 
 ---
 
 ## License
 
-MIT
+MIT © Vinno Christmantara
