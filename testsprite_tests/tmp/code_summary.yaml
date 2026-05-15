@@ -1,0 +1,125 @@
+version: "2"
+type: backend
+tech_stack:
+  - PHP
+  - Laravel 13
+  - Eloquent ORM
+  - Blade Templating
+  - MySQL
+features:
+  - name: Kaprodi Dashboard Monitoring
+    description: Kaprodi dashboard shows thesis phase distribution and summary cards.
+    files:
+      - routes/web/kaprodi.php
+      - resources/views/kaprodi/dashboard.blade.php
+      - app/Models/Skripsi.php
+      - app/Models/SidangRequest.php
+    endpoints:
+      - method: GET
+        path: /kaprodi/dashboard
+        description: Show Kaprodi dashboard with thesis and sidang summary stats.
+        auth_required: true
+        response_schema:
+          "200": HTML (Blade view kaprodi.dashboard)
+    depends_on:
+      - auth middleware
+      - role:kaprodi middleware
+      - skripsi phase data
+
+  - name: Kaprodi Mahasiswa Management
+    description: CRUD and archive flow for mahasiswa accounts plus skripsi phase update.
+    files:
+      - routes/web/kaprodi.php
+      - app/Http/Controllers/Kaprodi/MahasiswaController.php
+      - app/Models/User.php
+      - app/Models/Skripsi.php
+      - resources/views/kaprodi/mahasiswa/index.blade.php
+      - resources/views/kaprodi/mahasiswa/create.blade.php
+      - resources/views/kaprodi/mahasiswa/edit.blade.php
+      - resources/views/kaprodi/mahasiswa/show.blade.php
+      - resources/views/kaprodi/mahasiswa/partials/table.blade.php
+      - resources/views/kaprodi/mahasiswa/partials/pagination.blade.php
+    endpoints:
+      - method: GET
+        path: /kaprodi/mahasiswa
+        description: List mahasiswa with search, sort, pagination, and optional AJAX partial payload.
+        auth_required: true
+        response_schema:
+          "200": HTML or JSON (table_html, pagination_html, count_text)
+      - method: GET
+        path: /kaprodi/mahasiswa/create
+        description: Show create mahasiswa form.
+        auth_required: true
+        response_schema:
+          "200": HTML
+      - method: POST
+        path: /kaprodi/mahasiswa
+        description: Create mahasiswa account with validation and role lock to mahasiswa.
+        auth_required: true
+        request_schema:
+          body:
+            name: string
+            nim: string unique
+            email: email unique
+            password: string min8 confirmed
+        response_schema:
+          "302": Redirect to kaprodi.mahasiswa.index
+      - method: GET
+        path: /kaprodi/mahasiswa/{mahasiswa}
+        description: Show mahasiswa detail and latest skripsi summary.
+        auth_required: true
+        response_schema:
+          "200": HTML
+          "404": Non-mahasiswa user access denied
+      - method: GET
+        path: /kaprodi/mahasiswa/{mahasiswa}/edit
+        description: Show edit form for mahasiswa.
+        auth_required: true
+        response_schema:
+          "200": HTML
+      - method: PUT
+        path: /kaprodi/mahasiswa/{mahasiswa}
+        description: Update mahasiswa data and optional password.
+        auth_required: true
+        request_schema:
+          body:
+            name: string
+            nim: string unique_except_current
+            email: email unique_except_current
+            password: string nullable min8 confirmed
+        response_schema:
+          "302": Redirect to kaprodi.mahasiswa.show
+      - method: PUT
+        path: /kaprodi/mahasiswa/{mahasiswa}/skripsi-status
+        description: Update current thesis phase for latest skripsi record.
+        auth_required: true
+        request_schema:
+          body:
+            current_phase: enum proposal|sidang_proposal|bimbingan_skripsi|sidang_skripsi|revisi_sidang_skripsi|review_dokumen_final|skripsi_selesai
+        response_schema:
+          "302": Redirect to kaprodi.mahasiswa.show
+      - method: POST
+        path: /kaprodi/mahasiswa/{mahasiswa}/archive
+        description: Soft-delete mahasiswa only when running skripsi exists.
+        auth_required: true
+        response_schema:
+          "302": Redirect with success or error flash
+      - method: DELETE
+        path: /kaprodi/mahasiswa/{mahasiswa}
+        description: Delete mahasiswa only when no running skripsi exists.
+        auth_required: true
+        response_schema:
+          "302": Redirect with success or error flash
+    depends_on:
+      - auth middleware
+      - role:kaprodi middleware
+      - User::forRole scope
+      - Skripsi relations (assignments, bimbingans)
+
+known_limitations:
+  - issue: Dashboard route closure mixes query logic directly in routes file.
+    location: routes/web/kaprodi.php
+    impact: Harder to unit test and maintain than controller-based action.
+  - issue: Archive and destroy rely on delete behavior without explicit restore path in kaprodi flow.
+    location: app/Http/Controllers/Kaprodi/MahasiswaController.php
+    impact: Potential confusion between archive and permanent delete semantics.
