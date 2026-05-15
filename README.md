@@ -1,58 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TA Cloud
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> A thesis management system for universities — managing skripsi submissions, bimbingan, sidang requests, document versioning, grading, and real-time notifications.
 
-## About Laravel
+![Laravel](https://img.shields.io/badge/Laravel-13-red?style=flat-square)
+![PHP](https://img.shields.io/badge/PHP-8.3-blue?style=flat-square)
+![Tailwind](https://img.shields.io/badge/Tailwind-v4-teal?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-gray?style=flat-square)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Roles
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Role | Access scope |
+|------|-------------|
+| Kaprodi | Global operator — full CRUD, assignments, approvals |
+| Dosen | Reviewer-scoped — assigned skripsi only |
+| Mahasiswa | Owner-scoped — own records only |
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Feature status
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Feature | Status |
+|---------|--------|
+| Realtime notification system | ✅ Done |
+| Kaprodi, Dosen & Mahasiswa layers | ✅ Done |
+| Document versioning & bimbingan flow | ✅ Done |
+| Reusable Blade UI components | ✅ Done |
+| Final submission wiring | 🔄 In progress |
+| Skripsi export / rekap | 📋 Todo |
+| Google OAuth login | 📋 Todo |
+| Super Admin & advanced RBAC | 📋 Todo |
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## Tech stack
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+**Backend** — Laravel 13, PHP 8.3, Eloquent ORM, Laravel Reverb
+
+**Frontend** — Blade views, Tailwind CSS v4, Alpine.js, Vite
+
+**Infra & QA** — MySQL, Laravel Breeze, Pest, Laravel Herd
+
+---
+
+## Getting started
 
 ```bash
-composer require laravel/boost --dev
+# Clone and install
+git clone https://github.com/vinnoch/ta-cloud.git
+cd ta-cloud
+composer install
+npm install
 
-php artisan boost:install
+# Configure environment
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+
+# Run
+npm run dev
+php artisan reverb:start
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Project structure
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
+app/
+├── Http/Controllers/
+│   ├── Kaprodi/       # Kaprodi-scoped controllers
+│   ├── Dosen/         # Dosen-scoped controllers
+│   └── Mahasiswa/     # Mahasiswa-scoped controllers
+├── Models/            # Eloquent models
+├── Services/          # Business logic services
+└── Notifications/     # Laravel notification classes
+resources/views/
+├── kaprodi/           # Kaprodi views
+├── dosen/             # Dosen views
+├── mahasiswa/         # Mahasiswa views
+└── partials/          # Reusable Blade components
+routes/web/            # Role-scoped route files
+```
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
