@@ -39,7 +39,7 @@
             </div>
             <div class="table-shell__cell">
                 <span class="pill pill--score-circle pill--score-circle-neutral">{{ rtrim(rtrim(number_format((float) $item->score, 2, '.', ''), '0'), '.') }}</span>
-                <div class="mt-2 text-xs acss-muted">
+                <div class=" text-xs acss-muted">
                     {{ \Carbon\Carbon::parse($item->last_added_at)->format('d/m/Y') }}<br>
                     {{ \Carbon\Carbon::parse($item->last_added_at)->format('H:i') }}
                 </div>

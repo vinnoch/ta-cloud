@@ -31,7 +31,7 @@
         </div>
     </section>
 
-    <section class="acss-crud-card mt-4">
+    <section class="acss-crud-card">
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Periode Terkait</h3>

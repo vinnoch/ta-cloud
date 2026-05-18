@@ -23,7 +23,7 @@
         </div>
     </section>
 
-    <section class="acss-crud-card mt-4">
+    <section class="acss-crud-card">
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Informasi Mahasiswa</h3>
@@ -45,7 +45,7 @@
                 </div>
             </div>
 
-            <div class="form-actions form-actions--inline mt-8">
+            <div class="form-actions form-actions--inline ">
                 @if (! $mahasiswa->trashed())
                     <button type="button" class="button button--muted button--inline" data-mahasiswa-edit-modal-open>Edit Mahasiswa</button>
                     @if ($hasRunningSkripsi)
@@ -71,7 +71,7 @@
         </div>
     </section>
 
-    <section class="acss-crud-card mt-4">
+    <section class="acss-crud-card">
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Skripsi Aktif</h3>

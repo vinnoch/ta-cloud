@@ -13,7 +13,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <strong>Approval Proposal</strong>
-                        <div class="mt-1">Proposal mahasiswa ini menunggu persetujuan Anda untuk lanjut ke fase Sidang Proposal.</div>
+                        <div class="">Proposal mahasiswa ini menunggu persetujuan Anda untuk lanjut ke fase Sidang Proposal.</div>
                     </div>
                     <div class="flex gap-2">
                         <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}" onsubmit="return confirm('Setujui proposal ini?')">
@@ -31,7 +31,7 @@
         @endphp
 
         @if ($pendingSidangRequest)
-            <div class="notice notice--warning mt-2">
+            <div class="notice notice--warning ">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <strong>{{ $pendingSidangRequest->lecturer?->name ?? '-' }} ({{ str($pendingSidangRequest->role_type)->replace('_', ' ')->title() }}) telah mengajukan permohonan sidang untuk skripsi ini.</strong>
                     <div class="flex gap-2">
@@ -71,7 +71,7 @@
             <div class="section-heading">
                 <div>
                     <h3>Jadwal Sidang Skripsi</h3>
-                    <p class="acss-muted mt-1">Atur tanggal dan waktu sidang. Notifikasi akan dikirim ke mahasiswa dan dosen terkait.</p>
+                    <p class="acss-muted ">Atur tanggal dan waktu sidang. Notifikasi akan dikirim ke mahasiswa dan dosen terkait.</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('kaprodi.skripsi.sidang-schedule.update', $skripsi) }}" class="acss-master-form-shell">
@@ -91,24 +91,24 @@
                 </div>
             </form>
             @if ($sidangSkripsiSchedule)
-                <div class="acss-muted mt-3">
+                <div class="acss-muted ">
                     Jadwal aktif: <strong>{{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</strong>
                 </div>
             @endif
         </section>
 
         @if ($skripsi->current_phase === 'review_dokumen_final')
-            <section class="card card--notice mt-4 acss-final-review-card">
+            <section class="card card--notice acss-final-review-card">
                 <div class="section-heading">
                     <div>
                         <h3>Validasi Dokumen Final</h3>
-                        <p class="acss-muted mt-1">Periksa dokumen final yang sudah dikirim mahasiswa sebelum menyelesaikan skripsi.</p>
+                        <p class="acss-muted ">Periksa dokumen final yang sudah dikirim mahasiswa sebelum menyelesaikan skripsi.</p>
                     </div>
                 </div>
                 <div class="acss-action-group p-4">
                     <p>Seluruh reviewer telah menyetujui dokumen final. Lakukan validasi akhir untuk menyatakan skripsi selesai.</p>
 
-                    <div class="acss-final-documents mt-4">
+                    <div class="acss-final-documents ">
                         @forelse ($finalReviewDocuments as $document)
                             <div class="acss-final-documents__item">
                                 <div>
@@ -132,7 +132,7 @@
                         @endif
                     </div>
 
-                    <div class="flex gap-2 mt-4">
+                    <div class="flex gap-2 ">
                         <form method="POST" action="{{ route('kaprodi.skripsi.final-review.approve', $skripsi) }}" onsubmit="return confirm('Validasi dokumen final dan selesaikan skripsi?')">
                             @csrf
                             <button class="button button--small button--success" type="submit">Validasi & Selesaikan Skripsi</button>
@@ -232,7 +232,7 @@
             <div class="section-heading">
                 <div>
                     <h3>Penilaian Sidang Skripsi</h3>
-                    <p class="acss-muted mt-1">Pantau dosen yang sudah dan belum mengirim nilai.</p>
+                    <p class="acss-muted ">Pantau dosen yang sudah dan belum mengirim nilai.</p>
                 </div>
             </div>
             <div class="acss-grading-progress-grid">
@@ -241,7 +241,7 @@
                         <span class="acss-grading-progress-label">Sudah Final</span>
                         <strong class="acss-grading-progress-count">{{ $gradingProgress['submitted_count'] }}/{{ $gradingProgress['expected_count'] }}</strong>
                     </div>
-                    <div class="acss-grading-progress-lists mt-3">
+                    <div class="acss-grading-progress-lists ">
                         <div>
                             <div class="acss-grading-pill-wrap">
                                 @forelse ($gradingProgress['submitted_reviewers'] as $reviewer)
@@ -257,7 +257,7 @@
                     <div class="acss-grading-progress-head">
                         <span class="acss-grading-progress-label">Belum Final</span>
                     </div>
-                    <div class="acss-grading-progress-lists mt-3">
+                    <div class="acss-grading-progress-lists ">
                         <div>
                             <div class="acss-grading-pill-wrap">
                                 @forelse ($gradingProgress['pending_reviewers'] as $reviewer)

@@ -9,7 +9,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Pengajuan Proposal</h1>
-                <p id="proposal-count-text" class="acss-muted mt-1">{{ $proposals->total() }} pengajuan proposal ditemukan.</p>
+                <p id="proposal-count-text" class="acss-muted ">{{ $proposals->total() }} pengajuan proposal ditemukan.</p>
             </div>
         </div>
 

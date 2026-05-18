@@ -16,7 +16,7 @@
         </div>
     </section>
 
-    <section class="acss-section-card mt-4">
+    <section class="acss-section-card">
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Riwayat Pertemuan</h3>

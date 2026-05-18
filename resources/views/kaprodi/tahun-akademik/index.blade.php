@@ -8,7 +8,7 @@
         <div class="acss-crud-head acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Tahun Akademik</h1>
-                <p class="acss-muted mt-1" id="count-text">{{ $tahunAkademik->total() }} tahun akademik ditemukan.</p>
+                <p class="acss-muted " id="count-text">{{ $tahunAkademik->total() }} tahun akademik ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <button type="button" class="button button--inline" data-ta-create-open>@include('partials.icons.plus')<span>Tambah Tahun Akademik</span></button>

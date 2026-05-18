@@ -8,7 +8,7 @@
         <div class="acss-crud-head acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Daftar Periode</h1>
-                <p class="acss-muted mt-1" id="count-text">{{ $periode->total() }} periode akademik tersedia.</p>
+                <p class="acss-muted " id="count-text">{{ $periode->total() }} periode akademik tersedia.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <button type="button" class="button button--inline" data-periode-create-open>@include('partials.icons.plus')<span>Tambah Periode</span></button>
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="acss-crud-head">
                             <div>
                                 <h3 class="acss-card-title">Tahun Akademik</h3>
-                                <p class="acss-muted mt-1">Pilih tahun akademik dan semester periode.</p>
+                                <p class="acss-muted ">Pilih tahun akademik dan semester periode.</p>
                             </div>
                         </div>
                         <div class="acss-crud-body">
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="acss-crud-head">
                             <div>
                                 <h3 class="acss-card-title">Dokumen SK</h3>
-                                <p class="acss-muted mt-1">Lengkapi dokumen SK dan masa berlaku periode.</p>
+                                <p class="acss-muted ">Lengkapi dokumen SK dan masa berlaku periode.</p>
                             </div>
                         </div>
                         <div class="acss-crud-body">
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 </div>
-                <div class="form-actions form-actions--inline mt-4">
+                <div class="form-actions form-actions--inline ">
                     <button type="button" class="button button--muted button--inline" data-periode-edit-close>Batal</button>
                     <button class="button button--inline" type="submit">Simpan Perubahan</button>
                 </div>
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="acss-master-form-shell">
                 @include('kaprodi.periode.partials.form-fields')
                 </div>
-                <div class="form-actions form-actions--inline mt-4">
+                <div class="form-actions form-actions--inline ">
                     <button type="button" class="button button--muted button--inline" data-periode-create-close>Batal</button>
                     <button class="button button--inline" type="submit">Simpan Periode</button>
                 </div>

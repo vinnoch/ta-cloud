@@ -10,7 +10,7 @@
             ['href' => route('mahasiswa.skripsi.create', ['type' => 'non_skripsi']), 'label' => 'Edit Data']
         ]
     ])
-    <section class="acss-stack-sections mt-4">
+    <section class="acss-stack-sections">
         <article class="card acss-section-card">
             <div class="acss-section-card__head"><div><h3 class="acss-card-title">{{ $non_skripsi->summary }}</h3></div></div>
             <div class="acss-section-card__body"><div class="content-block">
@@ -33,7 +33,7 @@
                     </p>
                 </div>
             </div>
-            <div class="mt-4">
+            <div class="">
                 <form action="{{ route('mahasiswa.non-skripsi.destroy', $non_skripsi) }}" method="POST" onsubmit="return confirm('Hapus data ini?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="button button--danger button--inline">Hapus Data</button>

@@ -16,11 +16,11 @@
     </section>
 
     @if ($skripsi->proposal_review_status === 'pending')
-        <div class="notice notice--warning mt-4">
+        <div class="notice notice--warning ">
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <strong>Konfirmasi Pengajuan Proposal</strong>
-                    <p class="mt-1">Mahasiswa mengajukan proposal skripsi. Silakan tinjau dokumen sebelum memberikan persetujuan.</p>
+                    <p class="">Mahasiswa mengajukan proposal skripsi. Silakan tinjau dokumen sebelum memberikan persetujuan.</p>
                 </div>
                 <div class="flex gap-2">
                     <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}">
@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    <section class="acss-section-card mt-4">
+    <section class="acss-section-card">
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Detail Proposal</h3>
@@ -43,9 +43,9 @@
             <div class="acss-info-grid">
                 <div class="acss-info-item">
                     <span class="acss-muted">Judul Proposal</span>
-                    <strong class="text-xl block mt-1">{{ $skripsi->title ?: '-' }}</strong>
+                    <strong class="text-xl block ">{{ $skripsi->title ?: '-' }}</strong>
                 </div>
-                <div class="acss-info-item mt-6">
+                <div class="acss-info-item ">
                     <span class="acss-muted">Tanggal Pengajuan</span>
                     <strong>{{ $skripsi->documentVersions->first()?->created_at?->format('d/m/Y') ?? '-' }}</strong>
                 </div>
@@ -53,7 +53,7 @@
         </div>
     </section>
 
-    <section class="acss-section-card mt-4">
+    <section class="acss-section-card">
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Riwayat Dokumen Proposal</h3>
@@ -89,7 +89,7 @@
     </section>
 
     @if ($skripsi->current_phase !== 'proposal' || $skripsi->proposal_review_status === 'approved')
-        <section class="acss-section-card mt-4">
+        <section class="acss-section-card">
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Reviewer</h3>
@@ -97,7 +97,7 @@
             </div>
             <div class="acss-section-card__body">
                 <div id="reviewer-list">{!! $reviewerTableHtml !!}</div>
-                <div class="acss-link-gap-top mt-4">
+                <div class="acss-link-gap-top ">
                     <button type="button" class="acss-link-subtle" data-reviewer-modal-open>Tambahkan Reviewer</button>
                 </div>
             </div>

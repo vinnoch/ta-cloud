@@ -24,11 +24,11 @@
     @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Fase Tugas Akhir'])
 
     @if (!empty($needsProposalUpload) && !empty($proposalUploadUrl))
-        <section class="acss-section-card mt-4">
+        <section class="acss-section-card">
             <div class="acss-section-card__head">
                 <div>
                     <strong class="text-red-600 font-bold uppercase tracking-wide">Anda belum mengirimkan Proposal.</strong>
-                    <p class="acss-muted mt-1">Upload sekarang agar proses review bisa dimulai.</p>
+                    <p class="acss-muted ">Upload sekarang agar proses review bisa dimulai.</p>
                 </div>
                 <button type="button" class="button button--inline" data-proposal-modal-trigger>Upload Proposal</button>
             </div>
@@ -36,11 +36,11 @@
     @endif
 
     @if (($proposalFinalSubmission['allowed'] ?? false) || ($skripsiFinalSubmission['allowed'] ?? false))
-        <section class="acss-section-card mt-4">
+        <section class="acss-section-card">
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Final Submission</h3>
-                    <p class="acss-muted mt-1">Aktif setelah semua nilai tahap sidang tersedia.</p>
+                    <p class="acss-muted ">Aktif setelah semua nilai tahap sidang tersedia.</p>
                 </div>
             </div>
             <div class="table-shell">
@@ -64,7 +64,7 @@
         </section>
     @endif
 
-    <section class="card mt-4" id="riwayat-proposal">
+    <section class="card" id="riwayat-proposal">
         <div class="section-heading acss-crud-head--inline">
             <div>
                 <h3 class="acss-card-title">Riwayat Proposal</h3>
@@ -107,7 +107,7 @@
         </div>
     </section>
 
-    <section class="card mt-4">
+    <section class="card">
         <div class="section-heading"><div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div></div>
         <div class="table-shell">
             @if (count($latestBimbingans ?? []) > 0)
@@ -148,7 +148,7 @@
         </div>
     </section>
 
-    <section class="card mt-4">
+    <section class="card">
         <div class="section-heading"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
         <div class="table-shell">
             @if (count($reviewers ?? []) > 0)
@@ -295,7 +295,7 @@
             <div class="acss-modal__head">
                 <div>
                     <h3>Upload Proposal</h3>
-                    <p class="acss-muted mt-1">Upload proposal awal untuk memulai proses review.</p>
+                    <p class="acss-muted ">Upload proposal awal untuk memulai proses review.</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-proposal-modal-close aria-label="Tutup">×</button>
             </div>
@@ -305,16 +305,16 @@
                     <input type="hidden" name="phase" value="proposal">
                     <div class="acss-dropzone acss-dropzone--hint border border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer hover:border-[var(--primary)] transition-colors" tabindex="0" data-proposal-dropzone>
                         <input type="file" name="file" accept="application/pdf" class="hidden" id="proposal_upload_file" data-proposal-upload-input>
-                        <p class="text-muted text-sm mb-2">Drag &amp; drop file here, or click to select</p>
-                        <p class="text-sm font-medium text-[var(--primary)] mt-2 acss-hidden" data-proposal-file-label></p>
+                        <p class="text-muted text-sm ">Drag &amp; drop file here, or click to select</p>
+                        <p class="text-sm font-medium text-[var(--primary)]  acss-hidden" data-proposal-file-label></p>
                     </div>
-                    <div class="acss-upload-progress mt-4" data-proposal-progress-wrap>
+                    <div class="acss-upload-progress " data-proposal-progress-wrap>
                         <div class="acss-uploading-state__label">Mengunggah proposal... <span data-proposal-percent>0%</span></div>
                         <div class="acss-upload-progress__bar-container bg-gray-100 h-2 rounded-full overflow-hidden">
                             <div class="acss-upload-progress__bar h-full bg-[#446553]" data-proposal-progress-bar></div>
                         </div>
                     </div>
-                    <small class="acss-muted mt-3 block">Maksimum 20 MB. Format file: PDF.</small>
+                    <small class="acss-muted  block">Maksimum 20 MB. Format file: PDF.</small>
                 </form>
             </div>
         </div>
@@ -327,7 +327,7 @@
         <div class="acss-modal__head">
             <div>
                 <h3>Preview Dokumen</h3>
-                <p class="acss-muted mt-1" data-pdf-preview-name>-</p>
+                <p class="acss-muted " data-pdf-preview-name>-</p>
             </div>
             <button type="button" class="acss-modal__close" data-pdf-preview-close aria-label="Tutup">×</button>
         </div>

@@ -16,7 +16,7 @@
         .flex { display: flex; }
         .justify-between { justify-content: space-between; }
         .items-center { align-items: center; }
-        .mb-4 { margin-bottom: 1rem; }
+        . { margin-bottom: 1rem; }
         .btn { 
             display: inline-flex; 
             align-items: center; 
@@ -43,7 +43,7 @@
 </style>
 </head>
 <body onload="window.print()">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center ">
         <div>
             <h1>Logbook Bimbingan</h1>
             <p>{{ $skripsi->student?->name ?? '-' }} • {{ $skripsi->title }}</p>

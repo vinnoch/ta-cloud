@@ -4,7 +4,7 @@
     $nextDirection = fn (string $column) => $sort === $column && $direction === 'asc' ? 'desc' : 'asc';
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
-<div class="table-shell mt-4">
+<div class="table-shell ">
     @if (count($skripsis) > 0)
         <div class="table-shell__head table-shell__grid acss-table-cols-skripsi">
             <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>

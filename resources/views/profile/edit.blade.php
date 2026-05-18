@@ -9,7 +9,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Edit Profil</h1>
-                <p class="acss-muted mt-1">Perbarui nama, email, identitas, dan password akun Anda.</p>
+                <p class="acss-muted ">Perbarui nama, email, identitas, dan password akun Anda.</p>
             </div>
         </div>
 

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-page-card mb-4">
+    <section class="acss-page-card">
         <div class="acss-page-card__body acss-dashboard-header">
             <div>
                 <h1 class="acss-page-title">Dashboard Kaprodi</h1>
-                <p class="acss-muted mt-1">Ringkasan monitoring dan fase skripsi mahasiswa.</p>
+                <p class="acss-muted ">Ringkasan monitoring dan fase skripsi mahasiswa.</p>
             </div>
             <form method="GET" action="{{ route('kaprodi.dashboard') }}" id="periode-switcher-form" class="acss-dashboard-header__form">
                 <label class="form-field acss-field-tight">
@@ -22,7 +22,7 @@
         </div>
     </section>
 
-    <section class="acss-dashboard-metric-grid mb-4">
+    <section class="acss-dashboard-metric-grid">
         @foreach ($stats as $index => $stat)
             @include('kaprodi.partials.dashboard-stat-card', [
                 'label' => $stat['label'],
@@ -90,7 +90,7 @@
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Distribusi Skripsi Aktif</h3>
-                <p class="acss-muted mt-1">Periode aktif dan distribusi fase skripsi saat ini.</p>
+                <p class="acss-muted ">Periode aktif dan distribusi fase skripsi saat ini.</p>
             </div>
         </div>
 

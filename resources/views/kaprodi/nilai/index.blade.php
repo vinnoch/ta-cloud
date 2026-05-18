@@ -5,7 +5,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Nilai</h1>
-                <p class="acss-muted mt-1" id="count-text">{{ $data_nilai->total() }} nilai ditemukan.</p>
+                <p class="acss-muted " id="count-text">{{ $data_nilai->total() }} nilai ditemukan.</p>
             </div>
         </div>
 

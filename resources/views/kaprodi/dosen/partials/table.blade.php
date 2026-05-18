@@ -46,7 +46,7 @@
                     @endif
                 </div>
             </div>
-            <div class="table-shell__cell"><strong>{{ $item->name }}</strong>@if($item->trashed())<div><span class="status-pill status-pill--locked mt-2">ARCHIVED</span></div>@endif</div>
+            <div class="table-shell__cell"><strong>{{ $item->name }}</strong>@if($item->trashed())<div><span class="status-pill status-pill--locked ">ARCHIVED</span></div>@endif</div>
             <div class="table-shell__cell">{{ $item->email }}</div>
         </div>
     @empty

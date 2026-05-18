@@ -40,17 +40,17 @@ class Bimbingan extends Model
 
     public function getRevisionFileUrlAttribute($value): ?string
     {
-        if (is_string($value) && trim($value) !== '') {
-            return $value;
-        }
-
         if (! $this->relationLoaded('reviewedVersion')) {
             $this->loadMissing('reviewedVersion');
         }
 
         $documentId = $this->reviewedVersion?->id;
 
-        return $documentId ? route('documents.preview', $documentId) : null;
+        if ($documentId) {
+            return route('documents.preview', $documentId);
+        }
+
+        return is_string($value) && trim($value) !== '' ? $value : null;
     }
 
     public function getHasRevisionFileAttribute(): bool

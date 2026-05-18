@@ -9,7 +9,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Monitoring Skripsi</h1>
-                <p class="acss-muted mt-1" id="count-text">{{ $skripsis->total() }} skripsi ditemukan.</p>
+                <p class="acss-muted " id="count-text">{{ $skripsis->total() }} skripsi ditemukan.</p>
             </div>
         </div>
 

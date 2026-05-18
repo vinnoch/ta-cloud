@@ -133,7 +133,7 @@
                             const errors = (summary.errors || []).map(err => `<div class="history-table__row"><small class="field-error acss-field-error-reset">${err}</small></div>`).join('');
                             feedback.innerHTML = `
                                 <div class="notice notice--success">${response.message}</div>
-                                <section class="card mb-4">
+                                <section class="card">
                                     <div class="section-heading"><div><h3>Hasil Import</h3></div></div>
                                     <div class="pill-row">
                                         <span class="pill">Dibuat: ${summary.created ?? 0}</span>

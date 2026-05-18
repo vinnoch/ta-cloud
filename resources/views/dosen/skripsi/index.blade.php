@@ -4,7 +4,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Skripsi Mahasiswa Bimbingan</h1>
-                <p id="skripsi-count-text" class="acss-muted mt-1">{{ $skripsis->total() }} skripsi ditemukan.</p>
+                <p id="skripsi-count-text" class="acss-muted ">{{ $skripsis->total() }} skripsi ditemukan.</p>
             </div>
         </div>
         <div class="acss-crud-body">

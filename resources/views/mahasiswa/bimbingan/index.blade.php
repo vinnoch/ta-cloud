@@ -17,7 +17,7 @@
         </div>
     </section>
 
-    <section class="acss-crud-card mt-4">
+    <section class="acss-crud-card">
         <div class="acss-crud-head acss-crud-head--inline">
             <div><h3 class="acss-card-title">Riwayat Pertemuan</h3></div>
             <div class="acss-crud-head__actions">
@@ -108,7 +108,7 @@
             <div class="acss-modal__head">
                 <div>
                     <h3 class="acss-card-title">Preview Dokumen</h3>
-                    <p class="acss-muted mt-1" data-pdf-preview-name>-</p>
+                    <p class="acss-muted " data-pdf-preview-name>-</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-pdf-preview-close aria-label="Tutup">×</button>
             </div>

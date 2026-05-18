@@ -50,14 +50,14 @@
 
                 <div class="form-field">
                     <span>Dokumen Proposal</span>
-                    <div class="acss-dropzone acss-dropzone--hint border border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer hover:border-[var(--primary)] transition-colors mt-1"
+                    <div class="acss-dropzone acss-dropzone--hint border border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer hover:border-[var(--primary)] transition-colors "
                         tabindex="0" data-dropzone-trigger="proposal_file">
                         <input type="file" name="proposal_file" accept="application/pdf" class="hidden"
                             id="proposal_file">
-                        <p class="text-muted text-sm mb-2">Klik atau drag n drop file proposal di sini</p>
-                        <p class="text-sm font-medium text-[var(--primary)] mt-2 acss-hidden" data-file-label></p>
+                        <p class="text-muted text-sm ">Klik atau drag n drop file proposal di sini</p>
+                        <p class="text-sm font-medium text-[var(--primary)]  acss-hidden" data-file-label></p>
                     </div>
-                    <small class="acss-muted mt-2 block">Format PDF. Ukuran maks 20 MB.</small>
+                    <small class="acss-muted  block">Format PDF. Ukuran maks 20 MB.</small>
                     @error('proposal_file')
                         <small class="field-error">{{ $message }}</small>
                     @enderror
@@ -67,14 +67,14 @@
                     <span>Link Artikel Jurnal (opsional)</span>
                     <input type="url" name="journal_article_url" value="{{ old('journal_article_url') }}"
                         placeholder="https://jurnal.university.ac.id/article/123">
-                    <small class="acss-muted mt-2 block">Isi jika memilih Non Skripsi dan sudah terpublikasi di
+                    <small class="acss-muted  block">Isi jika memilih Non Skripsi dan sudah terpublikasi di
                         jurnal</small>
                     @error('journal_article_url')
                         <small class="field-error">{{ $message }}</small>
                     @enderror
                 </label>
 
-                <div class="acss-page-card mt-4">
+                <div class="acss-page-card ">
                     <div class="acss-page-card__body">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <label class="form-field acss-field-tight md:w-1/3">

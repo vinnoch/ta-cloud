@@ -4,7 +4,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Antrian Penilaian</h1>
-                <p id="grade-count-text" class="acss-muted mt-1">{{ $gradingQueue->total() }} antrian ditemukan.</p>
+                <p id="grade-count-text" class="acss-muted ">{{ $gradingQueue->total() }} antrian ditemukan.</p>
             </div>
         </div>
         <div class="acss-crud-body">

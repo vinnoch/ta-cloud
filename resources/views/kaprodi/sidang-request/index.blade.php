@@ -9,7 +9,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Permohonan Sidang</h1>
-                <p id="sidang-count-text" class="acss-muted mt-1">{{ $requests->total() }} permohonan sidang ditemukan.</p>
+                <p id="sidang-count-text" class="acss-muted ">{{ $requests->total() }} permohonan sidang ditemukan.</p>
             </div>
         </div>
 

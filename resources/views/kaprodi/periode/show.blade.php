@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <div class="form-actions form-actions--inline mt-4">
+        <div class="form-actions form-actions--inline ">
             <button type="button" class="button button--muted button--inline" data-periode-show-edit-open>Edit Periode</button>
             @if ($hasLinkedData)
                 <form method="POST" action="{{ route('kaprodi.periode.archive', $periode) }}" onsubmit="return confirm('Arsipkan periode ini?')">
@@ -73,7 +73,7 @@
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Skripsi Aktif</h3>
-                <p class="acss-muted mt-1" id="assigned-count-text">{{ $assignedSkripsis->total() }} skripsi aktif terhubung.</p>
+                <p class="acss-muted " id="assigned-count-text">{{ $assignedSkripsis->total() }} skripsi aktif terhubung.</p>
             </div>
         </div>
         <div class="acss-crud-body">
@@ -141,7 +141,7 @@
                         <div class="acss-crud-head">
                             <div>
                                 <h3 class="acss-card-title">Tahun Akademik</h3>
-                                <p class="acss-muted mt-1">Pilih tahun akademik dan semester periode.</p>
+                                <p class="acss-muted ">Pilih tahun akademik dan semester periode.</p>
                             </div>
                         </div>
                         <div class="acss-crud-body">
@@ -168,7 +168,7 @@
                         <div class="acss-crud-head">
                             <div>
                                 <h3 class="acss-card-title">Dokumen SK</h3>
-                                <p class="acss-muted mt-1">Lengkapi dokumen SK dan masa berlaku periode.</p>
+                                <p class="acss-muted ">Lengkapi dokumen SK dan masa berlaku periode.</p>
                             </div>
                         </div>
                         <div class="acss-crud-body">
@@ -204,7 +204,7 @@
                     </div>
                 </div>
                 </div>
-                <div class="form-actions form-actions--inline mt-4">
+                <div class="form-actions form-actions--inline ">
                     <button type="button" class="button button--muted button--inline" data-periode-show-edit-close>Batal</button>
                     <button class="button button--inline" type="submit">Simpan Perubahan</button>
                 </div>

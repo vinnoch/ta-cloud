@@ -19,9 +19,9 @@
                 <strong>{{ $skripsi->documentVersions->first()?->created_at?->format('d/m/Y') ?? '-' }}</strong>
                 <div class="text-[10px] acss-muted">{{ $skripsi->documentVersions->first()?->created_at?->format('H:i') ?? '' }}</div>
                 @if ($skripsi->proposal_review_status === 'revision_required')
-                    <div class="mt-2"><span class="pill">Butuh Revisi</span></div>
+                    <div class=""><span class="pill">Butuh Revisi</span></div>
                 @elseif ($skripsi->proposal_review_status === 'approved')
-                    <div class="mt-2"><span class="pill">Disetujui</span></div>
+                    <div class=""><span class="pill">Disetujui</span></div>
                 @endif
                 <div class="acss-row-actions">
                     <a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.proposal', $skripsi) }}">@include('partials.icons.eye')<span>Proposal</span></a>

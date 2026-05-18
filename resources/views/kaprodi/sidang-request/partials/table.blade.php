@@ -36,7 +36,7 @@
             <div class="table-shell__cell">
                 <span class="pill">{{ $item->role_type === 'mahasiswa' ? 'Sidang Proposal' : 'Sidang Skripsi' }}</span>
                 @if($item->role_type !== 'mahasiswa')
-                    <div class="mt-1"><small>Dosen: {{ $item->lecturer?->name ?? '-' }}</small></div>
+                    <div class=""><small>Dosen: {{ $item->lecturer?->name ?? '-' }}</small></div>
                 @endif
             </div>
             <div class="table-shell__cell">

@@ -9,7 +9,7 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Review Dokumen Final</h1>
-                <p id="final-review-count-text" class="acss-muted mt-1">{{ $skripsis->total() }} dokumen final ditemukan.</p>
+                <p id="final-review-count-text" class="acss-muted ">{{ $skripsis->total() }} dokumen final ditemukan.</p>
             </div>
         </div>
 

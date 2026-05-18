@@ -20,8 +20,10 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view): void {
             $data = $view->getData();
             $user = Auth::user();
+            $user?->loadMissing('studyProgram');
             $role = $user?->role ?? 'global';
             $navigation = app(RoleNavigationService::class);
+            $navSubtitle = $user?->studyProgram?->name ?? ($role === 'global' ? 'Sistem Manajemen Tugas Akhir' : strtoupper($role) . ' Workspace');
 
             if (empty($data['navItems'])) {
                 $footerItems = $navigation->footerItems();
@@ -42,6 +44,10 @@ class AppServiceProvider extends ServiceProvider
                     'navFooterItems' => $footerItems,
                     'primaryCta' => null,
                 ]);
+            }
+
+            if (empty($data['navSubtitle'])) {
+                $view->with('navSubtitle', $navSubtitle);
             }
 
             if (empty($data['roleCards'])) {

@@ -7,7 +7,7 @@
         $proposalAverage = optional($groupedGrades->get('sidang_proposal', collect()))->whereNotNull('score')->avg('score');
         $skripsiAverage = optional($groupedGrades->get('sidang_skripsi', collect()))->whereNotNull('score')->avg('score');
     @endphp
-    <section class="card card--profile mb-4">
+    <section class="card card--profile">
         <div class="profile-card">
             <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
             <div class="profile-card__main">
@@ -36,11 +36,11 @@
     </section>
 
     @if (($proposalFinalSubmission['allowed'] ?? false) || ($skripsiFinalSubmission['allowed'] ?? false))
-        <section class="acss-section-card mb-4">
+        <section class="acss-section-card">
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Final Submission Tersedia</h3>
-                    <p class="acss-muted mt-1">Lanjutkan pengiriman dokumen final sesuai tahap yang sudah selesai dinilai.</p>
+                    <p class="acss-muted ">Lanjutkan pengiriman dokumen final sesuai tahap yang sudah selesai dinilai.</p>
                 </div>
             </div>
             <div class="acss-section-card__body">
@@ -61,7 +61,7 @@
             $eventAverage = $eventGrades->whereNotNull('score')->avg('score');
             $eventName = str($event)->replace('_', ' ')->title();
         @endphp
-        <section class="acss-section-card mb-4">
+        <section class="acss-section-card">
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Nilai {{ $eventName }}</h3>
@@ -80,13 +80,13 @@
                         </div>
                     @endforeach
                 </div>
-                <p class="acss-muted mt-6 pt-2">
+                <p class="acss-muted  pt-2">
                     Rata-rata Nilai: <strong>{{ $eventAverage ? number_format($eventAverage, 1) : '-' }}</strong>
                 </p>
             </div>
         </section>
     @empty
-        <section class="acss-section-card mt-4">
+        <section class="acss-section-card">
             <div class="acss-section-card__body">
                 <div class="empty-state">Belum ada nilai yang tersedia.</div>
             </div>

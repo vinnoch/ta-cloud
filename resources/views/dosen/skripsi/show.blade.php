@@ -12,7 +12,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <strong>Waktu Sidang Sudah Tiba</strong>
-                    <div class="mt-1">Sidang skripsi mahasiswa ini sudah berjalan. Segera isi nilai sidang skripsi Anda.</div>
+                    <div class="">Sidang skripsi mahasiswa ini sudah berjalan. Segera isi nilai sidang skripsi Anda.</div>
                 </div>
                 <a class="button button--small button--success" href="{{ route('dosen.penilaian.show', $skripsi) }}">Isi Nilai</a>
             </div>
@@ -31,7 +31,7 @@
                     </div>
                     <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
-                <div class="form-actions form-actions--inline mt-4">
+                <div class="form-actions form-actions--inline ">
                     @if(in_array($skripsi->current_phase, ['sidang_skripsi', 'revisi_sidang_skripsi']))
                         <a class="button button--inline" href="{{ route('dosen.penilaian.show', $skripsi) }}"><span class="dosen-btn-icon">@include("partials.icons.clipboard")</span><span>Isi Nilai</span></a>
                     @endif
@@ -42,12 +42,10 @@
 
     @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Fase Skripsi'])
 
-    <div class="acss-stack-sections mt-4">
-        
-        <section class="card mb-4">
+    <section class="card">
             <div class="section-heading"><div><h3 class="acss-card-title">Dokumen Utama</h3></div></div>
             <div class="table-shell">
-                    @forelse($skripsi->documentVersions->sortByDesc('created_at') as $doc)
+                @forelse($skripsi->documentVersions->filter(fn ($doc) => ! str_starts_with((string) $doc->phase, 'bimbingan'))->sortByDesc('created_at') as $doc)
                         @if ($loop->first)
                             <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-docs">
                                 <span>Tanggal</span>
@@ -67,12 +65,12 @@
                             </div>
                             <div class="table-shell__cell table-shell__cell--title">
                                 <strong>{{ $phaseLabel }}</strong>
-                                <div class="acss-muted text-xs mt-1">{{ \Illuminate\Support\Str::limit($fileName, 30) }}</div>
+                                <div class="acss-muted text-xs ">{{ \Illuminate\Support\Str::limit($fileName, 30) }}</div>
                             </div>
                             <div class="table-shell__cell"><span class="pill">V{{ (int) ($doc->version_number ?: 1) }}</span></div>
                             <div class="table-shell__cell">
                                 <div class="acss-row-actions acss-row-actions--always">
-                                    <button type="button" class="text-link acss-action-link" data-preview-open data-preview-url="{{ \Illuminate\Support\Facades\Storage::url($doc->file_path) }}" data-preview-title="{{ $fileName }}">@include('partials.icons.eye')<span>File PDF</span></button>
+                                    <button type="button" class="text-link acss-action-link" data-preview-open data-preview-url="{{ route('documents.preview', $doc) }}" data-preview-title="{{ $fileName }}">@include('partials.icons.eye')<span>File PDF</span></button>
                                 </div>
                             </div>
                         </div>
@@ -80,9 +78,9 @@
                         <div class="empty-state">Belum ada dokumen utama.</div>
                     @endforelse
                 </div>
-        </section>
+    </section>
 
-        <section class="card">
+    <section class="card">
             <div class="section-heading acss-crud-head--inline">
                 <div>
                     <h3 class="acss-card-title">Histori Bimbingan</h3>
@@ -137,41 +135,39 @@
                         <div class="empty-state">Belum ada bimbingan.</div>
                     @endforelse
                 </div>
+    </section>
+
+    @if(($myRoleType ?? null) === 'pembimbing_1' && $skripsi->current_phase === 'bimbingan_skripsi')
+        <div class="form-actions form-actions--inline">
+            <button type="button" class="button button--inline button--success" data-sidang-create-modal-open><span class="dosen-btn-icon">@include("partials.icons.send")</span><span>Ajukan Permohonan Sidang</span></button>
+        </div>
+    @endif
+
+    @if ($skripsi->current_phase === 'review_dokumen_final')
+        <section class="acss-section-card">
+            <div class="acss-section-card__head"><div><h3 class="acss-card-title">Status Approval Dokumen Final</h3></div></div>
+            <div class="acss-section-card__body">
+                <div class="table-shell">
+                    @forelse($finalApprovals as $approval)
+                        @if ($loop->first)
+                            <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-approval">
+                                <span>Reviewer</span>
+                                <span>Peran</span>
+                                <span>Status</span>
+                            </div>
+                        @endif
+                        <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi-approval acss-hover-row-group">
+                            <div class="table-shell__cell"><strong>{{ $approval->reviewer?->name ?? '-' }}</strong></div>
+                            <div class="table-shell__cell">{{ str($approval->role_type)->replace('_', ' ')->title() }}</div>
+                            <div class="table-shell__cell"><span class="pill">{{ strtoupper($approval->status) }}</span></div>
+                        </div>
+                    @empty
+                        <div class="empty-state">Belum ada status approval final.</div>
+                    @endforelse
+                </div>
             </div>
         </section>
-
-        @if(($myRoleType ?? null) === 'pembimbing_1' && $skripsi->current_phase === 'bimbingan_skripsi')
-            <div class="form-actions form-actions--inline mt-4">
-                <button type="button" class="button button--inline button--success" data-sidang-create-modal-open><span class="dosen-btn-icon">@include("partials.icons.send")</span><span>Ajukan Permohonan Sidang</span></button>
-            </div>
-        @endif
-
-        @if ($skripsi->current_phase === 'review_dokumen_final')
-            <section class="acss-section-card">
-                <div class="acss-section-card__head"><div><h3 class="acss-card-title">Status Approval Dokumen Final</h3></div></div>
-                <div class="acss-section-card__body">
-                    <div class="table-shell">
-                        @forelse($finalApprovals as $approval)
-                            @if ($loop->first)
-                                <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-approval">
-                                    <span>Reviewer</span>
-                                    <span>Peran</span>
-                                    <span>Status</span>
-                                </div>
-                            @endif
-                            <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi-approval acss-hover-row-group">
-                                <div class="table-shell__cell"><strong>{{ $approval->reviewer?->name ?? '-' }}</strong></div>
-                                <div class="table-shell__cell">{{ str($approval->role_type)->replace('_', ' ')->title() }}</div>
-                                <div class="table-shell__cell"><span class="pill">{{ strtoupper($approval->status) }}</span></div>
-                            </div>
-                        @empty
-                            <div class="empty-state">Belum ada status approval final.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </section>
-        @endif
-    </div>
+    @endif
 
     <div class="acss-modal" data-bimbingan-create-modal hidden>
         <div class="acss-modal__backdrop" data-bimbingan-create-modal-close></div>

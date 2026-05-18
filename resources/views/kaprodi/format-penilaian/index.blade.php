@@ -9,7 +9,7 @@
         <div class="acss-crud-head acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Format Penilaian</h1>
-                <p id="count-text" class="acss-muted mt-1">{{ $formats->total() }} format ditemukan.</p>
+                <p id="count-text" class="acss-muted ">{{ $formats->total() }} format ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <a class="button button--inline" href="{{ route('kaprodi.formats.create') }}">@include('partials.icons.plus')<span>Tambah Format</span></a>

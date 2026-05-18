@@ -22,7 +22,7 @@
 
         @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $activeSkripsi, 'timelineTitle' => 'Timeline Fase Tugas Akhir'])
 
-        <div class="acss-stack-sections mt-4">
+        <div class="acss-stack-sections ">
             <section class="acss-section-card">
                 <div class="acss-section-card__head">
                     <div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div>
@@ -109,7 +109,7 @@
                 <div class="acss-empty-state-full">
                     <h2 class="acss-card-title">Belum Ada Skripsi Aktif</h2>
                     <p>Silakan buat pengajuan skripsi baru untuk memulai.</p>
-                    <div class="acss-flex-center gap-4 mt-6">
+                    <div class="acss-flex-center gap-4 ">
                         <a href="{{ route('mahasiswa.skripsi.create') }}" class="button button--inline">Buat Skripsi Baru</a>
                     </div>
                 </div>

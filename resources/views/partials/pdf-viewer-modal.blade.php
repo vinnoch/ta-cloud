@@ -31,7 +31,7 @@
         <div class="acss-modal__head">
             <div>
                 <h3 class="acss-card-title">Preview Dokumen</h3>
-                <p class="acss-muted mt-1" data-pdf-preview-name>-</p>
+                <p class="acss-muted " data-pdf-preview-name>-</p>
             </div>
             <button type="button" class="acss-modal__close" data-pdf-preview-close aria-label="Tutup">×</button>
         </div>

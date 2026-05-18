@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-page-card mb-4">
+    <section class="acss-page-card">
         <div class="acss-page-card__body">
             <h1 class="acss-page-title">Dashboard Dosen</h1>
-            <p class="acss-muted mt-1">Ringkasan bimbingan, antrian penilaian, dan persetujuan dokumen final.</p>
+            <p class="acss-muted ">Ringkasan bimbingan, antrian penilaian, dan persetujuan dokumen final.</p>
         </div>
     </section>
 
-    <section class="acss-dashboard-metric-grid mb-4">
+    <section class="acss-dashboard-metric-grid">
         @foreach ($stats as $index => $stat)
             @include('kaprodi.partials.dashboard-stat-card', [
                 'label' => $stat['label'],
@@ -20,11 +20,11 @@
         @endforeach
     </section>
 
-    <section class="acss-section-card mb-4">
+    <section class="acss-section-card">
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Antrian Penilaian</h3>
-                <p class="acss-muted mt-1">Skripsi sidang yang menunggu draft/final nilai dari Anda.</p>
+                <p class="acss-muted ">Skripsi sidang yang menunggu draft/final nilai dari Anda.</p>
             </div>
         </div>
         <div class="acss-section-card__body">

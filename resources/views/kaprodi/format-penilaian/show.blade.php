@@ -47,7 +47,7 @@
                     </label>
                 </form>
 
-                <p id="assigned-count-text" class="acss-muted mb-3">{{ $assignedSkripsis->total() }} skripsi terhubung.</p>
+                <p id="assigned-count-text" class="acss-muted ">{{ $assignedSkripsis->total() }} skripsi terhubung.</p>
                 
                 <div id="assigned-table-wrapper">
                     @include('kaprodi.format-penilaian.partials.assigned-table', [

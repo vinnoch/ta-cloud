@@ -40,7 +40,7 @@
         $timelineTitle = $timelineTitle ?? 'Timeline Fase Skripsi';
     @endphp
 
-    <section class="card mt-4">
+    <section class="card">
         <div class="section-heading">
             <div>
                 <h3>{{ $timelineTitle }}</h3>

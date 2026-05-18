@@ -49,7 +49,7 @@
                 <div class="acss-crud-head">
                     <div>
                         <h3 class="acss-card-title">Item Penilaian</h3>
-                        <p class="acss-muted mt-1">Susun item penilaian sidang dan persentase bobotnya.</p>
+                        <p class="acss-muted ">Susun item penilaian sidang dan persentase bobotnya.</p>
                     </div>
 
                 </div>

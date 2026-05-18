@@ -23,7 +23,7 @@
 @endphp
 
 <div id="phase-builder-root" class="space-y-4">
-    <div class="mb-4 max-w-sm">
+    <div class=" max-w-sm">
         <label class="form-field acss-field-tight">
             <span>Jumlah Item Penilaian</span>
             <select id="item-count-select" data-item-count>
@@ -33,13 +33,13 @@
                 @endfor
             </select>
         </label>
-        <div id="phase-empty-state" class="acss-muted text-sm mt-2 {{ $shouldShowRows ? 'hidden' : '' }}">Pilih jumlah item penilaian untuk menampilkan field.</div>
+        <div id="phase-empty-state" class="acss-muted text-sm  {{ $shouldShowRows ? 'hidden' : '' }}">Pilih jumlah item penilaian untuk menampilkan field.</div>
     </div>
 
     <div id="phase-rows-container" class="{{ $shouldShowRows ? '' : 'hidden' }}">
         @if ($shouldShowRows)
             @foreach ($itemRows as $index => $item)
-                <div class="acss-phase-block grid grid-cols-1 md:grid-cols-2 gap-5 mb-4" data-phase-index="{{ $index }}">
+                <div class="acss-phase-block grid grid-cols-1 md:grid-cols-2 gap-5 " data-phase-index="{{ $index }}">
                     @if (!empty($item['id']))
                         <input type="hidden" name="items[{{ $index }}][id]" value="{{ $item['id'] }}">
                     @endif
@@ -57,14 +57,14 @@
         @endif
     </div>
 
-    <small id="duplicate-item-error" class="field-error mt-2 block hidden">Nama item penilaian tidak boleh sama dalam satu format nilai.</small>
+    <small id="duplicate-item-error" class="field-error  block hidden">Nama item penilaian tidak boleh sama dalam satu format nilai.</small>
 
     @error('items')
-        <small class="field-error mt-2 block">{{ $message }}</small>
+        <small class="field-error  block">{{ $message }}</small>
     @enderror
 </div>
 
-<div class="flex justify-end mt-6 {{ $shouldShowRows ? '' : 'hidden' }}" id="total-weight-wrap">
+<div class="flex justify-end  {{ $shouldShowRows ? '' : 'hidden' }}" id="total-weight-wrap">
     <div class="pill-row">
         <span class="pill text-sm font-semibold" id="total-weight-pill">Total Bobot: 0%</span>
     </div>
@@ -96,7 +96,7 @@
     };
 
     const rowTemplate = (index, item = {}) => `
-        <div class="acss-phase-block grid grid-cols-1 md:grid-cols-2 gap-5 mb-4" data-phase-index="${index}">
+        <div class="acss-phase-block grid grid-cols-1 md:grid-cols-2 gap-5 " data-phase-index="${index}">
             ${item.id ? `<input type="hidden" name="items[${index}][id]" value="${item.id}">` : ''}
             <input type="hidden" name="items[${index}][code]" value="${item.code ?? ''}" data-phase-code="${index}">
             <label class="form-field acss-field-tight">

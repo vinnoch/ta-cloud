@@ -9,7 +9,7 @@
         <div class="acss-crud-head acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Master Mahasiswa</h1>
-                <p class="acss-muted mt-1" id="count-text">{{ $mahasiswa->total() }} akun mahasiswa ditemukan.</p>
+                <p class="acss-muted " id="count-text">{{ $mahasiswa->total() }} akun mahasiswa ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <button type="button" class="button button--inline" data-mahasiswa-create-open>@include('partials.icons.plus')<span>Tambah Mahasiswa</span></button>

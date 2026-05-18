@@ -11,11 +11,11 @@
         @endforeach
     </section>
 
-    <section class="acss-section-card mt-4">
+    <section class="acss-section-card">
         <div class="acss-section-card__body">
             <span class="acss-stat-label">{{ $decisionCard['eyebrow'] ?? '' }}</span>
-            <h3 class="acss-card-title mt-2">{{ $decisionCard['title'] ?? '-' }}</h3>
-            <p class="acss-muted mt-2">{{ $decisionCard['description'] ?? '' }}</p>
+            <h3 class="acss-card-title ">{{ $decisionCard['title'] ?? '-' }}</h3>
+            <p class="acss-muted ">{{ $decisionCard['description'] ?? '' }}</p>
         </div>
     </section>
 @endsection
