@@ -9,8 +9,11 @@ use App\Models\Grade;
 use App\Models\Skripsi;
 use App\Models\User;
 use App\Services\NotificationService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -236,6 +239,7 @@ class SkripsiController extends Controller
             'sidangRequests' => $skripsi->sidangRequests->sortBy('role_type')->values(),
             'gradingProgress' => $gradingProgress,
             'journalArticleUrl' => $skripsi->journal_article_url,
+            'sidangSkripsiSchedule' => $skripsi->sidang_skripsi_datetime,
         ]));
     }
 
@@ -257,6 +261,67 @@ class SkripsiController extends Controller
         }
 
         return back()->with('success', 'Fase skripsi berhasil diperbarui.');
+    }
+
+    public function updateSidangSchedule(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'sidang_skripsi_datetime' => ['required', 'date'],
+        ]);
+
+        $scheduledAt = Carbon::parse($validated['sidang_skripsi_datetime']);
+
+        $skripsi->update([
+            'sidang_skripsi_datetime' => $scheduledAt,
+            'sidang_skripsi_grade_notified_at' => null,
+        ]);
+
+        $skripsi->loadMissing(['student', 'assignments.lecturer']);
+
+        $formattedDate = $scheduledAt->translatedFormat('d M Y');
+        $formattedTime = $scheduledAt->format('H:i');
+        $student = $skripsi->student;
+        $lecturers = $skripsi->assignments
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
+            ->pluck('lecturer')
+            ->filter()
+            ->values();
+
+        if ($student) {
+            $notifications->send([$student], [
+                'type' => 'sidang_skripsi_scheduled',
+                'title' => 'Jadwal Sidang Skripsi Ditetapkan',
+                'message' => "Sidang skripsi untuk \"{$skripsi->title}\" dijadwalkan pada {$formattedDate} pukul {$formattedTime}.",
+                'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                'meta' => [
+                    'skripsi_id' => $skripsi->id,
+                    'scheduled_at' => $scheduledAt->toIso8601String(),
+                ],
+            ]);
+        }
+
+        if ($lecturers->isNotEmpty()) {
+            $notifications->send($lecturers, [
+                'type' => 'sidang_skripsi_scheduled',
+                'title' => 'Jadwal Sidang Skripsi Ditetapkan',
+                'message' => "Sidang skripsi {$student?->name} dijadwalkan pada {$formattedDate} pukul {$formattedTime}.",
+                'url' => route('dosen.skripsi.show', $skripsi, false),
+                'meta' => [
+                    'skripsi_id' => $skripsi->id,
+                    'scheduled_at' => $scheduledAt->toIso8601String(),
+                ],
+            ]);
+        }
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'message' => 'Jadwal sidang skripsi berhasil diperbarui.',
+                'scheduled_at' => $scheduledAt->toIso8601String(),
+                'scheduled_at_label' => $scheduledAt->translatedFormat('d M Y H:i'),
+            ]);
+        }
+
+        return back()->with('success', 'Jadwal sidang skripsi berhasil diperbarui.');
     }
 
     public function showProposal(Skripsi $skripsi): View
@@ -443,9 +508,12 @@ class SkripsiController extends Controller
 
     public function downloadLogbook(Skripsi $skripsi): StreamedResponse
     {
+        $skripsi->loadMissing('student');
+        $studentLabel = trim((string) ($skripsi->student?->nim ?: $skripsi->student?->name ?: 'mahasiswa'));
+
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="logbook_' . $skripsi->id . '.csv"',
+            'Content-Disposition' => 'attachment; filename="logbook_' . Str::slug($studentLabel, '_') . '.csv"',
         ];
 
         $callback = function () use ($skripsi) {

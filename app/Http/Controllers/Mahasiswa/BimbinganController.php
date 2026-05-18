@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -82,9 +83,25 @@ class BimbinganController extends Controller
         }
 
         $reviewerId = (int) $request->query('reviewer_id', 0);
+        $skripsi->loadMissing('student');
+        $studentLabel = trim((string) ($skripsi->student?->nim ?: $skripsi->student?->name ?: 'mahasiswa'));
+        $reviewerSuffix = '';
+
+        if ($reviewerId > 0) {
+            $reviewerName = $skripsi->assignments()
+                ->with('lecturer:id,name')
+                ->get()
+                ->pluck('lecturer')
+                ->firstWhere('id', $reviewerId)?->name;
+
+            if ($reviewerName) {
+                $reviewerSuffix = '_dosen_' . Str::slug($reviewerName, '_');
+            }
+        }
+
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="logbook_mahasiswa_' . $skripsi->id . ($reviewerId > 0 ? '_reviewer_' . $reviewerId : '') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="logbook_' . Str::slug($studentLabel, '_') . $reviewerSuffix . '.csv"',
         ];
 
         $callback = function () use ($skripsi, $reviewerId) {

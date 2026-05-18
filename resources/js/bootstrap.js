@@ -14,16 +14,20 @@ if (csrfToken) {
 }
 
 const reverbKey = import.meta.env.VITE_REVERB_APP_KEY;
+const reverbScheme = import.meta.env.VITE_REVERB_SCHEME ?? 'http';
+const pageUsesHttps = window.location.protocol === 'https:';
+const reverbUsesHttps = reverbScheme === 'https';
+const shouldBootEcho = reverbKey && !(pageUsesHttps && !reverbUsesHttps);
 
-if (reverbKey) {
+if (shouldBootEcho) {
     window.Echo = new Echo({
         broadcaster: 'reverb',
         key: reverbKey,
         wsHost: import.meta.env.VITE_REVERB_HOST ?? window.location.hostname,
         wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
         wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
-        forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
-        enabledTransports: ['ws', 'wss'],
+        forceTLS: reverbUsesHttps,
+        enabledTransports: reverbUsesHttps ? ['wss'] : ['ws'],
         authEndpoint: '/broadcasting/auth',
         auth: {
             headers: csrfToken ? {
@@ -31,4 +35,6 @@ if (reverbKey) {
             } : {},
         },
     });
+} else if (reverbKey && pageUsesHttps && !reverbUsesHttps) {
+    console.warn('Echo disabled: HTTPS page requires REVERB_SCHEME=https or a secure WebSocket proxy.');
 }

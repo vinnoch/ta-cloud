@@ -61,9 +61,7 @@ class RoleNavigationService
 
     public function mahasiswaNavItems(?int $userId = null, ?int $skripsiId = null): array
     {
-        $items = [
-            ['label' => 'Dashboard', 'href' => route('mahasiswa.dashboard'), 'active' => 'mahasiswa.dashboard', 'icon' => 'partials.icons.grid'],
-        ];
+        $items = [];
 
         $resolvedSkripsiId = $skripsiId;
 

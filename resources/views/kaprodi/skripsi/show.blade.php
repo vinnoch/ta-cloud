@@ -67,6 +67,36 @@
 
 
     <div class="acss-stack-sections">
+        <section class="card">
+            <div class="section-heading">
+                <div>
+                    <h3>Jadwal Sidang Skripsi</h3>
+                    <p class="acss-muted mt-1">Atur tanggal dan waktu sidang. Notifikasi akan dikirim ke mahasiswa dan dosen terkait.</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('kaprodi.skripsi.sidang-schedule.update', $skripsi) }}" class="acss-master-form-shell">
+                @csrf
+                @method('PUT')
+                <label class="form-field">
+                    <span>Tanggal &amp; Waktu Sidang</span>
+                    <input
+                        type="datetime-local"
+                        name="sidang_skripsi_datetime"
+                        value="{{ old('sidang_skripsi_datetime', optional($sidangSkripsiSchedule)->format('Y-m-d\\TH:i')) }}"
+                        required
+                    >
+                </label>
+                <div class="form-actions form-actions--inline">
+                    <button class="button button--inline" type="submit">Simpan Jadwal</button>
+                </div>
+            </form>
+            @if ($sidangSkripsiSchedule)
+                <div class="acss-muted mt-3">
+                    Jadwal aktif: <strong>{{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</strong>
+                </div>
+            @endif
+        </section>
+
         @if ($skripsi->current_phase === 'review_dokumen_final')
             <section class="card card--notice mt-4 acss-final-review-card">
                 <div class="section-heading">

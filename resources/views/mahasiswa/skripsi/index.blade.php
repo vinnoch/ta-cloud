@@ -25,17 +25,19 @@
         <div class="acss-stack-sections mt-4">
             <section class="acss-section-card">
                 <div class="acss-section-card__head">
-                    <div><h3>Histori Bimbingan Terakhir</h3></div>
+                    <div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div>
                 </div>
                 <div class="acss-section-card__body">
                     <div class="table-shell">
-                        <div class="table-shell__head table-shell__grid acss-table-cols-mhs-skripsi-bimbingan">
-                            <span>Tanggal</span>
-                            <span>Dosen</span>
-                            <span>Catatan</span>
-                            <span>Dokumen</span>
-                        </div>
                         @forelse($activeSkripsi->bimbingans()->with(['reviewer', 'reviewedVersion'])->latest('meeting_date')->limit(5)->get() as $bimbingan)
+                            @if ($loop->first)
+                                <div class="table-shell__head table-shell__grid acss-table-cols-mhs-skripsi-bimbingan">
+                                    <span>Tanggal</span>
+                                    <span>Dosen</span>
+                                    <span>Catatan</span>
+                                    <span>Dokumen</span>
+                                </div>
+                            @endif
                             <div class="table-shell__row table-shell__grid acss-table-cols-mhs-skripsi-bimbingan acss-hover-row-group">
                                 <div class="table-shell__cell">
                                     <strong>{{ $bimbingan->meeting_date->format('d/m/Y') }}</strong>
@@ -67,16 +69,18 @@
 
             <section class="acss-section-card">
                 <div class="acss-section-card__head">
-                    <div><h3>Dosen Pembimbing</h3></div>
+                    <div><h3 class="acss-card-title">Dosen Pembimbing</h3></div>
                 </div>
                 <div class="acss-section-card__body">
                     <div class="table-shell">
-                        <div class="table-shell__head table-shell__grid acss-table-cols-mhs-skripsi-reviewers">
-                            <span>Peran</span>
-                            <span>Nama Dosen</span>
-                            <span>Assigned</span>
-                        </div>
                         @forelse($activeSkripsi->assignments()->with('lecturer')->get() as $assignment)
+                            @if ($loop->first)
+                                <div class="table-shell__head table-shell__grid acss-table-cols-mhs-skripsi-reviewers">
+                                    <span>Peran</span>
+                                    <span>Nama Dosen</span>
+                                    <span>Assigned</span>
+                                </div>
+                            @endif
                             <div class="table-shell__row table-shell__grid acss-table-cols-mhs-skripsi-reviewers acss-hover-row-group">
                                 <div class="table-shell__cell">
                                     <strong>{{ str($assignment->role_type)->replace('_', ' ')->title() }}</strong>
@@ -100,13 +104,13 @@
             </section>
         </div>
     @else
-        <section class="card">
-            <div class="card__body">
+        <section class="acss-section-card">
+            <div class="acss-section-card__body">
                 <div class="acss-empty-state-full">
-                    <h2>Belum Ada Skripsi Aktif</h2>
+                    <h2 class="acss-card-title">Belum Ada Skripsi Aktif</h2>
                     <p>Silakan buat pengajuan skripsi baru untuk memulai.</p>
                     <div class="acss-flex-center gap-4 mt-6">
-                        <a href="{{ route('mahasiswa.skripsi.create') }}" class="btn btn--primary">Buat Skripsi Baru</a>
+                        <a href="{{ route('mahasiswa.skripsi.create') }}" class="button button--inline">Buat Skripsi Baru</a>
                     </div>
                 </div>
             </div>

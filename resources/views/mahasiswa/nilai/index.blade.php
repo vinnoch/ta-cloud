@@ -15,7 +15,7 @@
                     <div>
                         <h2>{{ $skripsi->student->name ?? 'Mahasiswa' }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
-                        <div class="acss-grade-title">{{ $skripsi->title ?: 'Tanpa Judul' }}</div>
+                        <div class="acss-quote-title">{{ $skripsi->title ?: 'Tanpa Judul' }}</div>
                     </div>
                     <div class="acss-score-stack-group">
                         <div class="acss-score-stack">
@@ -65,9 +65,6 @@
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Nilai {{ $eventName }}</h3>
-                    <p class="acss-muted mt-1">
-                        Rata-rata Nilai: <strong>{{ $eventAverage ? number_format($eventAverage, 1) : '-' }}</strong>
-                    </p>
                 </div>
             </div>
             <div class="acss-section-card__body">
@@ -83,6 +80,9 @@
                         </div>
                     @endforeach
                 </div>
+                <p class="acss-muted mt-6 pt-2">
+                    Rata-rata Nilai: <strong>{{ $eventAverage ? number_format($eventAverage, 1) : '-' }}</strong>
+                </p>
             </div>
         </section>
     @empty

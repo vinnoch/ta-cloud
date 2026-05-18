@@ -113,7 +113,7 @@ class AuthenticatedSessionController extends Controller
     private function dashboardRouteFor(string $role): string
     {
         return match ($role) {
-            'mahasiswa' => route('mahasiswa.dashboard'),
+            'mahasiswa' => route('mahasiswa.skripsi.index'),
             'dosen' => route('dosen.dashboard'),
             'kaprodi' => route('kaprodi.dashboard'),
             default => route('dashboard.index'),

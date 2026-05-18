@@ -4,6 +4,7 @@ use App\Events\RealtimeNotificationCreated;
 use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -22,3 +23,5 @@ Artisan::command('notify:test {userId} {title=Realtime update} {message=New noti
 
     $this->info("Notification broadcast sent to user {$user->getAuthIdentifier()}.");
 })->purpose('Broadcast a realtime notification to a single user');
+
+Schedule::command('app:isi-nilai-reminder-command')->hourly();

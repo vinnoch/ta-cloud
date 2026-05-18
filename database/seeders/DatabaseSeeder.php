@@ -8,6 +8,7 @@ use App\Models\Skripsi;
 use App\Models\StudyProgram;
 use App\Models\TahunAkademik;
 use App\Models\User;
+use App\Models\UserLevel;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $password = Hash::make('password');
 
         $this->seedSamplePdfFiles();
+        $this->seedUserLevels();
 
         DB::table('departments')->updateOrInsert(
             ['code' => 'FTI'],
@@ -260,5 +262,15 @@ PDF;
 
         Storage::disk('public')->put('dokumen/sample.pdf', $pdf);
         Storage::disk('public')->put('revisi-bimbingan/sample/revisi-bimbingan-1.pdf', $pdf);
+    }
+
+    private function seedUserLevels(): void
+    {
+        foreach (['admin', 'kaprodi', 'dosen', 'mahasiswa'] as $role) {
+            UserLevel::query()->updateOrCreate(
+                ['users_level' => $role],
+                ['updated_at' => now(), 'created_at' => now()],
+            );
+        }
     }
 }

@@ -109,6 +109,7 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
     Route::post('/skripsi/{skripsi}/final-review/approve', [FinalReviewController::class, 'approve'])->name('skripsi.final-review.approve');
     Route::delete('/skripsi/{skripsi}/reviewers/{assignment}', [SkripsiController::class, 'unassignReviewer'])->name('skripsi.reviewers.destroy');
     Route::put('/skripsi/{skripsi}/status', [SkripsiController::class, 'updateStatus'])->name('skripsi.status.update');
+    Route::put('/skripsi/{skripsi}/sidang-schedule', [SkripsiController::class, 'updateSidangSchedule'])->name('skripsi.sidang-schedule.update');
     Route::get('/skripsi/{skripsi}', [SkripsiController::class, 'show'])->name('skripsi.show');
 
     Route::get('/dosen', [DosenController::class, 'index'])->name('dosen.index');

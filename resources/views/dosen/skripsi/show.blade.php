@@ -7,6 +7,17 @@
     @if(session('info'))
         <div class="notice notice--warning">{{ session('info') }}</div>
     @endif
+    @if ($showGradeReminder ?? false)
+        <div class="notice notice--warning">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <strong>Waktu Sidang Sudah Tiba</strong>
+                    <div class="mt-1">Sidang skripsi mahasiswa ini sudah berjalan. Segera isi nilai sidang skripsi Anda.</div>
+                </div>
+                <a class="button button--small button--success" href="{{ route('dosen.penilaian.show', $skripsi) }}">Isi Nilai</a>
+            </div>
+        </div>
+    @endif
 
     <section class="card card--profile">
         <div class="profile-card">
@@ -34,14 +45,17 @@
     <div class="acss-stack-sections mt-4">
         
         <section class="card mb-4">
-            <div class="section-heading"><div><h3>Dokumen Utama</h3></div></div>
+            <div class="section-heading"><div><h3 class="acss-card-title">Dokumen Utama</h3></div></div>
             <div class="table-shell">
-                    <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-docs">
-                        <span>Tanggal</span>
-                        <span>Dokumen</span>
-                        <span>Versi</span>
-                    </div>
                     @forelse($skripsi->documentVersions->sortByDesc('created_at') as $doc)
+                        @if ($loop->first)
+                            <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-docs">
+                                <span>Tanggal</span>
+                                <span>Dokumen</span>
+                                <span>Versi</span>
+                                <span>File PDF</span>
+                            </div>
+                        @endif
                         @php
                             $phaseLabel = str($doc->phase)->replace(['_', '-'], ' ')->title()->toString();
                             $fileName = basename((string) $doc->file_path);
@@ -54,11 +68,13 @@
                             <div class="table-shell__cell table-shell__cell--title">
                                 <strong>{{ $phaseLabel }}</strong>
                                 <div class="acss-muted text-xs mt-1">{{ \Illuminate\Support\Str::limit($fileName, 30) }}</div>
-                                <div class="acss-row-actions">
+                            </div>
+                            <div class="table-shell__cell"><span class="pill">V{{ (int) ($doc->version_number ?: 1) }}</span></div>
+                            <div class="table-shell__cell">
+                                <div class="acss-row-actions acss-row-actions--always">
                                     <button type="button" class="text-link acss-action-link" data-preview-open data-preview-url="{{ \Illuminate\Support\Facades\Storage::url($doc->file_path) }}" data-preview-title="{{ $fileName }}">@include('partials.icons.eye')<span>File PDF</span></button>
                                 </div>
                             </div>
-                            <div class="table-shell__cell"><span class="pill">V{{ (int) ($doc->version_number ?: 1) }}</span></div>
                         </div>
                     @empty
                         <div class="empty-state">Belum ada dokumen utama.</div>
@@ -69,7 +85,7 @@
         <section class="card">
             <div class="section-heading acss-crud-head--inline">
                 <div>
-                    <h3>Histori Bimbingan</h3>
+                    <h3 class="acss-card-title">Histori Bimbingan</h3>
                 </div>
                 @if(in_array($myRoleType ?? null, ['pembimbing_1','pembimbing_2']) && $skripsi->current_phase === 'bimbingan_skripsi')
                     <div class="acss-crud-head__actions">
@@ -78,13 +94,15 @@
                 @endif
             </div>
             <div class="table-shell">
-                <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-bimb">
-                        <span>Tanggal</span>
-                        <span>Fase</span>
-                        <span>Catatan</span>
-                        <span>File PDF</span>
-                    </div>
                     @forelse($skripsi->bimbingans->sortByDesc('meeting_date') as $item)
+                        @if ($loop->first)
+                            <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-bimb">
+                                <span>Tanggal</span>
+                                <span>Fase</span>
+                                <span>Catatan</span>
+                                <span>File PDF</span>
+                            </div>
+                        @endif
                         <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi-bimb acss-hover-row-group">
                             <div class="table-shell__cell">
                                 <strong>{{ $item->meeting_date?->format('d/m/Y') ?? '-' }}</strong><div class='text-[10px] acss-muted'>{{ $item->created_at?->format('H:i') ?? '-' }}</div>
@@ -133,12 +151,14 @@
                 <div class="acss-section-card__head"><div><h3 class="acss-card-title">Status Approval Dokumen Final</h3></div></div>
                 <div class="acss-section-card__body">
                     <div class="table-shell">
-                        <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-approval">
-                            <span>Reviewer</span>
-                            <span>Peran</span>
-                            <span>Status</span>
-                        </div>
                         @forelse($finalApprovals as $approval)
+                            @if ($loop->first)
+                                <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-approval">
+                                    <span>Reviewer</span>
+                                    <span>Peran</span>
+                                    <span>Status</span>
+                                </div>
+                            @endif
                             <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi-approval acss-hover-row-group">
                                 <div class="table-shell__cell"><strong>{{ $approval->reviewer?->name ?? '-' }}</strong></div>
                                 <div class="table-shell__cell">{{ str($approval->role_type)->replace('_', ' ')->title() }}</div>

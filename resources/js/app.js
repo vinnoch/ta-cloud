@@ -290,7 +290,7 @@ function initCenteredConfirm() {
                 <p class="acss-confirm-modal__message"></p>
                 <div class="form-actions form-actions--inline">
                     <button type="button" class="button button--muted button--inline" data-confirm-cancel>Batal</button>
-                    <button type="button" class="button button--danger button--inline" data-confirm-accept>Lanjutkan</button>
+                    <button type="button" class="button button--danger button--inline" data-confirm-accept>Hapus</button>
                 </div>
             </div>
         </div>

@@ -5,12 +5,11 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">{{ $heading ?? 'Buat Skripsi Baru' }}</h1>
-                <p class="acss-muted mt-1">Form awal pengajuan tugas akhir dengan data dasar judul, tipe, dan periode.</p>
             </div>
         </div>
 
         <div class="acss-crud-body">
-            <form class="form-grid" method="POST" action="{{ route('mahasiswa.skripsi.store') }}"
+            <form class="acss-form-stack acss-form-stack--sm" method="POST" action="{{ route('mahasiswa.skripsi.store') }}"
                 enctype="multipart/form-data">
                 @csrf
                 <label class="form-field">
@@ -22,7 +21,7 @@
                     @enderror
                 </label>
 
-                <div class="two-column">
+                <div class="acss-form-split">
                     <label class="form-field">
                         <span>Tipe</span>
                         <select name="type" required>
@@ -49,19 +48,8 @@
                     </label>
                 </div>
 
-                <label class="form-field">
-                    <span>Link Artikel Jurnal (opsional)</span>
-                    <input type="url" name="journal_article_url" value="{{ old('journal_article_url') }}"
-                        placeholder="https://jurnal.university.ac.id/article/123">
-                    <small class="acss-muted mt-2 block">Isi jika memilih Non Skripsi dan sudah terpublikasi di
-                        jurnal</small>
-                    @error('journal_article_url')
-                        <small class="field-error">{{ $message }}</small>
-                    @enderror
-                </label>
-
                 <div class="form-field">
-                    <span>Dokumen Proposal (opsional)</span>
+                    <span>Dokumen Proposal</span>
                     <div class="acss-dropzone acss-dropzone--hint border border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer hover:border-[var(--primary)] transition-colors mt-1"
                         tabindex="0" data-dropzone-trigger="proposal_file">
                         <input type="file" name="proposal_file" accept="application/pdf" class="hidden"
@@ -75,6 +63,17 @@
                     @enderror
                 </div>
 
+                <label class="form-field">
+                    <span>Link Artikel Jurnal (opsional)</span>
+                    <input type="url" name="journal_article_url" value="{{ old('journal_article_url') }}"
+                        placeholder="https://jurnal.university.ac.id/article/123">
+                    <small class="acss-muted mt-2 block">Isi jika memilih Non Skripsi dan sudah terpublikasi di
+                        jurnal</small>
+                    @error('journal_article_url')
+                        <small class="field-error">{{ $message }}</small>
+                    @enderror
+                </label>
+
                 <div class="acss-page-card mt-4">
                     <div class="acss-page-card__body">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -86,7 +85,7 @@
                                 </select>
                             </label>
                             <div class="acss-form-actions">
-                                <button class="button button--inline" type="submit">Simpan Pengajuan</button>
+                                <button class="button button--success button--inline" type="submit">Simpan Pengajuan</button>
                                 <a class="button button--muted button--inline"
                                     href="{{ route('mahasiswa.skripsi.index') }}">Batal</a>
                             </div>

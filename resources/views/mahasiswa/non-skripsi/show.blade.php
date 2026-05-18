@@ -10,10 +10,10 @@
             ['href' => route('mahasiswa.skripsi.create', ['type' => 'non_skripsi']), 'label' => 'Edit Data']
         ]
     ])
-    <section class="card-stack">
-        <article class="card">
-            <div class="section-heading"><h3>{{ $non_skripsi->summary }}</h3></div>
-            <div class="content-block">
+    <section class="acss-stack-sections mt-4">
+        <article class="card acss-section-card">
+            <div class="acss-section-card__head"><div><h3 class="acss-card-title">{{ $non_skripsi->summary }}</h3></div></div>
+            <div class="acss-section-card__body"><div class="content-block">
                 <label class="label-muted">Abstrak</label>
                 <p>{{ $non_skripsi->abstract }}</p>
             </div>
@@ -39,6 +39,6 @@
                     <button type="submit" class="button button--danger button--inline">Hapus Data</button>
                 </form>
             </div>
-        </article>
+        </div></article>
     </section>
 @endsection

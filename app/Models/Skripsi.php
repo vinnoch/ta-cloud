@@ -16,6 +16,8 @@ class Skripsi extends Model
 
     protected $casts = [
         'proposal_reviewed_at' => 'datetime',
+        'sidang_skripsi_datetime' => 'datetime',
+        'sidang_skripsi_grade_notified_at' => 'datetime',
     ];
 
     protected $fillable = [
@@ -28,6 +30,8 @@ class Skripsi extends Model
         'proposal_reviewed_at',
         'proposal_review_note',
         'journal_article_url',
+        'sidang_skripsi_datetime',
+        'sidang_skripsi_grade_notified_at',
     ];
 
     public function student(): BelongsTo

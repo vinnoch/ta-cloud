@@ -10,9 +10,12 @@
                         <h2>{{ $skripsi->student->name ?? '-' }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
-                        <div class="mt-2"><span class="pill">{{ str($skripsi->type ?? 'skripsi')->replace('_', ' ')->title() }}</span></div>
+                        
                     </div>
-                    <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    <div class="acss-profile-badges">
+                        <span class="pill">{{ str($skripsi->type ?? 'skripsi')->replace('_', ' ')->title() }}</span>
+                        <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -21,8 +24,8 @@
     @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Fase Tugas Akhir'])
 
     @if (!empty($needsProposalUpload) && !empty($proposalUploadUrl))
-        <section class="card mt-4">
-            <div class="section-heading">
+        <section class="acss-section-card mt-4">
+            <div class="acss-section-card__head">
                 <div>
                     <strong class="text-red-600 font-bold uppercase tracking-wide">Anda belum mengirimkan Proposal.</strong>
                     <p class="acss-muted mt-1">Upload sekarang agar proses review bisa dimulai.</p>
@@ -33,10 +36,10 @@
     @endif
 
     @if (($proposalFinalSubmission['allowed'] ?? false) || ($skripsiFinalSubmission['allowed'] ?? false))
-        <section class="card mt-4">
-            <div class="section-heading">
+        <section class="acss-section-card mt-4">
+            <div class="acss-section-card__head">
                 <div>
-                    <h3>Final Submission</h3>
+                    <h3 class="acss-card-title">Final Submission</h3>
                     <p class="acss-muted mt-1">Aktif setelah semua nilai tahap sidang tersedia.</p>
                 </div>
             </div>
@@ -64,7 +67,7 @@
     <section class="card mt-4" id="riwayat-proposal">
         <div class="section-heading acss-crud-head--inline">
             <div>
-                <h3>Riwayat Proposal</h3>
+                <h3 class="acss-card-title">Riwayat Proposal</h3>
             </div>
             @if (($canProposalUpload ?? false) && !($needsProposalUpload ?? false))
                 <div class="acss-crud-head__actions">
@@ -73,13 +76,15 @@
             @endif
         </div>
         <div class="table-shell table-shell--proposal-docs">
-            <div class="table-shell__head table-shell__grid acss-table-cols-proposal-docs-detail">
-                <span>Tanggal</span>
-                <span>Versi</span>
-                <span>Catatan</span>
-                <span></span>
-            </div>
             @forelse (($proposalVersions ?? []) as $document)
+                @if ($loop->first)
+                    <div class="table-shell__head table-shell__grid acss-table-cols-proposal-docs-detail">
+                        <span>Tanggal</span>
+                        <span>Versi</span>
+                        <span>Catatan</span>
+                        <span>File PDF</span>
+                    </div>
+                @endif
                 <div class="table-shell__row table-shell__grid acss-table-cols-proposal-docs-detail acss-hover-row-group">
                     <div class="table-shell__cell">
                         <strong>{{ $document->created_at?->format('d/m/Y') ?? '-' }}</strong>
@@ -103,7 +108,7 @@
     </section>
 
     <section class="card mt-4">
-        <div class="section-heading"><div><h3>Histori Bimbingan Terakhir</h3></div></div>
+        <div class="section-heading"><div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div></div>
         <div class="table-shell">
             @if (count($latestBimbingans ?? []) > 0)
                 <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(5,minmax(0,1fr));">
@@ -144,7 +149,7 @@
     </section>
 
     <section class="card mt-4">
-        <div class="section-heading"><div><h3>Dosen Pembimbing</h3></div></div>
+        <div class="section-heading"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
         <div class="table-shell">
             @if (count($reviewers ?? []) > 0)
                 <div class="table-shell__head table-shell__grid acss-table-cols-mhs-reviewers">

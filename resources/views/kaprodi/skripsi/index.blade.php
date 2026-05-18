@@ -20,7 +20,7 @@
         <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route('kaprodi.skripsi.index') }}" autocomplete="off">
                     <input type="hidden" id="sort-input" name="sort" value="{{ $sort ?? '' }}">
                     <input type="hidden" id="direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
-            @csrf
+            
             <label class="form-field acss-search-field">
                 <span>Pencarian</span>
                 <input type="search" id="search-input" class="ta-search" name="q" value="{{ $search }}" placeholder="Cari judul TA, nama, atau NIM">

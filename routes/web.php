@@ -111,7 +111,7 @@ $navFactory = function (string $role) use ($sampleId, $footerItems) {
             'navItems' => [
                 ['label' => 'Overview', 'href' => route('dashboard.index'), 'active' => 'dashboard.*', 'icon' => 'partials.icons.grid'],
                 ['label' => 'Admin', 'href' => route('admin.dashboard'), 'active' => 'admin.*', 'icon' => 'partials.icons.phase-shield'],
-                ['label' => 'Master Mahasiswa', 'href' => route('mahasiswa.dashboard'), 'active' => 'mahasiswa.*', 'icon' => 'partials.icons.file'],
+                ['label' => 'Master Mahasiswa', 'href' => route('mahasiswa.skripsi.index'), 'active' => 'mahasiswa.*', 'icon' => 'partials.icons.file'],
                 ['label' => 'Master Dosen', 'href' => route('dosen.dashboard'), 'active' => 'dosen.*', 'icon' => 'partials.icons.chat'],
                 ['label' => 'Kaprodi', 'href' => route('kaprodi.dashboard'), 'active' => 'kaprodi.*', 'icon' => 'partials.icons.phase-flag'],
                 ['label' => 'Library', 'href' => route('library.index'), 'active' => 'library.*', 'icon' => 'partials.icons.folder'],
@@ -132,7 +132,7 @@ $page = function (string $role, string $heading, string $crumbs, array $extra = 
 };
 
 $dashboardForRole = fn(string $role): string => match ($role) {
-    'mahasiswa' => route('mahasiswa.dashboard'),
+    'mahasiswa' => route('mahasiswa.skripsi.index'),
     'dosen' => route('dosen.dashboard'),
     'kaprodi' => route('kaprodi.dashboard'),
     default => route('dashboard.index'),

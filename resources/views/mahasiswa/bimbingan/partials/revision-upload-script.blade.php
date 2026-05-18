@@ -4,6 +4,7 @@
             document.addEventListener('DOMContentLoaded', function () {
                 const trashIcon = '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 6.5h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 3.75h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 6.5v8m6-8v8M6 6.5l.5 9a1 1 0 0 0 1 .944h4.999a1 1 0 0 0 1-.944L14 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 const editIcon = '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.75 13.75V16.25H6.25L14.5 8L12 5.5L3.75 13.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 6.5L13.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+                const fileIcon = '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6.25 3.75h5.5L15 7v9.25H6.25V3.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M11.75 3.75V7H15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 10.25h4M8 12.75h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Dokumen</span>';
 
 
                 function bindDropzones() {
@@ -107,12 +108,16 @@
                                 if (xhr.status >= 200 && xhr.status < 300) {
                                     progressBar.style.width = '100%';
                                     progressText.textContent = '100%';
+                                    const progressLabel = widget.querySelector('.acss-uploading-state__label');
+                                    if (progressLabel) {
+                                        progressLabel.innerHTML = `<span class="text-link acss-action-link acss-preview-link-inline">${fileIcon}</span>`;
+                                    }
                                     const payload = JSON.parse(xhr.responseText || '{}');
                                     setTimeout(function () {
                                         const replaceId = `replace_${Date.now()}_${Math.random().toString(36).slice(2)}`;
                                         const fileName = payload.filename || '';
                                         const displayName = fileName.length > 15 ? `${fileName.substring(0, 12)}...` : fileName;
-                                        widget.innerHTML = `<div class="acss-revision-widget__done"><button class="text-link acss-action-link acss-preview-link-inline" type="button" data-preview-open data-preview-url="${payload.url}" data-preview-title="${fileName}" title="${fileName}">${fileIcon}<span>Dokumen</span></button><div class="acss-row-actions" style="margin-top:.35rem;"><form method="POST" action="${payload.upload_url || ''}" enctype="multipart/form-data" data-instant-upload-form class="acss-inline-form"><input type="hidden" name="_token" value="${document.querySelector('input[name="_token"]')?.value || ''}"><input type="hidden" name="_method" value="PUT"><input class="acss-file-input-hidden" id="${replaceId}" type="file" name="revision_file" accept=".pdf,.doc,.docx" required data-auto-upload><label class="text-link acss-action-link" for="${replaceId}">${editIcon}<span>Ganti</span></label></form><button class="acss-action-link acss-action-link--danger" type="button" data-remove-revision data-remove-url="${payload.remove_url}">${trashIcon}<span>Hapus</span></button></div></div>`;
+                                        widget.innerHTML = `<div class="acss-revision-widget__done"><button class="text-link acss-action-link acss-preview-link-inline" type="button" data-preview-open data-preview-url="${payload.url}" data-preview-title="${fileName}" title="${fileName}">${fileIcon}</button><div class="acss-row-actions" style="margin-top:.35rem;"><form method="POST" action="${payload.upload_url || ''}" enctype="multipart/form-data" data-instant-upload-form class="acss-inline-form"><input type="hidden" name="_token" value="${document.querySelector('input[name="_token"]')?.value || ''}"><input type="hidden" name="_method" value="PUT"><input class="acss-file-input-hidden" id="${replaceId}" type="file" name="revision_file" accept=".pdf,.doc,.docx" required data-auto-upload><label class="text-link acss-action-link" for="${replaceId}">${editIcon}<span>Ganti</span></label></form><button class="acss-action-link acss-action-link--danger" type="button" data-remove-revision data-remove-url="${payload.remove_url}">${trashIcon}<span>Hapus</span></button></div></div>`;
                                         bindAutoUpload();
                                         bindPreviewButtons();
                                         bindRemoveButtons();
@@ -166,7 +171,7 @@
                     document.querySelectorAll('[data-remove-revision]').forEach(function (button) {
                         if (button.dataset.bound === '1') return;
                         button.dataset.bound = '1';
-                        button.addEventListener('click', function () {
+                        button.addEventListener('click', async function () {
                             if (!await window.taConfirm('Anda yakin menghapus file ini? File akan dihapus permanen')) return;
                             const url = this.dataset.removeUrl;
                             if (!url) return;

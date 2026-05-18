@@ -6,46 +6,6 @@ use App\Http\Controllers\Mahasiswa\NonSkripsiController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth', 'role:mahasiswa'])->group(function () use ($page, $sampleId, $sampleMeetingId, $tableActionPair, $tableAction, $skripsiDetailPage) {
-    Route::get('/dashboard', function () {
-        $user = auth()->user();
-        $skripsiData = app(\App\Services\MahasiswaSkripsiDataService::class);
-
-        $activeTugasAkhir = $skripsiData->activeForUser($user);
-
-        $latestBimbingans = collect();
-        $pembimbing = '-';
-
-        $proposalUploaded = false;
-
-        if ($activeTugasAkhir) {
-            $latestBimbingans = $skripsiData->latestBimbingans($activeTugasAkhir);
-
-            $pembimbing = optional($activeTugasAkhir->assignments->firstWhere('role_type', 'pembimbing_1'))->lecturer?->name ?? '-';
-            $proposalUploaded = $activeTugasAkhir->documentVersions()->where('phase', 'proposal')->exists();
-        }
-
-        return view('mahasiswa.dashboard', [
-            'title' => 'Dashboard Mahasiswa',
-            'stats' => [
-                ['label' => 'Tugas Akhir Aktif', 'value' => $activeTugasAkhir ? '1' : '0'],
-                ['label' => 'Dokumen', 'value' => (string) ($activeTugasAkhir?->documentVersions()->count() ?? 0)],
-                ['label' => 'Bimbingan', 'value' => (string) ($activeTugasAkhir?->bimbingans()->count() ?? 0)],
-            ],
-            'activeSkripsi' => $activeTugasAkhir ? [
-                'title' => $activeTugasAkhir->title,
-                'phase_formatted' => str($activeTugasAkhir->current_phase)->replace(['_', '-'], ' ')->title()->toString(),
-                'pembimbing' => $pembimbing,
-                'bimbingan_count' => $activeTugasAkhir->bimbingans->count(),
-                'detail_url' => route('mahasiswa.skripsi.show', $activeTugasAkhir),
-                'type' => str($activeTugasAkhir->type)->replace('_', ' ')->title()->toString(),
-            ] : null,
-            'activeSkripsiRecord' => $activeTugasAkhir,
-            'latestBimbingans' => $latestBimbingans,
-            'needsProposalUpload' => ! $proposalUploaded && ! empty($activeTugasAkhir),
-            'proposalUploadUrl' => ! empty($activeTugasAkhir) ? route('mahasiswa.skripsi.documents.store', $activeTugasAkhir) : null,
-        ]);
-    })->name('dashboard');
-
     Route::get('/progress-tugas-akhir', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'index'])->name('progres.index');
 
     Route::prefix('skripsi')->name('skripsi.')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Grade;
 use App\Models\ReviewerAssignment;
 use App\Models\Skripsi;
 use App\Services\RoleNavigationService;
@@ -172,10 +173,23 @@ class SkripsiViewController extends Controller
 
         $skripsi->load(['student', 'periode', 'bimbingans.reviewer', 'bimbingans.reviewedVersion', 'documentVersions.uploader', 'grades.reviewer', 'finalDocumentApprovals.reviewer']);
 
+        $showGradeReminder = false;
+
+        if ($assignment && $skripsi->current_phase === 'sidang_skripsi' && $skripsi->sidang_skripsi_datetime?->lte(now())) {
+            $showGradeReminder = ! Grade::query()
+                ->where('skripsi_id', $skripsi->id)
+                ->where('reviewer_id', $request->user()->id)
+                ->where('role_type', $assignment->role_type)
+                ->where('grade_event', 'sidang_skripsi')
+                ->where('status', 'published')
+                ->exists();
+        }
+
         return view('dosen.skripsi.show', $this->page('Detail Skripsi', 'DOSEN • DETAIL SKRIPSI', [
             'skripsi' => $skripsi,
             'myRoleType' => $assignment?->role_type,
             'finalApprovals' => $skripsi->finalDocumentApprovals->sortBy('role_type')->values(),
+            'showGradeReminder' => $showGradeReminder,
         ]));
     }
 

@@ -17,18 +17,6 @@ TA Cloud is a role-based academic management platform built for universities to 
 
 ---
 
-## Development workflow
-
-```mermaid
-flowchart LR
-  PRD["PRD\nClaude / ChatGPT"] --> Mockup["Mockup\nGoogle Stitch"]
-  Mockup --> Design["Design\nFigma"]
-  Design --> Code["Code\nCodex CLI"]
-  Code --> Deploy["Deploy\nGit / GitHub"]
-```
-
----
-
 ## System role flow
 
 ```mermaid

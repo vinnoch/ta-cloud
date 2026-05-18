@@ -33,16 +33,16 @@
                 </form>
                 <div class="acss-export-actions">
                     <a href="{{ route('mahasiswa.skripsi.bimbingan.export.pdf', ['skripsi' => $skripsi->id, 'reviewer_id' => (int) ($selectedReviewerId ?? 0)]) }}" class="acss-export-link acss-export-link--pdf" target="_blank" aria-label="Download PDF">
-                        <span class="acss-export-doc-icon">
+                        <span class="acss-export-doc-icon" aria-hidden="true">
                             @include('partials.icons.file-plain')
                             <span class="acss-export-doc-badge acss-export-doc-badge--pdf">PDF</span>
                             <span class="acss-export-doc-arrow">@include('partials.icons.download-arrow')</span>
                         </span>
                     </a>
                     <a href="{{ route('mahasiswa.skripsi.bimbingan.export.csv', ['skripsi' => $skripsi->id, 'reviewer_id' => (int) ($selectedReviewerId ?? 0)]) }}" class="acss-export-link acss-export-link--csv" aria-label="Download CSV">
-                        <span class="acss-export-doc-icon">
+                        <span class="acss-export-doc-icon" aria-hidden="true">
                             @include('partials.icons.file-plain')
-                            <span class="acss-export-doc-badge acss-export-doc-badge--csv">CSV</span>
+                            <span class="acss-export-doc-badge acss-export-doc-badge--csv">XLS</span>
                             <span class="acss-export-doc-arrow">@include('partials.icons.download-arrow')</span>
                         </span>
                     </a>
@@ -69,7 +69,7 @@
                                 @if ($meeting['has_revision'])
                                     <div class="acss-revision-widget__done">
                                         <button class="text-link acss-action-link acss-preview-link-inline" type="button" data-preview-open data-preview-url="{{ $meeting['revision_url'] }}" data-preview-title="{{ $meeting['revision_name'] }}" title="{{ $meeting['revision_name'] }}">@include('partials.icons.file')<span>Dokumen</span></button>
-                                        <div class="acss-row-actions">
+                                        <div class="acss-row-actions acss-row-actions--inline-nowrap">
                                             <form method="POST" action="{{ $meeting['upload_url'] }}" enctype="multipart/form-data" data-instant-upload-form class="acss-inline-form">
                                                 @csrf
                                                 @method('PUT')

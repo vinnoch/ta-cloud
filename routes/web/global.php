@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->intended(match (auth()->user()->role) {
-            'mahasiswa' => route('mahasiswa.dashboard'),
+            'mahasiswa' => route('mahasiswa.skripsi.index'),
             'dosen' => route('dosen.dashboard'),
             'kaprodi' => route('kaprodi.dashboard'),
             default => route('dashboard.index'),
@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
             'heading' => 'TA Cloud Frontend',
             'crumbs' => 'SYSTEM • OVERVIEW',
             'roleCards' => [
-                ['tag' => 'Mahasiswa', 'title' => 'Workspace Mahasiswa', 'description' => 'Progress personal, revisi, bimbingan, dan final submission.', 'hint' => 'Tanpa metrik operasional lintas user', 'href' => route('mahasiswa.dashboard')],
+                ['tag' => 'Mahasiswa', 'title' => 'Workspace Mahasiswa', 'description' => 'Progress personal, revisi, bimbingan, dan final submission.', 'hint' => 'Tanpa metrik operasional lintas user', 'href' => route('mahasiswa.skripsi.index')],
                 ['tag' => 'Dosen', 'title' => 'Workspace Dosen', 'description' => 'Queue review, detail skripsi reviewer, dan penilaian sidang.', 'hint' => 'Perlu Review hanya tampil di sini', 'href' => route('dosen.dashboard')],
                 ['tag' => 'Kaprodi', 'title' => 'Workspace Kaprodi', 'description' => 'Full CRUD master data, template, dan global view skripsi.', 'hint' => 'Semua fitur monitoring ada di sini', 'href' => route('kaprodi.dashboard')],
             ],
