@@ -11,11 +11,13 @@
 @endphp
 
 <div class="table-shell table-shell--format-assigned">
-    <div class="table-shell__head table-shell__grid" style="--table-cols: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.7fr);">
-        <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="fase" data-sort-direction="{{ $nextDirection('fase') }}">Fase <span>{{ $indicator('fase') }}</span></button>
-    </div>
+    @if (count($assignedSkripsis) > 0)
+        <div class="table-shell__head table-shell__grid" style="--table-cols: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.7fr);">
+            <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="fase" data-sort-direction="{{ $nextDirection('fase') }}">Fase <span>{{ $indicator('fase') }}</span></button>
+        </div>
+    @endif
     @forelse ($assignedSkripsis as $skripsi)
         <div class="table-shell__row table-shell__grid acss-hover-row-group" style="--table-cols: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.7fr);">
             <div class="table-shell__cell">

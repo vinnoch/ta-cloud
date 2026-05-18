@@ -5,14 +5,16 @@
     $indicator = fn(string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
 <div class="table-shell">
-    <div class="table-shell__head table-shell__grid acss-table-cols-dosen-compact">
-        <button type="button" class="acss-sort-button" data-sort-column="nidn_nip"
-            data-sort-direction="{{ $nextDirection('nidn_nip') }}"><span class="u-upper">NIDN / NIP</span>
-            <span>{{ $indicator('nidn_nip') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="name"
-            data-sort-direction="{{ $nextDirection('name') }}">Nama dosen <span>{{ $indicator('name') }}</span></button>
-        <span>Email</span>
-    </div>
+    @if (count($dosen) > 0)
+        <div class="table-shell__head table-shell__grid acss-table-cols-dosen-compact">
+            <button type="button" class="acss-sort-button" data-sort-column="nidn_nip"
+                data-sort-direction="{{ $nextDirection('nidn_nip') }}"><span class="u-upper">NIDN / NIP</span>
+                <span>{{ $indicator('nidn_nip') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="name"
+                data-sort-direction="{{ $nextDirection('name') }}">Nama dosen <span>{{ $indicator('name') }}</span></button>
+            <span>Email</span>
+        </div>
+    @endif
     @forelse ($dosen as $item)
         <div class="table-shell__row table-shell__grid acss-table-cols-dosen-compact acss-hover-row-group">
             <div class="table-shell__cell">

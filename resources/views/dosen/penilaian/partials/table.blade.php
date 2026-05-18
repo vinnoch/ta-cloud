@@ -5,13 +5,15 @@
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
 <div class="table-shell">
-    <div class="table-shell__head table-shell__grid acss-table-cols-dosen-grade">
-        <button type="button" class="acss-sort-button" data-sort-column="tanggal" data-sort-direction="{{ $nextDirection('tanggal') }}">Tanggal <span>{{ $indicator('tanggal') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
-        <span>Nilai Sidang</span>
-        <button type="button" class="acss-sort-button" data-sort-column="peran" data-sort-direction="{{ $nextDirection('peran') }}">Peran <span>{{ $indicator('peran') }}</span></button>
-    </div>
+    @if (count($gradingQueue) > 0)
+        <div class="table-shell__head table-shell__grid acss-table-cols-dosen-grade">
+            <button type="button" class="acss-sort-button" data-sort-column="tanggal" data-sort-direction="{{ $nextDirection('tanggal') }}">Tanggal <span>{{ $indicator('tanggal') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
+            <span>Nilai Sidang</span>
+            <button type="button" class="acss-sort-button" data-sort-column="peran" data-sort-direction="{{ $nextDirection('peran') }}">Peran <span>{{ $indicator('peran') }}</span></button>
+        </div>
+    @endif
     @forelse($gradingQueue as $item)
         <div class="table-shell__row table-shell__grid acss-table-cols-dosen-grade acss-hover-row-group">
             <div class="table-shell__cell">

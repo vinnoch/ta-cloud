@@ -130,9 +130,9 @@
                     <h3>Histori Bimbingan Terakhir</h3>
                 </div>
             </div>
-            <div class="history-table">
+            <div class="table-shell">
                 @if (count($latestBimbingans ?? []) > 0)
-                    <div class="history-table__head history-table__head--four">
+                    <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(4,minmax(0,1fr));">
                         <span>Tanggal</span>
                         <span>Fase</span>
                         <span>Reviewer</span>
@@ -140,11 +140,11 @@
                     </div>
                 @endif
                 @forelse (($latestBimbingans ?? []) as $bimbingan)
-                    <div class="history-table__row history-table__row--four">
-                        <div><strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong></div>
-                        <div>{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
-                        <div>{{ $bimbingan->reviewer?->name ?? '-' }}</div>
-                        <div>
+                    <div class="table-shell__row table-shell__grid" style="--table-cols:repeat(4,minmax(0,1fr));">
+                        <div class="table-shell__cell"><strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong></div>
+                        <div class="table-shell__cell">{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
+                        <div class="table-shell__cell">{{ $bimbingan->reviewer?->name ?? '-' }}</div>
+                        <div class="table-shell__cell">
                             {{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 80) }}
                         </div>
                     </div>
@@ -167,19 +167,19 @@
                     <h3>Permohonan Sidang</h3>
                 </div>
             </div>
-            <div class="history-table">
+            <div class="table-shell">
                 @if (count($sidangRequests ?? []) > 0)
-                    <div class="history-table__head history-table__head--three">
+                    <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(3,minmax(0,1fr));">
                         <span>Tanggal</span>
                         <span>Reviewer</span>
                         <span>Aksi</span>
                     </div>
                 @endif
                 @forelse (($sidangRequests ?? []) as $sidangRequest)
-                    <div class="history-table__row history-table__row--three">
-                        <div>{{ $sidangRequest->submitted_at?->format('d/m/Y') ?? '-' }}</div>
-                        <div>{{ $sidangRequest->lecturer?->name ?? '-' }}</div>
-                        <div>
+                    <div class="table-shell__row table-shell__grid" style="--table-cols:repeat(3,minmax(0,1fr));">
+                        <div class="table-shell__cell">{{ $sidangRequest->submitted_at?->format('d/m/Y') ?? '-' }}</div>
+                        <div class="table-shell__cell">{{ $sidangRequest->lecturer?->name ?? '-' }}</div>
+                        <div class="table-shell__cell">
                             @if ($sidangRequest->status !== 'approved')
                                 <form method="POST"
                                     action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $sidangRequest]) }}"
@@ -256,8 +256,8 @@
                     <h3>Artikel Jurnal Terpublikasi</h3>
                 </div>
             </div>
-            <div class="acss-journal-link">
-                @if ($journalArticleUrl)
+            @if ($journalArticleUrl)
+                <div class="acss-journal-link">
                     <a href="{{ $journalArticleUrl }}" target="_blank" rel="noopener noreferrer"
                         class="acss-journal-link__anchor">
                         <svg class="acss-journal-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -268,10 +268,10 @@
                         </svg>
                         <span>{{ $journalArticleUrl }}</span>
                     </a>
-                @else
-                    <div class="empty-state">Belum ada link artikel jurnal.</p>
-                @endif
-            </div>
+                </div>
+            @else
+                <div class="empty-state">Belum ada link artikel jurnal.</div>
+            @endif
         </section>
     </div>
 

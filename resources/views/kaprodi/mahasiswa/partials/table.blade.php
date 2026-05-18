@@ -5,11 +5,13 @@
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
 <div class="table-shell">
-    <div class="table-shell__head table-shell__grid acss-table-cols-mahasiswa">
-        <button type="button" class="acss-sort-button" data-sort-column="nim" data-sort-direction="{{ $nextDirection('nim') }}">NIM <span>{{ $indicator('nim') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="name" data-sort-direction="{{ $nextDirection('name') }}">Nama mahasiswa <span>{{ $indicator('name') }}</span></button>
-        <span>Email</span>
-    </div>
+    @if (count($mahasiswa) > 0)
+        <div class="table-shell__head table-shell__grid acss-table-cols-mahasiswa">
+            <button type="button" class="acss-sort-button" data-sort-column="nim" data-sort-direction="{{ $nextDirection('nim') }}">NIM <span>{{ $indicator('nim') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="name" data-sort-direction="{{ $nextDirection('name') }}">Nama mahasiswa <span>{{ $indicator('name') }}</span></button>
+            <span>Email</span>
+        </div>
+    @endif
     @forelse ($mahasiswa as $item)
         <div class="table-shell__row table-shell__grid acss-table-cols-mahasiswa acss-hover-row-group">
             <div class="table-shell__cell">

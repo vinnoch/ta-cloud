@@ -5,11 +5,13 @@
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
 <div class="table-shell">
-    <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi">
-        <button type="button" class="acss-sort-button" data-sort-column="nim" data-sort-direction="{{ $nextDirection('nim') }}">Mahasiswa <span>{{ $indicator('nim') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="fase" data-sort-direction="{{ $nextDirection('fase') }}">Fase <span>{{ $indicator('fase') }}</span></button>
-    </div>
+    @if (count($skripsis) > 0)
+        <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi">
+            <button type="button" class="acss-sort-button" data-sort-column="nim" data-sort-direction="{{ $nextDirection('nim') }}">Mahasiswa <span>{{ $indicator('nim') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="fase" data-sort-direction="{{ $nextDirection('fase') }}">Fase <span>{{ $indicator('fase') }}</span></button>
+        </div>
+    @endif
     @forelse($skripsis as $s)
         <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi acss-hover-row-group">
             <div class="table-shell__cell">

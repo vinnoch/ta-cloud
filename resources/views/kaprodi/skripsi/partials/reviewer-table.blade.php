@@ -1,7 +1,9 @@
 <div class="table-shell">
-    <div class="table-shell__head table-shell__grid acss-table-cols-reviewer">
-        <span>Role</span><span>Dosen</span><span>Assigned</span>
-    </div>
+    @if ($skripsi->assignments->count() > 0)
+        <div class="table-shell__head table-shell__grid acss-table-cols-reviewer">
+            <span>Role</span><span>Dosen</span><span>Assigned</span>
+        </div>
+    @endif
     @forelse ($skripsi->assignments as $assignment)
         <div class="table-shell__row table-shell__grid acss-table-cols-reviewer acss-hover-row-group">
             <div class="table-shell__cell">

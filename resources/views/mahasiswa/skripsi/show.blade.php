@@ -104,27 +104,29 @@
 
     <section class="card mt-4">
         <div class="section-heading"><div><h3>Histori Bimbingan Terakhir</h3></div></div>
-        <div class="history-table">
-            <div class="history-table__head history-table__head--five">
-                <span>Tanggal</span>
-                <span>Fase</span>
-                <span>Dosen</span>
-                <span>Catatan</span>
-                <span>Dokumen</span>
-            </div>
+        <div class="table-shell">
+            @if (count($latestBimbingans ?? []) > 0)
+                <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(5,minmax(0,1fr));">
+                    <span>Tanggal</span>
+                    <span>Fase</span>
+                    <span>Dosen</span>
+                    <span>Catatan</span>
+                    <span>Dokumen</span>
+                </div>
+            @endif
             @forelse (($latestBimbingans ?? []) as $bimbingan)
-                <div class="history-table__row history-table__row--five acss-hover-row-group">
-                    <div>
+                <div class="table-shell__row table-shell__grid acss-hover-row-group" style="--table-cols:repeat(5,minmax(0,1fr));">
+                    <div class="table-shell__cell">
                         <strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong>
                         <div class="text-[10px] acss-muted">{{ $bimbingan->created_at?->format('H:i') ?? '' }}</div>
                         <div class="acss-row-actions">
                             <a class="text-link acss-action-link" href="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) . '#bimbingan-' . $bimbingan->id }}">@include('partials.icons.eye')<span>Bimbingan</span></a>
                         </div>
                     </div>
-                    <div>{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
-                    <div>{{ $bimbingan->reviewer?->name ?? '-' }}</div>
-                    <div>{{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 80) }}</div>
-                    <div>
+                    <div class="table-shell__cell">{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
+                    <div class="table-shell__cell">{{ $bimbingan->reviewer?->name ?? '-' }}</div>
+                    <div class="table-shell__cell">{{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 80) }}</div>
+                    <div class="table-shell__cell">
                         @if ($bimbingan->has_revision_file)
                             <button type="button" class="text-link acss-action-link" data-preview-open data-preview-url="{{ $bimbingan->revision_file_url }}" data-preview-title="{{ basename($bimbingan->revision_file_url) }}">@include('partials.icons.eye')<span>Dokumen</span></button>
                         @else
@@ -144,10 +146,12 @@
     <section class="card mt-4">
         <div class="section-heading"><div><h3>Dosen Pembimbing</h3></div></div>
         <div class="table-shell">
-            <div class="table-shell__head table-shell__grid acss-table-cols-mhs-reviewers">
-                <span>Peran</span>
-                <span>Nama</span>
-            </div>
+            @if (count($reviewers ?? []) > 0)
+                <div class="table-shell__head table-shell__grid acss-table-cols-mhs-reviewers">
+                    <span>Peran</span>
+                    <span>Nama</span>
+                </div>
+            @endif
             @forelse ($reviewers as $reviewer)
                 <div class="table-shell__row table-shell__grid acss-table-cols-mhs-reviewers">
                     <div class="table-shell__cell"><span class="pill">{{ strtoupper($reviewer['role']) }}</span></div>

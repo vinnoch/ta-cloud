@@ -12,6 +12,7 @@
     };
 @endphp
 <div class="table-shell">
+    @if (! isset($rows) || count($rows) > 0)
     <div class="table-shell__head table-shell__grid {{ $colsClass }}">
         @foreach ($columns as $column)
             <span>{{ $column }}</span>

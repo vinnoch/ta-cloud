@@ -26,8 +26,12 @@
             <style>
                 .history-table__row { border-bottom: none !important; }
             </style>
-            <div class="history-table">
-                <div class="history-table__head history-table__head--four"><span>Tanggal</span><span>Fase</span><span>Dosen</span><span>Catatan</span></div>
+            <div class="history-table{{ $bimbingans->count() === 0 ? ' history-table--empty' : '' }}">
+                @if ($bimbingans->count() > 0)
+                    <div class="history-table__head history-table__head--four">
+                        <span>Tanggal</span><span>Fase</span><span>Dosen</span><span>Catatan</span>
+                    </div>
+                @endif
                 @forelse($bimbingans as $bimbingan)
                     <div class="history-table__row history-table__row--four acss-hover-row-group">
                         <div>

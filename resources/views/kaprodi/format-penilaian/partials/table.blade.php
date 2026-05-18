@@ -5,12 +5,14 @@
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
 <div class="table-shell">
-    <div class="table-shell__head table-shell__grid acss-table-cols-format-list">
-        <button type="button" class="acss-sort-button" data-sort-column="name" data-sort-direction="{{ $nextDirection('name') }}">Nama Format Nilai <span>{{ $indicator('name') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="format_type" data-sort-direction="{{ $nextDirection('format_type') }}">Jenis <span>{{ $indicator('format_type') }}</span></button>
-        <span>Periode</span>
-        <span>Item &amp; Bobot</span>
-    </div>
+    @if (count($formats) > 0)
+        <div class="table-shell__head table-shell__grid acss-table-cols-format-list">
+            <button type="button" class="acss-sort-button" data-sort-column="name" data-sort-direction="{{ $nextDirection('name') }}">Nama Format Nilai <span>{{ $indicator('name') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="format_type" data-sort-direction="{{ $nextDirection('format_type') }}">Jenis <span>{{ $indicator('format_type') }}</span></button>
+            <span>Periode</span>
+            <span>Item &amp; Bobot</span>
+        </div>
+    @endif
     @forelse ($formats as $item)
         <div class="table-shell__row table-shell__grid acss-table-cols-format-list acss-hover-row-group">
             <div class="table-shell__cell">

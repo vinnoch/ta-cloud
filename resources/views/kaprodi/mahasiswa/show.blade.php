@@ -79,15 +79,14 @@
         </div>
 
         <div class="acss-crud-body">
-            <div class="table-shell table-shell--mahasiswa-skripsi">
+            <div class="table-shell table-shell--mahasiswa-skripsi{{ $skripsiData['record'] ? '' : ' table-shell--empty' }}">
+                @if ($skripsiData['record'])
                 <div class="table-shell__head table-shell__grid table-shell__grid--mahasiswa-skripsi">
                     <span>Judul Skripsi</span>
                     <span>Pembimbing</span>
                     <span>Bimbingan Terakhir</span>
                     <span>Fase</span>
                 </div>
-
-                @if ($skripsiData['record'])
                 <div class="table-shell__row table-shell__grid table-shell__grid--mahasiswa-skripsi acss-hover-row-group">
                     <div class="table-shell__cell table-shell__cell--title">
                         <strong>{{ $skripsiData['topic'] }}</strong>
