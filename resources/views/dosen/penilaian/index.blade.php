@@ -29,4 +29,90 @@
         </div>
     </section>
     @include('partials.ajax-list-script', ['rootId'=>'grade-list-root','formId'=>'grade-filter-form','searchInputId'=>'grade-search-input','statusSelectId'=>'grade-nilai-sidang-select','tableWrapperId'=>'grade-table-wrapper','paginationWrapperId'=>'grade-pagination-wrapper','countTextId'=>'grade-count-text'])
+
+    <script>
+    (() => {
+        const toggleModal = (modal, show) => {
+            if (!modal) return;
+            modal.hidden = !show;
+            document.body.classList.toggle('overflow-hidden', show);
+            if (show) syncSummaryForForm(modal.querySelector('[data-grading-form]'));
+        };
+
+        const formatNumber = (value) => {
+            if (Number.isNaN(value)) return '-';
+            return value.toFixed(2).replace(/\.00$/, '').replace(/(\.\d*[1-9])0$/, '$1');
+        };
+
+        const clampScore = (value) => Math.max(0, Math.min(100, value));
+
+        const syncSummaryForForm = (form) => {
+            if (!form) return;
+            const inputs = Array.from(form.querySelectorAll('[data-score-input]'));
+            const weightedNode = form.querySelector('[data-weighted-score]');
+            const filled = inputs.map((input) => Number.parseFloat(input.value)).filter((value) => !Number.isNaN(value));
+            if (!filled.length) {
+                if (weightedNode) weightedNode.textContent = '-';
+                return;
+            }
+            const weighted = inputs.reduce((sum, input) => {
+                const value = Number.parseFloat(input.value);
+                const weight = Number.parseFloat(input.dataset.weight || '0');
+                if (Number.isNaN(value) || Number.isNaN(weight)) return sum;
+                return sum + (value * (weight / 100));
+            }, 0);
+            if (weightedNode) weightedNode.textContent = formatNumber(weighted);
+        };
+
+        const shiftScore = (input, delta) => {
+            const raw = Number.parseFloat(input.value);
+            const current = Number.isNaN(raw) ? 0 : raw;
+            const decimals = (String(input.value || '').split('.')[1] || '').length;
+            const next = clampScore(current + delta);
+            input.value = decimals > 0 ? next.toFixed(decimals) : String(Math.round(next));
+            syncSummaryForForm(input.closest('[data-grading-form]'));
+        };
+
+        document.addEventListener('click', (event) => {
+            const openButton = event.target.closest('[data-grade-modal-open]');
+            if (openButton) {
+                const modal = document.querySelector(`[data-grade-modal="${openButton.dataset.gradeModalOpen}"]`);
+                toggleModal(modal, true);
+                return;
+            }
+            if (event.target.closest('[data-grade-modal-close]')) {
+                toggleModal(event.target.closest('.acss-modal'), false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('[data-grade-modal]').forEach((modal) => toggleModal(modal, false));
+            }
+            const input = event.target.closest('[data-score-input]');
+            if (!input) return;
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                shiftScore(input, 10);
+            }
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                shiftScore(input, -10);
+            }
+        });
+
+        document.addEventListener('input', (event) => {
+            const input = event.target.closest('[data-score-input]');
+            if (!input) return;
+            syncSummaryForForm(input.closest('[data-grading-form]'));
+        });
+
+        document.addEventListener('wheel', (event) => {
+            const input = event.target.closest('[data-score-input]');
+            if (!input || document.activeElement !== input) return;
+            event.preventDefault();
+            shiftScore(input, event.deltaY < 0 ? 10 : -10);
+        }, { passive: false });
+    })();
+    </script>
 @endsection

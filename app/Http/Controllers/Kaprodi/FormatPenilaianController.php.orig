@@ -8,7 +8,6 @@ use App\Models\Grade;
 use App\Models\Periode;
 use App\Models\Skripsi;
 use App\Models\StudyProgram;
-use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -145,18 +144,9 @@ class FormatPenilaianController extends Controller
                 });
             })
             ->when($assignedPeriodeId, fn ($query) => $query->where('skripsis.periode_id', $assignedPeriodeId))
-            ->when($assignedSort === 'nim', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')->orderBy('students_sort.nim', $assignedDirection))
-            ->when($assignedSort === 'mahasiswa', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')->orderBy('students_sort.name', $assignedDirection))
+            ->when($assignedSort === 'nim', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')->orderBy('students_sort.nim', $assignedDirection)->select('skripsis.*'))
+            ->when($assignedSort === 'mahasiswa', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')->orderBy('students_sort.name', $assignedDirection)->select('skripsis.*'))
             ->when($assignedSort === 'judul', fn ($q) => $q->orderBy('title', $assignedDirection))
-            ->select('skripsis.*')
-            ->selectSub(
-                Grade::query()
-                    ->selectRaw('AVG(score)')
-                    ->whereColumn('grades.skripsi_id', 'skripsis.id')
-                    ->where('format_penilaian_id', $format->id)
-                    ->whereNotNull('score'),
-                'format_average_score'
-            )
             ->paginate(10)
             ->withQueryString();
 
@@ -371,37 +361,6 @@ class FormatPenilaianController extends Controller
         ]));
     }
 
-    public function unlockGrade(FormatPenilaian $format, Skripsi $skripsi, Grade $grade, NotificationService $notifications): RedirectResponse
-    {
-        abort_unless(
-            (int) $grade->format_penilaian_id === (int) $format->id && (int) $grade->skripsi_id === (int) $skripsi->id,
-            404
-        );
-
-        if (! $grade->locked_at) {
-            return back()->with('error', 'Nilai ini belum terkunci.');
-        }
-
-        $grade->forceFill([
-            'status' => 'draft',
-            'locked_at' => null,
-            'unlock_requested_at' => null,
-        ])->save();
-
-        if ($grade->reviewer) {
-            $notifications->send([$grade->reviewer], [
-                'title' => 'Buka Kunci Nilai Disetujui',
-                'message' => sprintf(
-                    'Kaprodi membuka kunci nilai untuk %s. Anda dapat mengedit dan mempublikasikan ulang nilai.',
-                    $skripsi->student?->name ?? 'mahasiswa'
-                ),
-                'url' => route('dosen.penilaian.show', $skripsi, false),
-            ]);
-        }
-
-        return back()->with('success', 'Kunci nilai berhasil dibuka. Status nilai kembali ke draft.');
-    }
-
     private function validateFormat(Request $request, bool $isUpdate = false): array
     {
         $rules = [
@@ -507,7 +466,6 @@ class FormatPenilaianController extends Controller
     {
         return Periode::query()
             ->with('tahunAkademik')
-            ->withCount('formats')
             ->orderByDesc('kode_periode')
             ->get();
     }

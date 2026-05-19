@@ -3,6 +3,7 @@
 use App\Http\Controllers\Kaprodi\DosenController;
 use App\Http\Controllers\Kaprodi\FormatPenilaianController;
 use App\Http\Controllers\Kaprodi\FinalReviewController;
+use App\Http\Controllers\Kaprodi\DocumentTemplateController;
 use App\Http\Controllers\Kaprodi\ImportUserController;
 use App\Http\Controllers\Kaprodi\MahasiswaController;
 use App\Http\Controllers\Kaprodi\NilaiController;
@@ -144,14 +145,29 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
     Route::delete('/periode/{periode}', [PeriodeController::class, 'destroy'])->name('periode.destroy');
 
     Route::get('/format-penilaian', [FormatPenilaianController::class, 'index'])->name('formats.index');
+    Route::get('/dokumen-final', [DocumentTemplateController::class, 'index'])->name('document-templates.index');
+    Route::get('/dokumen-final/create', [DocumentTemplateController::class, 'create'])->name('document-templates.create');
+    Route::post('/dokumen-final', [DocumentTemplateController::class, 'store'])->name('document-templates.store');
+    Route::get('/dokumen-final/{documentTemplate}', [DocumentTemplateController::class, 'show'])->name('document-templates.show');
+    Route::get('/dokumen-final/{documentTemplate}/edit', [DocumentTemplateController::class, 'edit'])->name('document-templates.edit');
+    Route::put('/dokumen-final/{documentTemplate}', [DocumentTemplateController::class, 'update'])->name('document-templates.update');
+    Route::post('/dokumen-final/{documentTemplate}/duplicate', [DocumentTemplateController::class, 'duplicate'])->name('document-templates.duplicate');
+    Route::post('/dokumen-final/{documentTemplate}/add-periode', [DocumentTemplateController::class, 'addPeriode'])->name('document-templates.add-periode');
+    Route::delete('/dokumen-final/{documentTemplate}', [DocumentTemplateController::class, 'destroy'])->name('document-templates.destroy');
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
     Route::get('/format-penilaian/create', [FormatPenilaianController::class, 'create'])->name('formats.create');
     Route::post('/format-penilaian', [FormatPenilaianController::class, 'store'])->name('formats.store');
     Route::get('/format-penilaian/{format}/grades/{skripsi}', [FormatPenilaianController::class, 'showGrades'])->name('formats.grades.show');
+    Route::post('/format-penilaian/{format}/grades/{skripsi}/{grade}/unlock', [FormatPenilaianController::class, 'unlockGrade'])->name('formats.grades.unlock');
     Route::get('/format-penilaian/{format}', [FormatPenilaianController::class, 'show'])->name('formats.show');
     Route::get('/format-penilaian/{format}/edit', [FormatPenilaianController::class, 'edit'])->name('formats.edit');
     Route::put('/format-penilaian/{format}', [FormatPenilaianController::class, 'update'])->name('formats.update');
     Route::post('/format-penilaian/{format}/duplicate', [FormatPenilaianController::class, 'duplicate'])->name('formats.duplicate');
+    Route::post('/format-penilaian/{format}/add-periode', [FormatPenilaianController::class, 'addPeriode'])->name('formats.add-periode');
+    Route::delete('/format-penilaian/{format}/remove-periode/{periode}', [FormatPenilaianController::class, 'removePeriode'])->name('formats.remove-periode');
+    Route::post('/document-templates/{documentTemplate}/add-periode', [\App\Http\Controllers\Kaprodi\DocumentTemplateController::class, 'addPeriode'])->name('document-templates.add-periode');
+    Route::delete('/document-templates/{documentTemplate}/remove-periode/{periode}', [\App\Http\Controllers\Kaprodi\DocumentTemplateController::class, 'removePeriode'])->name('document-templates.remove-periode');
+    Route::delete('/format-penilaian/{format}/remove-periode/{periode}', [FormatPenilaianController::class, 'removePeriode'])->name('formats.remove-periode');
     Route::delete('/format-penilaian/{format}', [FormatPenilaianController::class, 'destroy'])->name('formats.destroy');
 
     Route::get('/import/dosen', [ImportUserController::class, 'showDosen'])->name('import.dosen');

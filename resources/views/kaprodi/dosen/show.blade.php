@@ -23,51 +23,49 @@
         </div>
     </section>
 
-    <section class="acss-crud-card">
-        <div class="acss-crud-head">
+    <section class="card">
+        <div class="section-heading">
             <div>
                 <h3 class="acss-card-title">Informasi Dosen</h3>
             </div>
         </div>
-        <div class="acss-crud-body">
-            <div class="acss-grid-three acss-info-grid">
+        <div class="acss-crud-body" style="padding-left:0; padding-right:0;">
+            <div class="acss-info-grid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 0;">
                 <div class="acss-info-item">
-                    <span class="acss-muted"><span class="u-upper">NIDN / NIP</span></span>
+                    <span style="font-size: 1rem; font-weight: 600;"><span class="u-upper">NIDN / NIP</span></span>
                     <strong>{{ $dosen->nidn_nip ?: '-' }}</strong>
                 </div>
                 <div class="acss-info-item">
-                    <span class="acss-muted">Program Studi</span>
+                    <span style="font-size: 1rem; font-weight: 600;">Program Studi</span>
                     <strong>Sistem Informasi</strong>
                 </div>
                 <div class="acss-info-item">
-                    <span class="acss-muted">Email</span>
+                    <span style="font-size: 1rem; font-weight: 600;">Email</span>
                     <strong>{{ $dosen->email ?? '-' }}</strong>
                 </div>
             </div>
-
-            <div class="form-actions form-actions--inline ">
-                @if (! $dosen->trashed())
-                    <button type="button" class="button button--muted button--inline" data-dosen-edit-modal-open>Edit Dosen</button>
-                    @if ($hasRelatedRecords)
-                        <form method="POST" action="{{ route('kaprodi.dosen.archive', $dosen) }}" onsubmit="return confirm('Arsipkan dosen ini?')">
-                            @csrf
-                            <button class="button button--danger button--inline" type="submit">Arsipkan Dosen</button>
-                        </form>
-                    @else
-                        <form method="POST" action="{{ route('kaprodi.dosen.destroy', $dosen->id) }}" onsubmit="return confirm('Hapus permanen dosen ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="button button--danger button--inline" type="submit">Hapus Dosen</button>
-                        </form>
-                    @endif
-                @else
-                    <form method="POST" action="{{ route('kaprodi.dosen.restore', $dosen->id) }}">
+        </div>
+        <div class="form-actions form-actions--inline mt-4">
+            @if (! $dosen->trashed())
+                <button type="button" class="button button--muted button--inline" data-dosen-edit-modal-open>Edit Dosen</button>
+                @if ($hasRelatedRecords)
+                    <form method="POST" action="{{ route('kaprodi.dosen.archive', $dosen) }}" onsubmit="return confirm('Arsipkan dosen ini?')">
                         @csrf
-                        <button class="button button--muted button--inline" type="submit">Pulihkan Dosen</button>
+                        <button class="button button--danger button--inline" type="submit">Arsipkan Dosen</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('kaprodi.dosen.destroy', $dosen->id) }}" onsubmit="return confirm('Hapus permanen dosen ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="button button--danger button--inline" type="submit">Hapus Dosen</button>
                     </form>
                 @endif
-                
-            </div>
+            @else
+                <form method="POST" action="{{ route('kaprodi.dosen.restore', $dosen->id) }}">
+                    @csrf
+                    <button class="button button--muted button--inline" type="submit">Pulihkan Dosen</button>
+                </form>
+            @endif
         </div>
     </section>
 

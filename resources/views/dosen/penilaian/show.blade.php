@@ -11,7 +11,7 @@
 
     <section class="acss-page-card">
         <div class="acss-page-card__body">
-            <h1 class="acss-page-title">Form Penilaian Sidang</h1>
+            <h1 class="acss-page-title">Form Penilaian dan Revisi Sidang</h1>
             <p class="acss-muted ">Input nilai sidang skripsi untuk mahasiswa yang Anda bimbing atau uji.</p>
         </div>
     </section>
@@ -28,7 +28,7 @@
                     </div>
                     <div class="acss-profile-badges acss-profile-badges--centered">
                         <span class="pill pill--blue">{{ str($assignment->role_type)->replace('_', ' ')->title() }}</span>
-                        @if ($grade?->status)<span class="pill">{{ strtoupper($grade->status) }}</span>@endif
+                        @if ($grade?->status)<span class="pill">{{ $grade->locked_at ? 'LOCKED' : strtoupper($grade->status) }}</span>@endif
                     </div>
                 </div>
             </div>
@@ -64,6 +64,7 @@
                                         value="{{ old('scores.' . $item->id, $itemScores[$item->id] ?? '') }}"
                                         placeholder="0"
                                         required
+                                        @disabled($isLocked)
                                         data-score-input
                                         data-weight="{{ (float) $item->bobot }}"
                                     />
@@ -80,10 +81,47 @@
                     </div>
                 </div>
 
-                <div class="form-actions form-actions--inline ">
-                    <button class="button button--success button--inline" type="submit">Publish Nilai</button>
-                </div>
+                <label class="form-field">
+                    <span>Catatan Revisi</span>
+                    <textarea name="notes" rows="4" placeholder="Masukkan catatan revisi untuk mahasiswa..." @disabled($isLocked)>{{ old('notes', $grade?->notes) }}</textarea>
+                </label>
+
+                @if (! $isLocked)
+                    <div class="acss-page-card">
+                        <div class="acss-page-card__body">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <label class="form-field acss-field-tight md:w-1/3">
+                                    <span>Status Nilai</span>
+                                    <select name="save_mode" required>
+                                        <option value="draft" {{ old('save_mode', $grade?->status ?? 'draft') === 'draft' ? 'selected' : '' }}>Draft</option>
+                                        <option value="publish_lock" {{ old('save_mode') === 'publish_lock' ? 'selected' : '' }}>Publish dan Kunci</option>
+                                    </select>
+                                </label>
+                                <div class="acss-form-actions acss-form-actions--end">
+                                    <button class="button button--success button--inline" type="submit">
+                                        {{ $grade ? 'Edit Nilai' : 'Simpan Nilai' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </form>
+
+            @if ($isLocked)
+                <div class="acss-page-card">
+                    <div class="acss-page-card__body">
+                        <div class="acss-form-actions acss-form-actions--end">
+                            <form method="POST" action="{{ route('dosen.penilaian.request-unlock', $skripsi) }}">
+                                @csrf
+                                <button class="button button--danger button--inline" type="submit">
+                                    {{ $unlockRequested ? 'Menunggu Buka Kunci' : 'Request Buka Kunci Nilai' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </section>
 @endsection

@@ -19,7 +19,17 @@
             <div class="table-shell__cell">
                 <strong>{{ $item['date'] ? $item['date']->format('d/m/Y') : '-' }}</strong>
                 <div class="text-[10px] acss-muted">{{ $item['date'] ? $item['date']->format('H:i') : '' }}</div>
-                <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ $item['href'] }}">@include('partials.icons.clipboard')<span>Isi Nilai</span></a><a class="text-link acss-action-link" href="{{ $item['skripsi_href'] }}">@include('partials.icons.eye')<span>Skripsi</span></a></div>
+                <div class="acss-row-actions">
+                    @if ($item['is_locked'])
+                        <form method="POST" action="{{ $item['unlock_url'] }}">
+                            @csrf
+                            <button type="submit" class="text-link acss-action-link acss-action-link--danger">@include('partials.icons.clipboard')<span>{{ $item['unlock_requested'] ? 'Menunggu Buka Kunci' : 'Request Buka Kunci Nilai' }}</span></button>
+                        </form>
+                    @else
+                        <button type="button" class="text-link acss-action-link" data-grade-modal-open="{{ $item['modal_id'] }}">@include('partials.icons.clipboard')<span>{{ $item['has_grade'] ? 'Edit Nilai' : 'Isi Nilai' }}</span></button>
+                    @endif
+                    <a class="text-link acss-action-link" href="{{ $item['skripsi_href'] }}">@include('partials.icons.eye')<span>Skripsi</span></a>
+                </div>
             </div>
             <div class="table-shell__cell"><strong>{{ $item['student'] }}</strong></div>
             <div class="table-shell__cell table-shell__cell--title">{{ $item['title'] }}</div>
@@ -30,3 +40,8 @@
         <div class="empty-state">Belum ada antrian penilaian.</div>
     @endforelse
 </div>
+@foreach($gradingQueue as $item)
+    @if (! $item['is_locked'])
+        @include('dosen.penilaian.partials.modal', ['item' => $item])
+    @endif
+@endforeach

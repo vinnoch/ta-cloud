@@ -24,26 +24,18 @@
                 <h3 class="acss-card-title">Informasi Periode</h3>
             </div>
         </div>
-        <div class="acss-crud-body" style="padding-left:0; padding-right:0;">
-            <div class="acss-info-grid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 0;">
+        <div class="acss-crud-body">
+            <div class="acss-info-grid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem;">
                 <div class="acss-info-item">
-                    <span style="font-size: 1rem; font-weight: 600;">Tahun Akademik</span>
-                    <strong>{{ $periode->tahunAkademik?->name ?? '-' }}</strong>
-                </div>
-                <div class="acss-info-item">
-                    <span style="font-size: 1rem; font-weight: 600;">Semester</span>
-                    <strong>{{ $periode->semester == 1 ? 'Ganjil' : 'Genap' }}</strong>
-                </div>
-                <div class="acss-info-item">
-                    <span style="font-size: 1rem; font-weight: 600;">Masa Berlaku</span>
+                    <span>Rentang Validitas</span>
                     <strong>{{ $periode->tgl_mulai?->format('d/m/Y') }} - {{ $periode->tgl_selesai?->format('d/m/Y') }}</strong>
                 </div>
                 <div class="acss-info-item">
-                    <span style="font-size: 1rem; font-weight: 600;">Nomor SK</span>
+                    <span>Nomor SK</span>
                     <strong>{{ $periode->sk_nomor ?: '-' }}</strong>
                 </div>
                 <div class="acss-info-item">
-                    <span style="font-size: 1rem; font-weight: 600;">Link Dokumen SK</span>
+                    <span>Dokumen SK</span>
                     <strong>
                         @if ($periode->sk_dokumen_url)
                             <a href="{{ $periode->sk_dokumen_url }}" target="_blank" class="text-link">Lihat dokumen</a>
@@ -51,10 +43,6 @@
                             -
                         @endif
                     </strong>
-                </div>
-                <div class="acss-info-item">
-                    <span>&nbsp;</span>
-                    <strong>&nbsp;</strong>
                 </div>
             </div>
         </div>

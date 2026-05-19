@@ -1,5 +1,3 @@
 @if ($data_nilai->hasPages())
-    <div class="acss-pagination">
-        {{ $data_nilai->links() }}
-    </div>
+    <div class="pagination-shell acss-pagination-spacer">{{ $data_nilai->links() }}</div>
 @endif

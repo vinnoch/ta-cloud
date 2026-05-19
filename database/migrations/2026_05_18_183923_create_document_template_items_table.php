@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        if (! Schema::hasTable('document_template_items')) {
+            Schema::create('document_template_items', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('document_template_id');
+                $table->string('nama');
+                $table->string('kode');
+                $table->boolean('is_required')->default(true);
+                $table->unsignedInteger('sort_order')->default(1);
+                $table->timestamps();
+
+                $table->unique(['document_template_id', 'kode']);
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('document_template_items');
+    }
+};

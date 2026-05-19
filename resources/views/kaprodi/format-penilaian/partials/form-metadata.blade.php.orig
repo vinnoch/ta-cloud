@@ -15,20 +15,16 @@
     <div class="acss-page-card" style="grid-column: 1 / -1;">
         <div class="acss-page-card__body">
             <div class="section-heading">
-                <div><h3 class="acss-card-title">Pilih Periode Terkait</h3></div>
+                <div><h3 class="acss-card-title">Hubungkan Periode</h3></div>
             </div>
             @php
-                $currentFormatId = $format->id ?? null;
                 $selectedPeriodeIds = (array) old('periode_ids', isset($format) ? $format->periodes->pluck('id')->map(fn($id) => (string) $id)->toArray() : ($activePeriodeId ? [(string) $activePeriodeId] : []));
             @endphp
             <label class="form-field acss-field-tight">
-                <span style="font-size: .88rem; font-weight: 600; color: #475569;">Tahan TAB untuk <i>multiple selection</i></span>
+                <span>Periode Akademik Terkait (Tahan Tab untuk multiple selection)</span>
                 <select name="periode_ids[]" multiple size="6" style="min-height: 12.5rem;">
                     @foreach ($periodes as $period)
-                        @php $isDisabled = $period->formats_count > 0 && !in_array((string) $period->id, $selectedPeriodeIds, true); @endphp
-                        <option value="{{ $period->id }}" 
-                            {{ $isDisabled ? 'disabled' : '' }} 
-                            {{ in_array((string) $period->id, $selectedPeriodeIds, true) ? 'selected' : '' }}>
+                        <option value="{{ $period->id }}" {{ in_array((string) $period->id, $selectedPeriodeIds, true) ? 'selected' : '' }}>
                             {{ $period->name }}@if (!empty($period->kode_periode)) ({{ $period->kode_periode }})@endif
                         </option>
                     @endforeach

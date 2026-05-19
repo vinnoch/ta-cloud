@@ -33,7 +33,7 @@ class RoleNavigationService
             [
                 'label' => 'Master Data',
                 'href' => route('kaprodi.dosen.index'),
-                'active' => ['kaprodi.dosen.*', 'kaprodi.mahasiswa.*', 'kaprodi.tahun-akademik.*', 'kaprodi.periode.*', 'kaprodi.formats.*'],
+                'active' => ['kaprodi.dosen.*', 'kaprodi.mahasiswa.*', 'kaprodi.tahun-akademik.*', 'kaprodi.periode.*', 'kaprodi.formats.*', 'kaprodi.document-templates.*'],
                 'icon' => 'partials.icons.database',
                 'children' => [
                     ['label' => 'Master Dosen', 'href' => route('kaprodi.dosen.index'), 'active' => 'kaprodi.dosen.*', 'icon' => 'partials.icons.chat'],
@@ -41,6 +41,7 @@ class RoleNavigationService
                     ['label' => 'Tahun Akademik', 'href' => route('kaprodi.tahun-akademik.index'), 'active' => 'kaprodi.tahun-akademik.*', 'icon' => 'partials.icons.phase-flag'],
                     ['label' => 'Periode', 'href' => route('kaprodi.periode.index'), 'active' => 'kaprodi.periode.*', 'icon' => 'partials.icons.clipboard'],
                     ['label' => 'Format Nilai', 'href' => route('kaprodi.formats.index'), 'active' => ['kaprodi.formats.index', 'kaprodi.formats.show', 'kaprodi.formats.edit', 'kaprodi.formats.create'], 'icon' => 'partials.icons.clipboard'],
+                    ['label' => 'List Dokumen Final', 'href' => route('kaprodi.document-templates.index'), 'active' => 'kaprodi.document-templates.*', 'icon' => 'partials.icons.file-plain'],
                 ],
             ],
             ['label' => 'Nilai', 'href' => route('kaprodi.nilai.index'), 'active' => ['kaprodi.nilai.*', 'kaprodi.formats.grades.show'], 'icon' => 'partials.icons.clipboard'],
@@ -55,7 +56,7 @@ class RoleNavigationService
             ['label' => 'Dashboard', 'href' => route('dosen.dashboard'), 'active' => 'dosen.dashboard', 'icon' => 'partials.icons.grid'],
             ['label' => 'Skripsi', 'href' => route('dosen.skripsi.index'), 'active' => 'dosen.skripsi.*', 'icon' => 'partials.icons.file'],
             ['label' => 'Pengajuan Sidang', 'href' => route('dosen.sidang-request.index'), 'active' => 'dosen.sidang-request.*', 'icon' => 'partials.icons.phase-flag'],
-            ['label' => 'Penilaian', 'href' => route('dosen.penilaian.index'), 'active' => 'dosen.penilaian.*', 'icon' => 'partials.icons.clipboard'],
+            ['label' => 'Penilaian & Revisi', 'href' => route('dosen.penilaian.index'), 'active' => 'dosen.penilaian.*', 'icon' => 'partials.icons.clipboard'],
         ];
     }
 

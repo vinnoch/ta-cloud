@@ -1116,8 +1116,8 @@ body.ta-body {
 .table-shell__cell small{display:block;margin-top:.15rem;color:#6b7280;font-size:.86rem;line-height:1.35}
 .table-shell__cell--title{font-weight:400}
 .table-shell__head>.table-shell__cell,.table-shell__head>span,.table-shell__head>button{padding:1rem 1.25rem;text-align:left}
-.table-shell__head>.acss-sort-button{justify-content:flex-start;font-size:.82rem;font-weight:700;color:#64748b;width:100%}
-.table-shell__head>.acss-sort-button span:last-child{font-size:.8rem}
+.table-shell__head>.acss-sort-button{justify-content:flex-start;font-size:1em;font-weight:700;color:#64748b;width:100%}
+.table-shell__head>.acss-sort-button span:last-child{font-size:1em}
 .table-shell__row .pill{display:inline-flex;align-items:center;max-width:100%;white-space:nowrap}
 .acss-hover-row-group:hover{background:#fafafa}
 .acss-hover-row-group:hover .table-shell__cell{background:#fafafa}
@@ -1145,6 +1145,7 @@ body.ta-body {
 .acss-table-cols-final-review{--table-cols:minmax(10rem,.75fr) minmax(0,1.15fr) minmax(11rem,.8fr) minmax(10rem,.8fr)}
 .acss-table-cols-reviewer{--table-cols:minmax(12rem,.9fr) minmax(0,1.1fr) minmax(10rem,.8fr)}
 .acss-table-cols-grades{--table-cols:minmax(0,1.2fr) minmax(10rem,.8fr) minmax(10rem,.8fr) minmax(10rem,.8fr)}
+.acss-table-cols-grades-unlock{--table-cols:minmax(0,1.2fr) minmax(9rem,.8fr) minmax(12rem,1fr) minmax(8rem,.7fr) minmax(8rem,.7fr) minmax(10rem,.8fr)}
 .acss-table-cols-kaprodi-dosen-bimb{--table-cols:minmax(0,1.15fr) minmax(12rem,.9fr) minmax(12rem,.9fr)}
 .acss-table-cols-dosen-skripsi{--table-cols:minmax(14rem,1fr) minmax(0,1.25fr) minmax(12rem,.8fr)}
 .acss-table-cols-dosen-grade{--table-cols:minmax(0,1.15fr) minmax(10rem,.8fr) minmax(10rem,.75fr) minmax(10rem,.75fr)}
@@ -1171,7 +1172,7 @@ body.ta-body {
   .acss-table-cols-ta,.acss-table-cols-ta-row,.acss-table-cols-ta-periode,
   .acss-table-cols-format-list,.acss-table-cols-nilai-list,.acss-table-cols-proposal-subs,
   .acss-table-cols-sidang-reqs,.acss-table-cols-final-review,.acss-table-cols-reviewer,
-  .acss-table-cols-grades,.acss-table-cols-kaprodi-dosen-bimb,.acss-table-cols-dosen-skripsi,
+  .acss-table-cols-grades,.acss-table-cols-grades-unlock,.acss-table-cols-kaprodi-dosen-bimb,.acss-table-cols-dosen-skripsi,
   .acss-table-cols-dosen-grade,.acss-table-cols-dosen-sidang-reqs,.acss-table-cols-dosen-skripsi-approval,
   .acss-table-cols-dosen-skripsi-bimb,.acss-table-cols-dosen-skripsi-docs,.acss-table-cols-mhs-bimbingan-log,
   .acss-table-cols-mhs-dashboard-history,.acss-table-cols-mhs-skripsi-bimbingan,.acss-table-cols-mhs-reviewers,
@@ -2404,6 +2405,18 @@ body.ta-body {
     display: grid;
     gap: 1.15rem;
 }
+.acss-grid-two{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:1.25rem;
+}
+.acss-grid-full{
+    width:100%;
+}
+.acss-meta-grid-tight{
+    display:grid;
+    gap:1.25rem;
+}
 .acss-form-split {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2434,10 +2447,33 @@ body.ta-body {
     flex-wrap: wrap;
     padding-top: .25rem;
 }
+.acss-modal .acss-form-actions--stack{
+    justify-content:flex-start;
+    margin-top:.15rem;
+}
 .acss-modal .form-actions .button,
 .acss-modal .modal-actions .button,
 .acss-modal .acss-form-actions .button {
     min-height: 2.45rem;
+}
+.acss-status-modal-form{
+    gap:1.1rem;
+}
+.acss-status-modal-shell,
+.acss-status-modal-field{
+    width:100%;
+}
+.acss-status-modal-field{
+    display:grid;
+    justify-self:stretch;
+}
+.acss-status-modal-field select{
+    width:100%;
+}
+.acss-modal .acss-status-modal-actions{
+    width:100%;
+    justify-content:flex-end;
+    padding-top:.55rem;
 }
 .acss-modal .button--muted {
     background: #f8fafc;
@@ -2445,6 +2481,9 @@ body.ta-body {
     color: #334155;
 }
 @media (max-width: 900px) {
+  .acss-grid-two {
+    grid-template-columns: 1fr;
+  }
   .acss-modal {
     padding: .75rem;
   }
@@ -2540,14 +2579,14 @@ button.button:hover {
     color: #fff;
 }
 .button--danger {
-    background: #b42318;
-    border-color: #b42318;
-    color: #fff;
+    background: #b42318 !important;
+    border-color: #b42318 !important;
+    color: #fff !important;
 }
 .button--danger:hover {
-    background: #912018;
-    border-color: #912018;
-    color: #fff;
+    background: #912018 !important;
+    border-color: #912018 !important;
+    color: #fff !important;
 }
 .button--small {
     min-height: 2.15rem;
@@ -2842,7 +2881,7 @@ button[data-sidang-create-modal-open]:hover {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     gap: 1.1rem;
-    align-items: start;
+    align-items: center;
 }
 .profile-card__avatar {
     width: 4rem;
@@ -2862,6 +2901,32 @@ button[data-sidang-create-modal-open]:hover {
     display: grid;
     gap: .75rem;
     padding: 0;
+    align-content: center;
+}
+
+/* --- GLOBAL NOTICE RESTORE --- */
+.notice{
+    display:block;
+    width:100%;
+    margin:0 0 1rem;
+    padding:.9rem 1rem;
+    border:1px solid #dbe7fb;
+    border-radius:0;
+    background:#f8fbff;
+    color:#1f2937;
+    font-size:.95rem;
+    line-height:1.5;
+}
+.notice--success{
+    border-color:#b7e4c7;
+    background:#f2fbf5;
+    color:#166534;
+}
+.notice--danger,
+.notice--error{
+    border-color:#fecaca;
+    background:#fff5f5;
+    color:#991b1b;
 }
 
 /* --- APPROVAL BUTTON COLOR GUARANTEE --- */

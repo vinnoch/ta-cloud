@@ -36,7 +36,7 @@
 
     <div class="acss-modal" data-status-modal="{{ $modalId }}" hidden>
         <div class="acss-modal__backdrop" data-status-modal-close></div>
-        <div class="acss-modal__dialog acss-modal__dialog--master">
+        <div class="acss-modal__dialog">
             <div class="acss-modal__head">
                 <div>
                     <h3 class="acss-card-title">Edit Fase Skripsi</h3>
@@ -44,20 +44,20 @@
                 </div>
                 <button type="button" class="acss-modal__close" data-status-modal-close aria-label="Tutup">×</button>
             </div>
-            <form method="POST" action="{{ $statusUpdateUrl }}" class="acss-form-stack-tight acss-status-modal-form" style="display:grid; gap:1rem; padding:1.35rem 1.5rem 1.5rem;">
+            <form method="POST" action="{{ $statusUpdateUrl }}" class="acss-form-stack-tight">
                 @csrf
                 @method('PUT')
-                <div class="acss-master-form-shell acss-status-modal-shell" style="display:grid; gap:1rem; width:100%;">
-                    <label class="form-field acss-field-tight acss-status-modal-field" style="display:grid; gap:.45rem; width:100%;">
+                <div class="acss-master-form-shell">
+                    <label class="form-field">
                         <span>Fase</span>
-                        <select name="current_phase" data-status-phase-select required style="width:100%;">
+                        <select name="current_phase" data-status-phase-select required>
                             @foreach ($phaseOptions as $value => $label)
                                 <option value="{{ $value }}" {{ $currentPhaseValue === $value ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
                 </div>
-                <div class="form-actions form-actions--inline acss-status-modal-actions" style="display:flex; justify-content:flex-end; gap:.75rem; width:100%; padding-top:.55rem;">
+                <div class="form-actions form-actions--inline acss-form-actions--stack">
                     <button type="button" class="button button--muted button--inline" data-status-modal-close>Batal</button>
                     <button type="submit" class="button button--inline">Simpan Perubahan</button>
                 </div>

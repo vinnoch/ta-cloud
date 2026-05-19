@@ -23,51 +23,49 @@
         </div>
     </section>
 
-    <section class="acss-crud-card">
-        <div class="acss-crud-head">
+    <section class="card">
+        <div class="section-heading">
             <div>
                 <h3 class="acss-card-title">Informasi Mahasiswa</h3>
             </div>
         </div>
-        <div class="acss-crud-body">
-            <div class="acss-grid-three acss-info-grid acss-info-grid--mahasiswa">
+        <div class="acss-crud-body" style="padding-left:0; padding-right:0;">
+            <div class="acss-info-grid acss-info-grid--mahasiswa" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 0;">
                 <div class="acss-info-item">
-                    <span class="acss-muted"><span class="u-upper">NIM</span></span>
+                    <span style="font-size: 1rem; font-weight: 600;"><span class="u-upper">NIM</span></span>
                     <strong>{{ $mahasiswa->nim ?? '-' }}</strong>
                 </div>
                 <div class="acss-info-item">
-                    <span class="acss-muted">Program Studi</span>
+                    <span style="font-size: 1rem; font-weight: 600;">Program Studi</span>
                     <strong>Sistem Informasi</strong>
                 </div>
                 <div class="acss-info-item">
-                    <span class="acss-muted">Email</span>
+                    <span style="font-size: 1rem; font-weight: 600;">Email</span>
                     <strong>{{ $mahasiswa->email ?? '-' }}</strong>
                 </div>
             </div>
-
-            <div class="form-actions form-actions--inline ">
-                @if (! $mahasiswa->trashed())
-                    <button type="button" class="button button--muted button--inline" data-mahasiswa-edit-modal-open>Edit Mahasiswa</button>
-                    @if ($hasRunningSkripsi)
-                        <form method="POST" action="{{ route('kaprodi.mahasiswa.archive', $mahasiswa) }}" onsubmit="return confirm('Arsipkan mahasiswa ini?')">
-                            @csrf
-                            <button class="button button--danger button--inline" type="submit">Arsipkan Mahasiswa</button>
-                        </form>
-                    @else
-                        <form method="POST" action="{{ route('kaprodi.mahasiswa.destroy', $mahasiswa->id) }}" onsubmit="return confirm('Hapus permanen mahasiswa ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="button button--danger button--inline" type="submit">Hapus Mahasiswa</button>
-                        </form>
-                    @endif
-                @else
-                    <form method="POST" action="{{ route('kaprodi.mahasiswa.restore', $mahasiswa->id) }}">
+        </div>
+        <div class="form-actions form-actions--inline mt-4">
+            @if (! $mahasiswa->trashed())
+                <button type="button" class="button button--muted button--inline" data-mahasiswa-edit-modal-open>Edit Mahasiswa</button>
+                @if ($hasRunningSkripsi)
+                    <form method="POST" action="{{ route('kaprodi.mahasiswa.archive', $mahasiswa) }}" onsubmit="return confirm('Arsipkan mahasiswa ini?')">
                         @csrf
-                        <button class="button button--muted button--inline" type="submit">Pulihkan Mahasiswa</button>
+                        <button class="button button--danger button--inline" type="submit">Arsipkan Mahasiswa</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('kaprodi.mahasiswa.destroy', $mahasiswa->id) }}" onsubmit="return confirm('Hapus permanen mahasiswa ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="button button--danger button--inline" type="submit">Hapus Mahasiswa</button>
                     </form>
                 @endif
-                
-            </div>
+            @else
+                <form method="POST" action="{{ route('kaprodi.mahasiswa.restore', $mahasiswa->id) }}">
+                    @csrf
+                    <button class="button button--muted button--inline" type="submit">Pulihkan Mahasiswa</button>
+                </form>
+            @endif
         </div>
     </section>
 

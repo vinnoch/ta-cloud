@@ -26,14 +26,18 @@
     <div class=" max-w-sm">
         <label class="form-field acss-field-tight">
             <span>Jumlah Item Penilaian</span>
-            <select id="item-count-select" data-item-count>
-                <option value="">Pilih jumlah item</option>
-                @for ($count = 1; $count <= 10; $count++)
-                    <option value="{{ $count }}" {{ $shouldShowRows && $itemCount === $count ? 'selected' : '' }}>{{ $count }} Item</option>
-                @endfor
-            </select>
+            <input
+                id="item-count-select"
+                type="number"
+                min="1"
+                max="10"
+                step="1"
+                inputmode="numeric"
+                data-item-count
+                value="{{ $shouldShowRows ? $itemCount : '' }}"
+                placeholder="0"
+            >
         </label>
-        <div id="phase-empty-state" class="acss-muted text-sm  {{ $shouldShowRows ? 'hidden' : '' }}">Pilih jumlah item penilaian untuk menampilkan field.</div>
     </div>
 
     <div id="phase-rows-container" class="{{ $shouldShowRows ? '' : 'hidden' }}">
@@ -79,7 +83,6 @@
     const totalWrap = document.getElementById('total-weight-wrap');
     const countSelect = document.getElementById('item-count-select');
     const form = root.closest('form');
-    const emptyState = document.getElementById('phase-empty-state');
     const duplicateError = document.getElementById('duplicate-item-error');
 
     const slugify = (value) => value.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
@@ -114,7 +117,6 @@
         if (!count || count < 1) {
             container.innerHTML = '';
             container.classList.add('hidden');
-            emptyState?.classList.remove('hidden');
             totalWrap?.classList.add('hidden');
             duplicateError?.classList.add('hidden');
             updateTotal();
@@ -122,7 +124,6 @@
         }
         const defaults = buildDefaultWeights(count);
         container.classList.remove('hidden');
-        emptyState?.classList.add('hidden');
         totalWrap?.classList.remove('hidden');
         const nextRows = Array.from({ length: count }, (_, index) => ({
             name: `Item Penilaian ${index + 1}`,
@@ -174,8 +175,10 @@
         return hasDuplicate;
     };
 
-    countSelect?.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value, 10);
+    countSelect?.addEventListener('input', (e) => {
+        const rawValue = parseInt(e.target.value, 10);
+        const value = Number.isNaN(rawValue) ? 0 : Math.max(0, Math.min(10, rawValue));
+        e.target.value = value > 0 ? value : '';
         rebuildRows(Number.isNaN(value) ? 0 : value);
     });
 

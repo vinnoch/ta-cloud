@@ -1,0 +1,6 @@
+@@ -57,4 +57,4 @@
+                 </label>
+                 <div class="form-actions form-actions--inline mt-4">
+                     <button type="button" class="button button--muted button--inline" data-status-modal-close>Batal</button>
+-                    <button type="submit" class="button button--inline" style="background: #1f2937 !important; border-color: #1f2937 !important; color: #fff !important;">Simpan Perubahan</button>
++                    <button type="submit" class="button button--inline">Simpan Perubahan</button>

@@ -35,7 +35,7 @@
             </div>
             <div class="table-shell__cell table-shell__cell--title">{{ $skripsi->title ?: '-' }}</div>
             <div class="table-shell__cell">
-                <span class="pill pill--blue">Nilai {{ $skripsi->sidang_label ?? 'Sidang' }}</span>
+                <strong>{{ !is_null($skripsi->format_average_score) ? number_format((float) $skripsi->format_average_score, 2) : '-' }}</strong>
             </div>
         </div>
     @empty

@@ -17,7 +17,15 @@ class Grade extends Model
         'role_type',
         'grade_event',
         'status',
+        'locked_at',
+        'unlock_requested_at',
         'score',
+        'notes',
+    ];
+
+    protected $casts = [
+        'locked_at' => 'datetime',
+        'unlock_requested_at' => 'datetime',
     ];
 
     public function skripsi(): BelongsTo

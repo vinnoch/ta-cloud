@@ -7,6 +7,8 @@ use App\Models\FormatPenilaian;
 use App\Models\Grade;
 use App\Models\ReviewerAssignment;
 use App\Models\Skripsi;
+use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\RoleNavigationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -39,6 +41,7 @@ class PenilaianController extends Controller
                 'skripsi.student',
                 'skripsi.periode.tahunAkademik',
                 'skripsi.grades' => fn ($query) => $query
+                    ->with('items')
                     ->where('reviewer_id', $lecturerId)
                     ->whereIn('grade_event', ['sidang_proposal', 'sidang_skripsi']),
             ])
@@ -85,7 +88,7 @@ class PenilaianController extends Controller
         $gradingQueue = $assignments->getCollection()
             ->map(function (ReviewerAssignment $assignment) {
                 $skripsi = $assignment->skripsi;
-                $gradeEvent = $skripsi && $skripsi->current_phase === 'sidang_proposal' ? 'sidang_proposal' : 'sidang_skripsi';
+                $gradeEvent = $skripsi ? $this->resolveGradeEvent($skripsi) : 'sidang_skripsi';
                 $existingGrade = $skripsi?->grades->firstWhere('grade_event', $gradeEvent);
 
                 if (! $skripsi) {
@@ -97,15 +100,32 @@ class PenilaianController extends Controller
                     return null;
                 }
 
+                $format->loadMissing(['items' => fn ($query) => $query->orderBy('sort_order')]);
+                $itemScores = $existingGrade
+                    ? $existingGrade->items->pluck('score', 'item_penilaian_id')->map(fn ($score) => (float) $score)->all()
+                    : [];
+
                 return [
+                    'skripsi' => $skripsi,
+                    'assignment' => $assignment,
+                    'format' => $format,
+                    'grade' => $existingGrade,
+                    'itemScores' => $itemScores,
                     'student' => $skripsi->student?->name ?? '-',
+                    'nim' => $skripsi->student?->nim ?? '-',
                     'title' => $skripsi->title ?? 'Tanpa Judul',
                     'date' => $assignment->created_at,
                     'fase' => in_array($skripsi->current_phase, ['sidang_proposal']) ? 'Sidang Proposal' : 'Sidang Skripsi',
                     'role' => str($assignment->role_type)->replace('_', ' ')->title()->toString(),
-                    'status' => $existingGrade ? 'PUBLISHED' : 'BELUM DINILAI',
+                    'status' => $existingGrade?->status ?? 'draft',
+                    'has_grade' => (bool) $existingGrade,
+                    'is_locked' => (bool) $existingGrade?->locked_at,
+                    'unlock_requested' => (bool) $existingGrade?->unlock_requested_at,
+                    'modal_id' => 'dosen-grade-modal-' . $assignment->id,
                     'href' => route('dosen.penilaian.show', $skripsi),
                     'skripsi_href' => route('dosen.skripsi.show', $skripsi),
+                    'store_url' => route('dosen.penilaian.store', $skripsi),
+                    'unlock_url' => route('dosen.penilaian.request-unlock', $skripsi),
                 ];
             })
             ->filter()
@@ -138,24 +158,28 @@ class PenilaianController extends Controller
         $format->load(['items' => fn ($query) => $query->orderBy('sort_order')]);
         $skripsi->load(['student', 'periode.tahunAkademik']);
 
+        $gradeEvent = $this->resolveGradeEvent($skripsi);
+
         $grade = Grade::query()
             ->with('items')
             ->where('skripsi_id', $skripsi->id)
             ->where('format_penilaian_id', $format->id)
             ->where('reviewer_id', Auth::id())
-            ->where('grade_event', 'sidang_skripsi')
+            ->where('grade_event', $gradeEvent)
             ->first();
 
         $itemScores = $grade
             ? $grade->items->pluck('score', 'item_penilaian_id')->map(fn ($score) => (float) $score)->all()
             : [];
 
-        return view('dosen.penilaian.show', $this->page('Form Penilaian Sidang', 'DOSEN • GRADING FORM', [
+        return view('dosen.penilaian.show', $this->page('Form Penilaian dan Revisi Sidang', 'DOSEN • GRADING FORM', [
             'skripsi' => $skripsi,
             'format' => $format,
             'assignment' => $assignment,
             'grade' => $grade,
             'itemScores' => $itemScores,
+            'isLocked' => (bool) $grade?->locked_at,
+            'unlockRequested' => (bool) $grade?->unlock_requested_at,
         ]));
     }
 
@@ -170,6 +194,8 @@ class PenilaianController extends Controller
         foreach ($format->items as $item) {
             $rules['scores.' . $item->id] = ['required', 'numeric', 'min:0', 'max:100'];
         }
+        $rules['notes'] = ['nullable', 'string', 'max:2000'];
+        $rules['save_mode'] = ['required', 'in:draft,publish_lock'];
 
         $validated = $request->validate($rules, [
             'scores.*.required' => 'Semua item penilaian wajib diisi.',
@@ -178,23 +204,43 @@ class PenilaianController extends Controller
             'scores.*.max' => 'Nilai item penilaian maksimal 100.',
         ]);
 
+        $gradeEvent = $this->resolveGradeEvent($skripsi);
+        $existingGrade = Grade::query()
+            ->where('skripsi_id', $skripsi->id)
+            ->where('format_penilaian_id', $format->id)
+            ->where('reviewer_id', Auth::id())
+            ->where('grade_event', $gradeEvent)
+            ->first();
+
+        if ($existingGrade?->locked_at) {
+            throw ValidationException::withMessages([
+                'locked' => 'Nilai sudah dipublikasikan dan dikunci. Ajukan buka kunci ke Kaprodi untuk melakukan perubahan.',
+            ]);
+        }
+
         $weightedScore = collect($format->items)->sum(function ($item) use ($validated) {
             $score = (float) data_get($validated, 'scores.' . $item->id, 0);
             return $score * ((float) $item->bobot / 100);
         });
 
-        DB::transaction(function () use ($skripsi, $format, $assignment, $validated, $weightedScore): void {
+        $saveMode = (string) $validated['save_mode'];
+        $isPublishing = $saveMode === 'publish_lock';
+
+        DB::transaction(function () use ($skripsi, $format, $assignment, $validated, $weightedScore, $gradeEvent): void {
             $grade = Grade::query()->updateOrCreate(
                 [
                     'skripsi_id' => $skripsi->id,
                     'format_penilaian_id' => $format->id,
                     'reviewer_id' => Auth::id(),
-                    'grade_event' => in_array($skripsi->current_phase, ['sidang_proposal']) ? 'sidang_proposal' : 'sidang_skripsi',
+                    'grade_event' => $gradeEvent,
                 ],
                 [
                     'role_type' => $assignment->role_type,
-                    'status' => 'published',
+                    'status' => $validated['save_mode'] === 'publish_lock' ? 'published' : 'draft',
+                    'locked_at' => $validated['save_mode'] === 'publish_lock' ? now() : null,
+                    'unlock_requested_at' => null,
                     'score' => round($weightedScore, 2),
+                    'notes' => $validated['notes'] ?? null,
                 ]
             );
 
@@ -206,9 +252,55 @@ class PenilaianController extends Controller
             }
         });
 
-        return redirect()
-            ->route('dosen.penilaian.show', $skripsi)
-            ->with('success', 'Nilai sidang skripsi berhasil dipublikasikan.');
+        return redirect()->to($request->input('redirect_to', route('dosen.penilaian.show', $skripsi)))
+            ->with('success', $isPublishing
+                ? 'Nilai sidang berhasil dipublikasikan dan dikunci.'
+                : 'Draft nilai berhasil disimpan.');
+    }
+
+    public function requestUnlock(Skripsi $skripsi, NotificationService $notifications): RedirectResponse
+    {
+        $assignment = $this->findAssignmentOrFail($skripsi);
+        $format = $this->resolveSidangSkripsiFormatOrFail($skripsi);
+        $gradeEvent = $this->resolveGradeEvent($skripsi);
+
+        $grade = Grade::query()
+            ->where('skripsi_id', $skripsi->id)
+            ->where('format_penilaian_id', $format->id)
+            ->where('reviewer_id', Auth::id())
+            ->where('grade_event', $gradeEvent)
+            ->first();
+
+        if (! $grade || ! $grade->locked_at) {
+            throw ValidationException::withMessages([
+                'locked' => 'Nilai ini belum dikunci.',
+            ]);
+        }
+
+        if (! $grade->unlock_requested_at) {
+            $grade->forceFill([
+                'unlock_requested_at' => now(),
+            ])->save();
+
+            $kaprodiUsers = User::query()
+                ->whereHas('level', fn ($query) => $query->where('users_level', 'kaprodi'))
+                ->get();
+
+            if ($kaprodiUsers->isNotEmpty()) {
+                $notifications->send($kaprodiUsers, [
+                    'title' => 'Permintaan Buka Kunci Nilai',
+                    'message' => sprintf(
+                        '%s meminta buka kunci nilai %s untuk %s.',
+                        Auth::user()?->name ?? 'Dosen',
+                        in_array($gradeEvent, ['sidang_proposal'], true) ? 'Sidang Proposal' : 'Sidang Skripsi',
+                        $skripsi->student?->name ?? 'mahasiswa'
+                    ),
+                    'url' => route('kaprodi.formats.grades.show', [$format, $skripsi], false),
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Permintaan buka kunci nilai telah dikirim ke Kaprodi.');
     }
 
     private function findAssignmentOrFail(Skripsi $skripsi): ReviewerAssignment
@@ -249,13 +341,18 @@ class PenilaianController extends Controller
 
     private function resolveSidangSkripsiFormat(Skripsi $skripsi): ?FormatPenilaian
     {
-        $type = in_array($skripsi->current_phase, ['sidang_proposal']) ? 'sidang_proposal' : 'sidang_skripsi';
+        $type = $this->resolveGradeEvent($skripsi);
         return $skripsi->periode?->formats()
             ->where('template_type', $type)
             ->where('is_published', true)
             ->orderByDesc('is_default')
             ->orderByDesc('id')
             ->first();
+    }
+
+    private function resolveGradeEvent(Skripsi $skripsi): string
+    {
+        return in_array($skripsi->current_phase, ['sidang_proposal'], true) ? 'sidang_proposal' : 'sidang_skripsi';
     }
 
     private function page(string $heading, string $crumbs, array $extra = []): array

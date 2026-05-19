@@ -1,3 +1,3 @@
 <div class="pagination-shell acss-pagination-spacer">
-    {{ $formats->links() }}
+    {{ $templates->links() }}
 </div>

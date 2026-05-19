@@ -1,3 +1,3 @@
-<div class="pagination-shell">
+<div class="pagination-shell acss-pagination-spacer">
     {{ $dosen->links() }}
 </div>

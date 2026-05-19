@@ -1,0 +1,16 @@
+@@ -47,13 +47,13 @@
+                 @csrf
+                 @method('PUT')
+                 <div class="acss-master-form-shell">
+-                    <label class="form-field">
++                    <label class="form-field acss-field-tight">
+                         <span>Fase</span>
+                         <select name="current_phase" data-status-phase-select required>
+                             @foreach ($phaseOptions as $value => $label)
+                                 <option value="{{ $value }}" {{ $currentPhaseValue === $value ? 'selected' : '' }}>{{ $label }}</option>
+                             @endforeach
+                         </select>
+                     </label>
+                 </div>
+-                <div class="form-actions form-actions--inline acss-form-actions--stack">
++                <div class="form-actions form-actions--inline">

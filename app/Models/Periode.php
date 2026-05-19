@@ -43,6 +43,12 @@ class Periode extends Model
             ->withTimestamps();
     }
 
+    public function documentTemplates(): BelongsToMany
+    {
+        return $this->belongsToMany(DocumentTemplate::class, 'document_template_periode', 'periode_id', 'document_template_id')
+            ->withTimestamps();
+    }
+
     public function skripsis(): HasMany
     {
         return $this->hasMany(Skripsi::class, 'periode_id');

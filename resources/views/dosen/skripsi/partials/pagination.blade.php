@@ -1,3 +1,3 @@
 @if($skripsis->hasPages())
-    <div class="acss-pagination">{{ $skripsis->links() }}</div>
+    <div class="pagination-shell acss-pagination-spacer">{{ $skripsis->links() }}</div>
 @endif

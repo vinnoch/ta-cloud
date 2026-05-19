@@ -77,6 +77,7 @@ Route::prefix('dosen')->name('dosen.')->middleware(['auth', 'role:dosen'])->grou
     Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
     Route::get('/penilaian/{skripsi}', [PenilaianController::class, 'show'])->name('penilaian.show');
     Route::post('/penilaian/{skripsi}', [PenilaianController::class, 'store'])->name('penilaian.store');
+    Route::post('/penilaian/{skripsi}/request-unlock', [PenilaianController::class, 'requestUnlock'])->name('penilaian.request-unlock');
 
     Route::get('/pengajuan-sidang-skripsi', [SidangRequestController::class, 'index'])->name('sidang-request.index');
 
