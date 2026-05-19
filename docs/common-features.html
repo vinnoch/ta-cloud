@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitur Umum — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="kaprodi.html">Kaprodi</a>
+            <a href="dosen.html">Dosen</a>
+            <a href="mahasiswa.html">Mahasiswa</a>
+            <a href="common-features.html" class="active">Fitur Umum</a>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="sidebar__title">Fitur Umum</div>
+            <a href="#nav">Navigasi</a>
+            <a href="#notifications">Notifikasi</a>
+            <a href="#doc-handling">Dokumen</a>
+            <a href="#nilai-lock">Lock / Unlock Nilai</a>
+        </aside>
+
+        <main class="content">
+            <h1>Fitur Umum Sistem</h1>
+
+            <h2 id="nav">Navigasi dan Struktur Menu</h2>
+            <p>Semua peran memiliki layout utama yang sama: sidebar di kiri untuk navigasi dan topbar di atas untuk akses cepat ke notifikasi dan akun pengguna.</p>
+            <div class="screenshot">Screenshot 1: Layout Umum (Sidebar & Topbar)</div>
+
+            <h2 id="notifications">Sistem Notifikasi</h2>
+            <p>TA Cloud menggunakan sistem notifikasi realtime. Anda akan menerima notifikasi untuk aktivitas penting seperti:</p>
+            <ul>
+                <li>Pengajuan proposal baru</li>
+                <li>Permintaan sidang baru</li>
+                <li>Catatan bimbingan baru</li>
+                <li>Permohonan buka kunci nilai</li>
+            </ul>
+            <div class="screenshot">Screenshot 2: Dropdown Notifikasi</div>
+
+            <h2 id="doc-handling">Penanganan Dokumen</h2>
+            <p>Dokumen diunggah dalam bentuk versi (versioning). Artinya, setiap revisi tersimpan sebagai catatan terpisah dan tidak menimpa versi sebelumnya. Dokumen dapat dipreview dalam modal PDF viewer sebelum diunduh.</p>
+            <div class="screenshot">Screenshot 3: Preview Dokumen PDF</div>
+
+            <h2 id="nilai-lock">Mekanisme Lock / Unlock Nilai</h2>
+            <p>Setelah dosen menyelesaikan input nilai, sistem dapat mengunci nilai tersebut untuk mencegah perubahan tidak sah. Jika perlu perubahan, dosen harus mengajukan permintaan buka kunci. Kaprodi kemudian akan meninjau dan menyetujui permintaan tersebut.</p>
+            <div class="callout callout--warning">
+                <strong>Catatan:</strong> Proses buka kunci nilai adalah alur resmi dan akan meninggalkan jejak aktivitas di sistem.
+            </div>
+            <div class="screenshot">Screenshot 4: Alur Request Unlock Nilai</div>
+
+            <footer class="page-footer">
+                TACLOUD Internal Documentation &bull; Common Features
+            </footer>
+        </main>
+    </div>
+
+</body>
+</html>

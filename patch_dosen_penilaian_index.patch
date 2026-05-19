@@ -1,0 +1,14 @@
+*** Begin Patch
+*** Update File: resources/views/dosen/penilaian/index.blade.php
+@@ 2,2 +2,10 @@
+ @section('content')
++    @if (session('success'))
++        <div class="notice notice--success">{{ session('success') }}</div>
++    @endif
++
++    @if (session('error'))
++        <div class="notice notice--danger">{{ session('error') }}</div>
++    @endif
++
+     <section class="acss-crud-card" id="grade-list-root" data-endpoint="{{ route('dosen.penilaian.index') }}">
+*** End Patch

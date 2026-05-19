@@ -14,18 +14,18 @@ This document captures the implementation tracks for TACLOUD. The goal is to tra
 ## 3. Persistent Notification System
 **Status: [DONE]**
 - **Implemented**: Database-backed notifications via Laravel's native system.
-- **Current State**: Trigger matrix for Proposal Submit, Final Submit, and Bimbingan notes is active. Dropdown UI with read/unread state is implemented.
+- **Current State**: Trigger matrix for Proposal Submit, Final Submit, and Bimbingan notes is active. Dropdown UI with read/unread state is implemented. Unlock-request notifications are now part of grading flow.
 
 ## 4. User Role Implementation (Academic Layer)
 **Status: [DONE]**
-- **Kaprodi Layer**: Full CRUD for Master Data, Assignment logic, and Sidang Request approvals.
-- **Dosen Layer**: Reviewer-scoped access, Bimbingan notes management, and Grading input.
+- **Kaprodi Layer**: Full CRUD for Master Data, Assignment logic, Sidang Request approvals, and grade unlock approval.
+- **Dosen Layer**: Reviewer-scoped access, Bimbingan notes management, grading input, and grade unlock requests.
 - **Mahasiswa Layer**: Own skripsi CRUD, Document Versioning, Bimbingan responses, and Non-Skripsi record management.
 
 ## 5. Reusable UI Framework
 **Status: [DONE]**
 - **Implemented**: Modular Blade partials in `resources/views/partials`.
-- **Components**: Page headers, Data tables, Form fields, Metric cards, and Role-aware sidebars/topbars.
+- **Components**: Page headers, data tables, form fields, metric cards, role-aware sidebars/topbars, and expanded export/print icon widgets.
 
 ## 6. Google Login Integration
 **Status: [TODO]**
@@ -65,3 +65,22 @@ This document captures the implementation tracks for TACLOUD. The goal is to tra
 3. **Implement Workflow/Grading Variability** (Core academic requirement)
 4. **Close Kaprodi Gaps** (Export, Decisions, Phase Board)
 5. **Google Login & API layer** (Polish/Expansion)
+
+## 11. Progress Lock Snapshot (2026-05-19)
+**Status: [LOCKED]**
+- **Stable / keep**:
+  - Notification infrastructure and dropdown UX
+  - Kaprodi CRUD + reviewer assignment + grade unlock handling
+  - Dosen grading + unlock request handling
+  - Mahasiswa CRUD/progress/document/non-skripsi flows
+  - Blade partial/widget layer in `resources/views/partials`
+- **Do not regress**:
+  - Role middleware ownership checks
+  - Grade lock/unlock workflow
+  - Reusable partial-based layout strategy
+- **Open next**:
+  - Final submission route restore
+  - Export backend
+  - Library publication backend
+  - Advanced RBAC
+  - Program-specific workflow config

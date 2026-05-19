@@ -1,5 +1,13 @@
 @extends('layouts.app')
 @section('content')
+    @if (session('success'))
+        <div class="notice notice--success">{{ session('success') }}</div>
+    @endif
+
+    @if ($errors->any())
+        <div class="notice notice--danger">{{ $errors->first() }}</div>
+    @endif
+
     <section class="acss-crud-card" id="grade-list-root" data-endpoint="{{ route('dosen.penilaian.index') }}">
         <div class="acss-crud-head">
             <div>

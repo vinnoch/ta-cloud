@@ -32,7 +32,7 @@
             </div>
             <div class="table-shell__cell table-shell__cell--title">{{ $skripsi->title ?: '-' }}</div>
             <div class="table-shell__cell">
-                <span class="pill pill--blue">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->title() }}</span>
+                <span class="pill pill--blue">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
             </div>
         </div>
     @empty

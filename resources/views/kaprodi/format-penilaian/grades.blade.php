@@ -10,7 +10,7 @@
                         <h2>{{ $skripsi->student?->name ?? '-' }}</h2>
                         <p>{{ $skripsi->student?->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                     </div>
-                    <span class="status-pill">{{ strtoupper($skripsi->current_phase) }}</span>
+                    <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
             </div>
         </div>
@@ -44,7 +44,7 @@
                             @if ($grade->locked_at && $grade->unlock_requested_at)
                                 <form method="POST" action="{{ route('kaprodi.formats.grades.unlock', [$format, $skripsi, $grade]) }}">
                                     @csrf
-                                    <button type="submit" class="text-link acss-action-link">@include('partials.icons.settings')<span>Buka Kunci Nilai</span></button>
+                                    <button type="submit" class="text-link acss-action-link">@include('partials.icons.phase-shield')<span>Unlock Nilai</span></button>
                                 </form>
                             @else
                                 -

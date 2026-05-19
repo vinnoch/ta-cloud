@@ -1,7 +1,7 @@
 # 1. Project Overview
 - **App name**: TA Cloud / `tacloud`
 - **Purpose**: Sistem manajemen tugas akhir untuk mengelola pengajuan skripsi, bimbingan, reviewer assignment, penilaian, dokumen revisi, dan arsip non-skripsi.
-- **Current implementation scope**: Kaprodi layer aktif, Dosen layer aktif, Mahasiswa layer baru selesai di level CRUD/progress utama.
+- **Current implementation scope**: Kaprodi layer aktif, Dosen layer aktif including grade unlock request flow, Mahasiswa layer aktif at CRUD/progress level.
 - **Tech stack**:
   - **Backend**: Laravel 13, PHP 8.3
   - **Frontend**: Blade views, Tailwind CSS v4, Vite, Alpine-style server-rendered UI patterns
@@ -38,6 +38,7 @@
 - **[DONE]** Assign pembimbing and penguji to skripsi via reviewer assignment routes.
 - **[DONE]** Approve/reject sidang requests via `Kaprodi\SidangRequestController`.
 - **[DONE]** Final nilai recap listing via `Kaprodi\NilaiController`.
+- **[DONE]** Unlock finalized grade on reviewer request via `Kaprodi\FormatPenilaianController::unlockGrade`.
 - **[UPDATED]** Phase board and keputusan akhir pages exist, but mainly presentation/workspace support and not full business workflow automation.
 - **[TODO]** Export skripsi report / rekap data.
 - **[TODO]** Backend publish-to-library workflow from kaprodi workspace.
@@ -49,6 +50,7 @@
 - **[DONE]** Edit and delete bimbingan note via `Dosen\BimbinganController::update` and `destroy`.
 - **[DONE]** Submit permohonan sidang via `Dosen\SidangRequestController`.
 - **[DONE]** Input penilaian sidang and persist grade items via `Dosen\PenilaianController`.
+- **[DONE]** Request grade unlock after lock via `Dosen\PenilaianController::requestUnlock`.
 - **[UPDATED]** Notification send on new bimbingan note exists through `NotificationService`.
 - **[TODO]** Explicit reviewer approve/reject final document workflow from dosen workspace.
 
@@ -394,3 +396,30 @@ The UI is built from a collection of Blade partials that act as reusable widgets
 | `topbar.blade.php` | Layout | Top navigation bar with notifications and user menu |
 
 These partials provide a consistent look‑and‑feel and are reused across Kaprodi, Dosen, and Mahasiswa pages, reducing duplication and keeping UI updates centralized.
+
+# 11. Progress Lock Snapshot (2026-05-19)
+
+- **Locked scope**:
+  - Realtime notifications
+  - Persistent notifications dropdown and read-state
+  - Kaprodi master-data CRUD flows
+  - Dosen bimbingan and grading flows
+  - Mahasiswa skripsi, document, bimbingan, nilai, and non-skripsi flows
+  - Reusable Blade partial/widget library under `resources/views/partials`
+- **Recently stabilized**:
+  - Grade unlock request flow from Dosen to Kaprodi
+  - Kaprodi grade unlock action for locked grades
+  - Expanded icon/widget set for export/print affordances
+- **New reusable widget signals**:
+  - `resources/views/partials/icons/csv-export-badge.blade.php`
+  - `resources/views/partials/icons/pdf-export-badge.blade.php`
+  - `resources/views/partials/icons/print.blade.php`
+  - `resources/views/partials/icons/plus.blade.php`
+  - `resources/views/partials/icons/download-arrow.blade.php`
+  - `resources/views/partials/icons/file-plain.blade.php`
+- **Still open**:
+  - Mahasiswa final submission route wiring
+  - Kaprodi export backend logic
+  - Library publish backend
+  - Full phase-board / keputusan automation
+  - Advanced RBAC and workflow variability

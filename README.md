@@ -75,6 +75,37 @@ flowchart TB
 
 ---
 
+## Active modules
+
+### Kaprodi
+
+- `Kaprodi\SkripsiController` → `kaprodi.skripsi.index`, `kaprodi.skripsi.show`, `kaprodi.skripsi.proposal`, `kaprodi.skripsi.bimbingan`, `kaprodi.skripsi.reviewers.*`, `kaprodi.skripsi.assign.*`, `kaprodi.skripsi.status.update`, `kaprodi.skripsi.sidang-schedule.update`, `kaprodi.skripsi.documents.download`, `kaprodi.skripsi.logbook`
+- `Kaprodi\ProposalSubmissionController` → `kaprodi.skripsi.proposal.approve`, `kaprodi.skripsi.proposal.reject`, `kaprodi.proposal-submissions.index`
+- `Kaprodi\FinalReviewController` → `kaprodi.skripsi.final-review.approve`, `kaprodi.final-reviews.index`
+- `Kaprodi\SidangRequestController` → `kaprodi.skripsi.sidang-request.approve`, `kaprodi.skripsi.sidang-request.reject`, `kaprodi.sidang-requests.index`
+- `Kaprodi\FormatPenilaianController` → `kaprodi.formats.*`, `kaprodi.formats.grades.show`, `kaprodi.formats.grades.unlock`
+- `Kaprodi\DocumentTemplateController` → `kaprodi.document-templates.*`
+- `Kaprodi\DosenController`, `Kaprodi\MahasiswaController`, `Kaprodi\TahunAkademikController`, `Kaprodi\PeriodeController`, `Kaprodi\ImportUserController`, `Kaprodi\NilaiController` → master data, import, recap
+- Static/workspace views still present for `kaprodi.fase.index`, `kaprodi.keputusan.show`, `kaprodi.library.index`
+
+### Dosen
+
+- `Dosen\SkripsiViewController` → `dosen.skripsi.index`, `dosen.skripsi.show`, `dosen.skripsi.search`
+- `Dosen\BimbinganController` → `dosen.bimbingan.store`, `dosen.bimbingan.update`, `dosen.bimbingan.destroy`
+- `Dosen\PenilaianController` → `dosen.penilaian.index`, `dosen.penilaian.show`, `dosen.penilaian.store`, `dosen.penilaian.request-unlock`
+- `Dosen\SidangRequestController` → `dosen.sidang-request.index`, `dosen.sidang-request.store`
+
+### Mahasiswa
+
+- `Mahasiswa\SkripsiController` → `mahasiswa.progres.index`, `mahasiswa.skripsi.*`
+- `Mahasiswa\DocumentVersionController` → `mahasiswa.skripsi.proposal.upload`, `mahasiswa.skripsi.documents.store`, `mahasiswa.skripsi.proposal.file`, `mahasiswa.skripsi.documents.destroy`
+- `Mahasiswa\BimbinganController` → `mahasiswa.skripsi.bimbingan.index`, `mahasiswa.skripsi.bimbingan.export.csv`, `mahasiswa.skripsi.bimbingan.export.pdf`, `mahasiswa.skripsi.bimbingan.update`, `mahasiswa.skripsi.bimbingan.revision.destroy`
+- `Mahasiswa\NilaiController` → `mahasiswa.skripsi.nilai.index`
+- `Mahasiswa\FinalSubmissionController` → `mahasiswa.final.index`, `mahasiswa.final.submit`
+- `Mahasiswa\NonSkripsiController` → `mahasiswa.non-skripsi.*`
+
+---
+
 ## Feature status
 
 | Feature                                  | Status         |
@@ -85,10 +116,22 @@ flowchart TB
 | Sidang request & approval workflow       | ✅ Done        |
 | Reusable Blade UI component library      | ✅ Done        |
 | Role-based middleware & ownership checks | ✅ Done        |
+| Grade lock/unlock workflow               | ✅ Done        |
 | Final submission wiring (Mahasiswa)      | 🔄 In progress |
 | Skripsi export & rekap                   | 📋 Planned     |
 | Google OAuth login                       | 📋 Planned     |
 | Super Admin & advanced RBAC              | 📋 Planned     |
+| Program-specific workflows               | 📋 Planned     |
+
+---
+
+## Known gaps & priorities
+
+- **Final Submission**: Active via `Mahasiswa\FinalSubmissionController` and `mahasiswa.final.*`, but still needs broader flow hardening and test coverage.
+- **Reporting**: Building CSV/PDF export logic for Kaprodi-level oversight.
+- **Workflow Automation**: Implementing the state-management logic for "Keputusan Akhir" and "Phase Board".
+- **Library Integration**: Connecting finalized records to a public-facing repository view.
+- **Advanced RBAC**: Moving from role-string levels to granular program-scoped permissions.
 
 ---
 

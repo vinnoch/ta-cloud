@@ -20,7 +20,7 @@
                 <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ route('dosen.skripsi.show', $s) }}">@include('partials.icons.eye')<span>Skripsi</span></a></div>
             </div>
             <div class="table-shell__cell table-shell__cell--title">{{ $s->title }}</div>
-            <div class="table-shell__cell"><span class="pill">{{ str($s->current_phase)->replace('_',' ')->upper() }}</span></div>
+            <div class="table-shell__cell"><span class="pill">{{ str($s->current_phase)->replace(['_', '-'], ' ')->upper() }}</span></div>
         </div>
     @empty
         <div class="empty-state">Belum ada skripsi assignment.</div>
