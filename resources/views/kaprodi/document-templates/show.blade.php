@@ -29,13 +29,13 @@
                 </div>
             </div>
         </div>
-        <div class="acss-inline-actions form-actions form-actions--inline">
+        <div class="acss-inline-actions form-actions form-actions--inline mt-4">
             <form class="inline-form" method="POST" action="{{ route('kaprodi.document-templates.duplicate', $template) }}">
                 @csrf
-                <button class="button button--muted button--inline" type="submit">Duplikat</button>
+                <button class="button button--primary button--inline" type="submit">Duplikat</button>
             </form>
             @if ($template->can_modify)
-                <a class="button button--muted button--inline" href="{{ route('kaprodi.document-templates.edit', $template) }}">Edit Template</a>
+                <a class="button button--primary button--inline" href="{{ route('kaprodi.document-templates.edit', $template) }}">Edit Template</a>
             @endif
         </div>
     </section>
@@ -49,15 +49,19 @@
             </div>
             <div class="acss-crud-body">
                 <div class="table-shell">
-                    <div class="table-shell__head table-shell__grid" style="grid-template-columns: minmax(0,1.4fr) 180px;">
+                    <div class="table-shell__head table-shell__grid" style="grid-template-columns: minmax(0,1.4fr) 180px 180px;">
                         <span>Item Dokumen</span>
+                        <span>Tipe</span>
                         <span>Keterangan</span>
                     </div>
                     @foreach ($template->items as $item)
-                        <div class="table-shell__row table-shell__grid" style="grid-template-columns: minmax(0,1.4fr) 180px;">
+                        <div class="table-shell__row table-shell__grid" style="grid-template-columns: minmax(0,1.4fr) 180px 180px;">
                             <div class="table-shell__cell">
                                 <strong>{{ $item->name }}</strong>
-                                <small>{{ $item->code }}</small>
+                                
+                            </div>
+                            <div class="table-shell__cell">
+                                <span class="pill">{{ $item->type_label }}</span>
                             </div>
                             <div class="table-shell__cell">
                                 <span class="pill {{ $item->is_required ? 'pill--blue' : '' }}">{{ $item->is_required ? 'Wajib' : 'Opsional' }}</span>

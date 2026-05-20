@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Dosen — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="kaprodi.html">Kaprodi</a>
+            <a href="dosen.html" class="active">Dosen</a>
+            <a href="mahasiswa.html">Mahasiswa</a>
+            <a href="common-features.html">Fitur Umum</a>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="sidebar__title">Panduan Dosen</div>
+            <a href="#overview">Ringkasan Peran</a>
+            <a href="#menu-map">Peta Menu</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#skripsi-menu">Menu Skripsi</a>
+            <a href="#bimbingan-menu">Bimbingan</a>
+            <a href="#sidang-menu">Pengajuan Sidang</a>
+            <a href="#penilaian-menu">Penilaian</a>
+            <a href="#arsip">Simpan / Arsip Pribadi</a>
+        </aside>
+
+        <main class="content">
+            <h1>Panduan Dosen</h1>
+            <span class="badge badge--dosen">Dosen</span>
+            <h2 id="overview">Ringkasan Peran</h2>
+            <p>Dosen bekerja pada skripsi yang memang ditugaskan kepadanya. Fokus utama dosen adalah membimbing mahasiswa, memberi catatan revisi, mengajukan sidang saat siap, mengisi nilai, dan jika perlu meminta buka kunci nilai.</p>
+
+            <h2 id="menu-map">Peta Menu Dosen</h2>
+            <table>
+                <thead><tr><th>Menu</th><th>Sub-menu / Aksi</th><th>Fungsi</th></tr></thead>
+                <tbody>
+                    <tr><td>Dashboard</td><td>Ringkasan antrean</td><td>Melihat tugas yang perlu ditindaklanjuti.</td></tr>
+                    <tr><td>Skripsi</td><td>Index, search, detail</td><td>Melihat seluruh skripsi yang ditugaskan ke dosen.</td></tr>
+                    <tr><td>Bimbingan</td><td>Tambah, edit, hapus</td><td>Mengelola catatan bimbingan mahasiswa.</td></tr>
+                    <tr><td>Pengajuan Sidang Skripsi</td><td>Index, submit permohonan</td><td>Mengajukan sidang untuk mahasiswa yang siap.</td></tr>
+                    <tr><td>Penilaian</td><td>List, show, submit, request unlock</td><td>Mengisi dan mengoreksi nilai sidang.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="dashboard">Dashboard</h2>
+            <p>Dashboard menampilkan antrean review, skripsi yang menunggu tindakan, dan item yang perlu penilaian. Gunakan dashboard sebagai titik masuk tercepat ke pekerjaan harian.</p>
+            <div class="screenshot">Screenshot 1: Dashboard Dosen</div>
+
+            <h2 id="skripsi-menu">Menu Skripsi</h2>
+            <p>Menu ini berisi semua skripsi yang ditugaskan kepada Anda sebagai pembimbing atau penguji.</p>
+            <ul>
+                <li><strong>Index</strong>: daftar skripsi assigned.</li>
+                <li><strong>Search</strong>: pencarian cepat berdasarkan mahasiswa/judul.</li>
+                <li><strong>Show</strong>: detail skripsi, mahasiswa, dokumen, bimbingan, dan nilai.</li>
+            </ul>
+            <div class="callout">Jika Anda tidak melihat sebuah skripsi di sini, besar kemungkinan Anda belum ditugaskan sebagai reviewer pada skripsi tersebut.</div>
+
+            <h2 id="bimbingan-menu">Menu Bimbingan</h2>
+            <p>Dosen dapat menambahkan catatan bimbingan dari halaman detail skripsi atau halaman daftar bimbingan.</p>
+            <ol>
+                <li>Buka skripsi yang ditugaskan.</li>
+                <li>Pilih aksi <strong>Tambah Bimbingan</strong>.</li>
+                <li>Isi tanggal, fase, dan catatan dosen.</li>
+                <li>Simpan. Mahasiswa akan menerima notifikasi.</li>
+            </ol>
+            <p>Aksi tambahan:</p>
+            <ul>
+                <li><strong>Edit</strong>: memperbaiki catatan yang salah.</li>
+                <li><strong>Destroy</strong>: menghapus catatan yang tidak valid.</li>
+            </ul>
+            <div class="screenshot">Screenshot 2: Form tambah/edit bimbingan</div>
+
+            <h2 id="sidang-menu">Menu Pengajuan Sidang Skripsi</h2>
+            <p>Menu ini digunakan ketika mahasiswa sudah siap maju ke sidang.</p>
+            <ol>
+                <li>Pastikan progres bimbingan sudah cukup.</li>
+                <li>Buka skripsi terkait.</li>
+                <li>Kirim <strong>Permohonan Sidang</strong>.</li>
+                <li>Tunggu persetujuan atau penolakan dari Kaprodi.</li>
+            </ol>
+            <div class="callout callout--warning">Pengajuan sidang bukan keputusan final. Kaprodi tetap menjadi pihak yang menyetujui atau menolak.</div>
+
+            <h2 id="penilaian-menu">Menu Penilaian</h2>
+            <p>Menu penilaian berisi skripsi yang masuk antrean penilaian untuk Anda.</p>
+            <h3>Aksi utama</h3>
+            <ul>
+                <li><strong>Index</strong>: daftar antrean nilai.</li>
+                <li><strong>Show</strong>: buka form nilai per skripsi.</li>
+                <li><strong>Store</strong>: simpan nilai per item dan skor total.</li>
+                <li><strong>Request Unlock</strong>: ajukan buka kunci jika nilai yang sudah terkunci perlu dikoreksi.</li>
+            </ul>
+            <h3>Alur kerja</h3>
+            <ol>
+                <li>Buka menu <strong>Penilaian</strong>.</li>
+                <li>Pilih skripsi yang akan dinilai.</li>
+                <li>Isi item penilaian sesuai format yang berlaku.</li>
+                <li>Simpan nilai.</li>
+                <li>Jika sudah terkunci dan ada kesalahan, klik <strong>Request Buka Kunci Nilai</strong>.</li>
+            </ol>
+            <div class="screenshot">Screenshot 3: Form penilaian</div>
+            <div class="screenshot">Screenshot 4: Tombol request buka kunci nilai</div>
+
+            <h2 id="arsip">Simpan / Arsip Pribadi</h2>
+            <p>Pada sisi Dosen, dokumentasi ini tidak mengasumsikan ada menu print khusus. Yang realistis saat ini adalah menyimpan halaman melalui browser atau memakai data di halaman detail, bimbingan, dan penilaian sebagai bahan arsip pribadi.</p>
+            <ul>
+                <li><strong>Detail Skripsi</strong>: dipakai sebagai ringkasan cepat mahasiswa, dokumen, dan progres.</li>
+                <li><strong>Bimbingan</strong>: dipakai sebagai arsip catatan pembimbingan.</li>
+                <li><strong>Penilaian</strong>: dipakai sebagai referensi nilai yang sudah diinput.</li>
+            </ul>
+            <div class="callout">Catatan: tidak ada route ekspor/print khusus untuk Dosen pada versi sistem saat ini.</div>
+
+            <footer class="page-footer">TACLOUD Internal Documentation &bull; Dosen Guide</footer>
+        </main>
+    </div>
+</body>
+</html>

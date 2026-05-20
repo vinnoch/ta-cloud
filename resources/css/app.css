@@ -2538,14 +2538,14 @@ button.button:hover {
     display: block;
 }
 .button--primary {
-    background: #111827;
-    border-color: #111827;
-    color: #fff;
+    background: #111827 !important;
+    border-color: #111827 !important;
+    color: #fff !important;
 }
 .button--primary:hover {
-    background: #0f172a;
-    border-color: #0f172a;
-    color: #fff;
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    color: #fff !important;
 }
 .button--muted {
     background: #f8fafc;

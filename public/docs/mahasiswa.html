@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Mahasiswa — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="kaprodi.html">Kaprodi</a>
+            <a href="dosen.html">Dosen</a>
+            <a href="mahasiswa.html" class="active">Mahasiswa</a>
+            <a href="common-features.html">Fitur Umum</a>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="sidebar__title">Panduan Mahasiswa</div>
+            <a href="#overview">Ringkasan Peran</a>
+            <a href="#menu-map">Peta Menu</a>
+            <a href="#skripsi-menu">Menu Skripsi</a>
+            <a href="#documents">Dokumen Proposal & Revisi</a>
+            <a href="#bimbingan-menu">Bimbingan</a>
+            <a href="#final-submission">Final Submission</a>
+            <a href="#nilai-menu">Nilai</a>
+            <a href="#non-skripsi">Non-Skripsi</a>
+            <a href="#arsip">Ekspor / Arsip Pribadi</a>
+        </aside>
+
+        <main class="content">
+            <h1>Panduan Mahasiswa</h1>
+            <span class="badge badge--mahasiswa">Mahasiswa</span>
+
+            <h2 id="overview">Ringkasan Peran</h2>
+            <p>Mahasiswa memakai sistem untuk mengajukan skripsi, mengunggah proposal dan revisi, membaca catatan bimbingan, melihat nilai, dan jika berlaku mengelola data non-skripsi.</p>
+
+            <h2 id="menu-map">Peta Menu Mahasiswa</h2>
+            <table>
+                <thead><tr><th>Menu</th><th>Sub-menu / Aksi</th><th>Fungsi</th></tr></thead>
+                <tbody>
+                    <tr><td>Progress Tugas Akhir</td><td>Dashboard progres</td><td>Melihat ringkasan skripsi aktif dan perkembangan terbaru.</td></tr>
+                    <tr><td>Skripsi</td><td>Search, index, create, show, edit, delete</td><td>Mengelola data skripsi pribadi.</td></tr>
+                    <tr><td>Proposal Upload</td><td>Upload file proposal</td><td>Mengunggah dokumen proposal awal.</td></tr>
+                    <tr><td>Documents</td><td>Upload dokumen, hapus dokumen</td><td>Mengelola revisi dokumen selama proses skripsi.</td></tr>
+                    <tr><td>Bimbingan</td><td>List, export CSV/PDF, update revisi, hapus file revisi</td><td>Mengelola tindak lanjut hasil bimbingan.</td></tr>
+                    <tr><td>Final Submission</td><td>Index, submit</td><td>Mengirim dokumen akhir untuk event tertentu.</td></tr>
+                    <tr><td>Nilai</td><td>Lihat nilai</td><td>Melihat rekap nilai yang sudah masuk.</td></tr>
+                    <tr><td>Non-Skripsi</td><td>CRUD</td><td>Mengelola data non-skripsi jika jenis tugas akhir bukan skripsi biasa.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="skripsi-menu">Menu Skripsi</h2>
+            <p>Menu inti Mahasiswa ada di area skripsi.</p>
+            <ul>
+                <li><strong>Search</strong>: pencarian data skripsi milik sendiri.</li>
+                <li><strong>Index</strong>: daftar / ringkasan skripsi aktif.</li>
+                <li><strong>Create</strong>: membuat pengajuan skripsi baru.</li>
+                <li><strong>Show</strong>: melihat detail skripsi.</li>
+                <li><strong>Edit</strong>: mengubah data skripsi.</li>
+                <li><strong>Destroy</strong>: menghapus skripsi bila masih diizinkan.</li>
+            </ul>
+            <div class="screenshot">Screenshot 1: Dashboard / progress tugas akhir</div>
+            <div class="screenshot">Screenshot 2: Form pengajuan skripsi baru</div>
+
+            <h2 id="documents">Dokumen Proposal & Revisi</h2>
+            <p>Mahasiswa dapat mengunggah proposal awal dan dokumen revisi lanjutan.</p>
+            <ol>
+                <li>Buka detail skripsi.</li>
+                <li>Pilih menu atau tombol upload proposal / dokumen.</li>
+                <li>Pilih file yang sesuai.</li>
+                <li>Unggah file. Sistem akan menyimpan versi dokumen.</li>
+                <li>Jika diperlukan, buka file proposal melalui menu <strong>proposal file</strong>.</li>
+                <li>Jika salah unggah, hapus dokumen yang relevan bila fitur tersedia pada fase tersebut.</li>
+            </ol>
+            <div class="callout">Sistem menyimpan versi dokumen. Gunakan nama file yang rapi agar histori mudah dibaca.</div>
+
+            <h2 id="bimbingan-menu">Menu Bimbingan</h2>
+            <p>Mahasiswa dapat melihat daftar bimbingan, menindaklanjuti revisi, dan mengekspor riwayat bimbingan.</p>
+            <ul>
+                <li><strong>Index</strong>: seluruh sesi bimbingan untuk skripsi terkait.</li>
+                <li><strong>Export CSV</strong>: ekspor daftar bimbingan ke format CSV.</li>
+                <li><strong>Export PDF</strong>: tampilan cetak riwayat bimbingan.</li>
+                <li><strong>Update</strong>: kirim tanggapan revisi / unggah file revisi ke sesi tertentu.</li>
+                <li><strong>Destroy Revision</strong>: hapus file revisi yang terkait dengan sesi bimbingan jika salah unggah.</li>
+            </ul>
+            <div class="screenshot">Screenshot 3: Riwayat bimbingan dan aksi ekspor</div>
+
+            <h2 id="final-submission">Final Submission</h2>
+            <p>TA Cloud memiliki endpoint final submission berdasarkan event tertentu.</p>
+            <ol>
+                <li>Buka halaman final submission jika tersedia dari detail skripsi.</li>
+                <li>Pilih event submission yang sesuai.</li>
+                <li>Unggah atau kirim dokumen akhir sesuai instruksi.</li>
+            </ol>
+            <div class="callout callout--warning">Final submission tersedia melalui route aktif, tetapi kemunculan menu/entry point di UI tetap bergantung pada event dan fase skripsi yang sedang berjalan.</div>
+
+            <h2 id="nilai-menu">Menu Nilai</h2>
+            <p>Menu nilai menampilkan hasil penilaian yang sudah tercatat untuk skripsi Anda.</p>
+            <ul>
+                <li>Buka detail skripsi.</li>
+                <li>Pilih menu <strong>Nilai</strong>.</li>
+                <li>Tinjau item nilai, reviewer, dan hasil total bila tersedia.</li>
+            </ul>
+            <div class="screenshot">Screenshot 4: Halaman nilai mahasiswa</div>
+
+            <h2 id="non-skripsi">Menu Non-Skripsi</h2>
+            <p>Jika jenis tugas akhir Anda adalah <strong>non_skripsi</strong>, maka menu ini dipakai untuk menyimpan data tambahan.</p>
+            <ul>
+                <li><strong>Index</strong>: melihat semua record non-skripsi milik sendiri.</li>
+                <li><strong>Create</strong>: membuat record baru.</li>
+                <li><strong>Show</strong>: melihat detail record.</li>
+                <li><strong>Edit / Update</strong>: memperbaiki informasi.</li>
+                <li><strong>Destroy</strong>: menghapus record non-skripsi.</li>
+            </ul>
+            <div class="callout">Field umum non-skripsi: ringkasan, abstrak, laporan, publikasi, dan nilai akhir.</div>
+            <div class="screenshot">Screenshot 5: Form non-skripsi</div>
+
+            <h2 id="arsip">Ekspor / Arsip Pribadi</h2>
+            <p>Pada sisi Mahasiswa, fitur arsip yang benar-benar tersedia saat ini paling jelas ada di menu bimbingan:</p>
+            <ul>
+                <li><strong>Export CSV</strong>: mengekspor daftar bimbingan ke file CSV.</li>
+                <li><strong>Export PDF</strong>: menghasilkan tampilan PDF/print untuk riwayat bimbingan.</li>
+                <li><strong>Proposal File</strong>: membuka file proposal yang sudah diunggah.</li>
+            </ul>
+            <div class="callout">Saran: gunakan ekspor PDF bimbingan sebagai arsip progres formal, lalu simpan dokumen proposal dan revisi penting secara terpisah jika dibutuhkan.</div>
+
+            <footer class="page-footer">TACLOUD Internal Documentation &bull; Mahasiswa Guide</footer>
+        </main>
+    </div>
+</body>
+</html>

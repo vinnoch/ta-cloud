@@ -95,6 +95,7 @@ class DocumentTemplateController extends Controller
                 $template->items()->create([
                     'nama' => $item['name'],
                     'kode' => $item['code'],
+                    'type' => $item['type'],
                     'is_required' => (bool) ($item['is_required'] ?? true),
                     'sort_order' => $index + 1,
                 ]);
@@ -117,7 +118,9 @@ class DocumentTemplateController extends Controller
 
         $assignedSkripsis = Skripsi::query()
             ->with(['student', 'periode.tahunAkademik'])
-            ->whereIn('periode_id', $documentTemplate->periodes->pluck('id'))
+            ->whereIn('skripsis.id', \App\Models\DocumentSubmission::query()
+                ->whereIn('document_template_item_id', $documentTemplate->items->pluck('id'))
+                ->select('skripsi_id'))
             ->when($assignedPeriodeId > 0, fn ($query) => $query->where('periode_id', $assignedPeriodeId))
             ->when($assignedSearch !== '', function ($query) use ($assignedSearch): void {
                 $query->where(function ($inner) use ($assignedSearch): void {
@@ -300,6 +303,7 @@ class DocumentTemplateController extends Controller
             'periode_ids.*' => ['required', 'exists:periodes,id'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.name' => ['required', 'string', 'max:255'],
+            'items.*.type' => ['required', 'in:file,link'],
             'items.*.is_required' => ['nullable', 'boolean'],
         ];
 
@@ -322,6 +326,7 @@ class DocumentTemplateController extends Controller
             $generatedCode = $generatedCode !== '' ? $generatedCode : 'dokumen_final_' . ($index + 1);
 
             $validated['items'][$index]['code'] = $generatedCode;
+            $validated['items'][$index]['type'] = $item['type'] ?? 'file';
             $validated['items'][$index]['is_required'] = (bool) ($item['is_required'] ?? false);
             $normalizedCodes[] = $generatedCode;
         }
@@ -351,6 +356,7 @@ class DocumentTemplateController extends Controller
                 [
                     'nama' => $itemData['name'],
                     'kode' => $itemData['code'],
+                    'type' => $itemData['type'] ?? 'file',
                     'is_required' => (bool) ($itemData['is_required'] ?? false),
                     'sort_order' => $index + 1,
                 ]

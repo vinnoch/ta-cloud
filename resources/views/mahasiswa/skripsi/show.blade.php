@@ -64,6 +64,20 @@
         </section>
     @endif
 
+    @if ($dokumenFinalVisible ?? false)
+        <section class="acss-section-card">
+            <div class="acss-section-card__head">
+                <div>
+                    <h3 class="acss-card-title">Dokumen Final</h3>
+                    <p class="acss-muted">{{ $dokumenFinalStatus['description'] ?? 'Status dokumen final skripsi.' }}</p>
+                </div>
+                <a class="button button--inline" href="{{ $dokumenFinalStatus['href'] ?? route('mahasiswa.skripsi.final.skripsi.index', $skripsi) }}">
+                    {{ ($dokumenFinalStatus['label'] ?? '') === 'Approved' ? 'Approved' : 'Sedang Dicek' }}
+                </a>
+            </div>
+        </section>
+    @endif
+
     <section class="card" id="riwayat-proposal">
         <div class="section-heading acss-crud-head--inline">
             <div>

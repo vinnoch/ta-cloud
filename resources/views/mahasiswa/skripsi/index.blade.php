@@ -104,17 +104,45 @@
             </section>
         </div>
     @else
-        <section class="acss-section-card">
-            <div class="acss-section-card__body">
-                <div class="acss-empty-state-full">
-                    <h2 class="acss-card-title">Belum Ada Skripsi Aktif</h2>
-                    <p>Silakan buat pengajuan skripsi baru untuk memulai.</p>
-                    <div class="acss-flex-center gap-4 ">
-                        <a href="{{ route('mahasiswa.skripsi.create') }}" class="button button--inline">Buat Skripsi Baru</a>
+        @if (isset($completedSkripsi) && $completedSkripsi)
+            <div class="notice notice--success">Selamat! Skripsi Anda telah selesai.</div>
+
+            <section class="card card--profile">
+                <div class="profile-card">
+                    <div class="profile-card__avatar">{{ mb_substr($completedSkripsi->student->name ?? 'M', 0, 1) }}</div>
+                    <div class="profile-card__main">
+                        <div class="profile-card__meta">
+                            <div>
+                                <h2>{{ $completedSkripsi->student->name ?? '-' }}</h2>
+                                <p>{{ $completedSkripsi->student->nim ?? '-' }} • {{ $completedSkripsi->periode?->name ?? ($completedSkripsi->periode?->kode_periode ?? '-') }}</p>
+                                <div class="acss-quote-title">{{ $completedSkripsi->title }}</div>
+                            </div>
+                            <div class="acss-profile-badges">
+                                <span class="status-pill">{{ str($completedSkripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </section>
+
+            <div class="acss-form-actions">
+                <a href="{{ route('mahasiswa.skripsi.show', $completedSkripsi) }}" class="button button--primary button--inline">Lihat Detail Skripsi</a>
             </div>
-        </section>
+        @else
+            <section class="acss-section-card">
+                <div class="acss-section-card__head">
+                    <div>
+                        <h1 class="acss-page-title">Skripsi Tidak Ditemukan</h1>
+                        <p class="acss-muted">Silakan buat pengajuan skripsi baru untuk memulai.</p>
+                    </div>
+                </div>
+                <div class="acss-section-card__body">
+                    <div class="acss-form-actions">
+                        <a href="{{ route('mahasiswa.skripsi.create') }}" class="button button--success button--inline">Ajukan Skripsi Baru</a>
+                    </div>
+                </div>
+            </section>
+        @endif
     @endif
 
     @include('partials.pdf-viewer-modal')

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\DocumentTemplate;
+use App\Models\DocumentSubmission;
 use App\Models\DocumentVersion;
 use App\Models\FinalDocumentApproval;
 use App\Models\Grade;
@@ -17,6 +19,69 @@ use Illuminate\View\View;
 
 class FinalSubmissionController extends Controller
 {
+    public function skripsiFinal(Request $request, Skripsi $skripsi): View|RedirectResponse
+    {
+        $this->authorizeOwner($request, $skripsi);
+
+        $allowedPhases = ['revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'];
+        if (! in_array($skripsi->current_phase, $allowedPhases, true)) {
+            return redirect()
+                ->route('mahasiswa.skripsi.show', $skripsi)
+                ->with('warning', 'Halaman dokumen final belum tersedia untuk fase saat ini.');
+        }
+
+        $submission = $this->buildSubmissionState($skripsi, 'sidang_skripsi');
+
+        $skripsi->loadMissing(['student', 'periode']);
+
+        $documents = DocumentVersion::query()
+            ->where('skripsi_id', $skripsi->id)
+            ->where('phase', 'skripsi_final')
+            ->orderByDesc('version_number')
+            ->get();
+
+        $existingSubmissions = DocumentSubmission::query()
+            ->where('skripsi_id', $skripsi->id)
+            ->whereIn('document_template_item_id', ($submission['template_items'] ?? collect())->pluck('id'))
+            ->with('documentVersion')
+            ->get()
+            ->keyBy('document_template_item_id');
+
+        $latestDoc = $documents->first();
+        $approvals = $latestDoc
+            ? FinalDocumentApproval::query()
+                ->where('document_version_id', $latestDoc->id)
+                ->with('reviewer')
+                ->get()
+            : collect();
+
+        $navigation = app(\App\Services\RoleNavigationService::class);
+
+        return view('mahasiswa.final.skripsi', [
+            'title' => 'Dokumen Final',
+            'heading' => 'Dokumen Final',
+            'crumbs' => 'MAHASISWA • DOKUMEN FINAL',
+            'navItems' => $navigation->mahasiswaNavItems($request->user()->id, $skripsi->id),
+            'navFooterItems' => $navigation->footerItems(),
+            'navRole' => 'mahasiswa',
+            'primaryCta' => null,
+            'skripsi' => $skripsi,
+            'submission' => $submission,
+            'checklist' => $submission['checklist'],
+            'cards' => $submission['cards'],
+            'templateItems' => $submission['template_items'] ?? collect(),
+            'existingSubmissions' => $existingSubmissions,
+            'documents' => $documents,
+            'approvals' => $approvals,
+            'canUpload' => $submission['allowed'],
+        ]);
+    }
+
+    public function storeSkripsiFinal(Request $request, Skripsi $skripsi, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
+    {
+        return $this->storeForEvent($request, $skripsi, 'sidang_skripsi', $notifications, $documentPathService);
+    }
+
     public function index(Request $request, Skripsi $skripsi, string $event): View|RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
@@ -24,7 +89,7 @@ class FinalSubmissionController extends Controller
         $submission = $this->buildSubmissionState($skripsi, $event);
         if (! $submission['allowed']) {
             return redirect()
-                ->route('mahasiswa.skripsi.show', $skripsi, false)
+                ->route('mahasiswa.skripsi.show', $skripsi)
                 ->with('warning', $submission['message']);
         }
 
@@ -38,13 +103,140 @@ class FinalSubmissionController extends Controller
 
     public function store(Request $request, Skripsi $skripsi, string $event, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
     {
+        return $this->storeForEvent($request, $skripsi, $event, $notifications, $documentPathService);
+    }
+
+    private function storeForEvent(Request $request, Skripsi $skripsi, string $event, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
+    {
         $this->authorizeOwner($request, $skripsi);
 
         $submission = $this->buildSubmissionState($skripsi, $event);
         if (! $submission['allowed']) {
             return redirect()
-                ->route('mahasiswa.skripsi.show', $skripsi, false)
+                ->route('mahasiswa.skripsi.show', $skripsi)
                 ->with('warning', $submission['message']);
+        }
+
+        $templateItems = $submission['template_items'] ?? collect();
+
+        if ($event === 'sidang_skripsi' && $templateItems->isNotEmpty()) {
+            $rules = [];
+
+            foreach ($templateItems as $item) {
+                if (($item->type ?? 'file') === 'link') {
+                    $rules['links.' . $item->id] = [$item->is_required ? 'required' : 'nullable', 'url', 'max:500'];
+                } else {
+                    $rules['files.' . $item->id] = [$item->is_required ? 'required' : 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:20480'];
+                }
+            }
+
+            $validated = $request->validate($rules);
+
+            \DB::transaction(function () use ($request, $skripsi, $templateItems, $documentPathService): void {
+                foreach ($templateItems as $item) {
+                    if (($item->type ?? 'file') === 'link') {
+                        $link = trim((string) data_get($request->all(), 'links.' . $item->id, ''));
+                        if ($link === '') {
+                            continue;
+                        }
+
+                        DocumentSubmission::query()->updateOrCreate(
+                            [
+                                'skripsi_id' => $skripsi->id,
+                                'document_template_item_id' => $item->id,
+                            ],
+                            [
+                                'document_version_id' => null,
+                                'notes' => $link,
+                            ]
+                        );
+
+                        continue;
+                    }
+
+                    $file = $request->file('files.' . $item->id);
+                    if (! $file) {
+                        continue;
+                    }
+
+                    $nextVersion = ((int) DocumentVersion::query()
+                        ->where('skripsi_id', $skripsi->id)
+                        ->where('phase', 'skripsi_final')
+                        ->max('version_number')) + 1;
+
+                    $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), 'skripsi_final', $nextVersion, $file), 'local');
+
+                    $document = DocumentVersion::query()->create([
+                        'skripsi_id' => $skripsi->id,
+                        'phase' => 'skripsi_final',
+                        'version_number' => $nextVersion,
+                        'file_path' => $path,
+                        'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+                        'size' => $file->getSize() ?: 0,
+                        'uploaded_by' => $request->user()->id,
+                    ]);
+
+                    DocumentSubmission::query()->updateOrCreate(
+                        [
+                            'skripsi_id' => $skripsi->id,
+                            'document_template_item_id' => $item->id,
+                        ],
+                        [
+                            'document_version_id' => $document->id,
+                            'notes' => null,
+                        ]
+                    );
+                }
+            });
+
+            $skripsi->assignments()
+                ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
+                ->get()
+                ->each(function ($assignment) use ($skripsi): void {
+                    $latestDocument = DocumentVersion::query()
+                        ->where('skripsi_id', $skripsi->id)
+                        ->where('phase', 'skripsi_final')
+                        ->latest('id')
+                        ->first();
+
+                    if (! $latestDocument) {
+                        return;
+                    }
+
+                    FinalDocumentApproval::query()->updateOrCreate(
+                        [
+                            'document_version_id' => $latestDocument->id,
+                            'reviewer_id' => $assignment->lecturer_id,
+                        ],
+                        [
+                            'skripsi_id' => $skripsi->id,
+                            'role_type' => $assignment->role_type,
+                            'status' => 'pending',
+                            'note' => null,
+                            'reviewed_at' => null,
+                        ]
+                    );
+                });
+
+            $skripsi->update([
+                'current_phase' => $submission['next_phase'],
+            ]);
+
+            $recipients = User::query()->forRole('kaprodi')->get()
+                ->concat($skripsi->assignments()->with('lecturer')->get()->pluck('lecturer')->filter())
+                ->unique('id')
+                ->values();
+
+            $notifications->send($recipients, [
+                'type' => 'skripsi_final_submitted',
+                'title' => 'Dokumen final skripsi dikirim',
+                'message' => $request->user()->name . ' mengirim dokumen final skripsi: ' . $skripsi->title,
+                'url' => route('kaprodi.skripsi.show', ['skripsi' => $skripsi->id], false),
+            ]);
+
+            return redirect()
+                ->route('mahasiswa.skripsi.final.skripsi.index', $skripsi)
+                ->with('success', 'Dokumen final skripsi berhasil dikirim.');
         }
 
         $validated = $request->validate([
@@ -129,7 +321,7 @@ class FinalSubmissionController extends Controller
         ]);
 
         return redirect()
-            ->route('mahasiswa.skripsi.show', $skripsi, false)
+            ->route('mahasiswa.skripsi.show', $skripsi)
             ->with('success', $event === 'sidang_proposal'
                 ? 'Proposal final berhasil dikirim.'
                 : 'Dokumen final skripsi berhasil dikirim.');
@@ -194,6 +386,10 @@ class FinalSubmissionController extends Controller
         $phaseAllowed = in_array($skripsi->current_phase, $allowedPhases, true);
         $allowed = $phaseAllowed && $hasCompleteFinalGrades && ! $alreadySubmitted;
 
+        $templateItems = $event === 'sidang_skripsi'
+            ? self::resolveTemplateItems($skripsi)
+            : collect();
+
         return [
             'event' => $event,
             'title' => $event === 'sidang_proposal' ? 'Final Submission Proposal' : 'Final Submission Skripsi',
@@ -209,6 +405,7 @@ class FinalSubmissionController extends Controller
             'already_submitted' => $alreadySubmitted,
             'has_rejected_final_document' => $hasRejectedFinalDocument,
             'show_journal_field' => $event === 'sidang_skripsi',
+            'template_items' => $templateItems,
             'checklist' => [
                 [
                     'title' => 'Nilai final tersedia',
@@ -225,6 +422,11 @@ class FinalSubmissionController extends Controller
                     'description' => $event === 'sidang_proposal' ? 'Upload proposal final hasil perbaikan sidang.' : 'Upload naskah skripsi final hasil revisi sidang.',
                     'status' => $alreadySubmitted ? 'SUDAH DIKIRIM' : 'BELUM DIKIRIM',
                 ],
+                ...($event === 'sidang_skripsi' && $templateItems->isNotEmpty() ? [[
+                    'title' => 'Checklist dokumen final',
+                    'description' => $templateItems->count() . ' item sesuai template periode aktif.',
+                    'status' => 'TERSEDIA',
+                ]] : []),
                 [
                     'title' => 'Fase berikutnya',
                     'description' => str($event === 'sidang_proposal' ? 'bimbingan_skripsi' : 'review_dokumen_final')->replace('_', ' ')->title(),
@@ -244,5 +446,17 @@ class FinalSubmissionController extends Controller
                 ],
             ],
         ];
+    }
+
+    private static function resolveTemplateItems(Skripsi $skripsi)
+    {
+        $template = DocumentTemplate::query()
+            ->where('is_published', true)
+            ->whereHas('periodes', fn ($query) => $query->where('periodes.id', $skripsi->periode_id))
+            ->with(['items' => fn ($query) => $query->orderBy('sort_order')])
+            ->orderByDesc('id')
+            ->first();
+
+        return $template?->items ?? collect();
     }
 }

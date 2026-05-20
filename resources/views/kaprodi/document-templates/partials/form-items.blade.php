@@ -3,12 +3,13 @@
         ? $template->items->sortBy('sort_order')->map(fn ($item) => [
             'id' => $item->id,
             'name' => $item->name,
+            'type' => $item->type ?? 'file',
             'is_required' => (bool) $item->is_required,
         ])->values()->all()
         : [
-            ['name' => 'Dokumen Skripsi', 'is_required' => true],
-            ['name' => 'Dataset', 'is_required' => true],
-            ['name' => 'Surat Keterangan Lunas', 'is_required' => true],
+            ['name' => 'Dokumen Skripsi', 'type' => 'file', 'is_required' => true],
+            ['name' => 'Dataset', 'type' => 'file', 'is_required' => true],
+            ['name' => 'Abstrak', 'type' => 'link', 'is_required' => true],
         ]);
     $shouldShowRows = old('items') !== null || (isset($template) && $template->relationLoaded('items') && $template->items->isNotEmpty());
     $itemCount = $shouldShowRows ? max(count($itemRows), 1) : 0;
@@ -36,15 +37,22 @@
         @if ($shouldShowRows)
             @foreach ($itemRows as $index => $item)
                 <div class="acss-page-card document-item-row" data-item-row>
-                    <div class="acss-page-card__body" style="display:grid;gap:1rem;grid-template-columns:minmax(0,1fr) 180px;">
-                        <input type="hidden" name="items[{{ $index }}][id]" value="{{ $item['id'] ?? '' }}">
-                        <label class="form-field acss-field-tight">
-                            <span>Nama Dokumen</span>
-                            <input type="text" name="items[{{ $index }}][name]" value="{{ $item['name'] ?? '' }}" placeholder="Contoh: Dokumen Skripsi" required>
-                        </label>
-                        <label class="form-field acss-field-tight">
-                            <span>Sifat</span>
-                            <select name="items[{{ $index }}][is_required]">
+                <div class="acss-page-card__body" style="display:grid;gap:1rem;grid-template-columns:minmax(0,1fr) 180px 180px;">
+                    <input type="hidden" name="items[{{ $index }}][id]" value="{{ $item['id'] ?? '' }}">
+                    <label class="form-field acss-field-tight">
+                        <span>Nama Dokumen</span>
+                        <input type="text" name="items[{{ $index }}][name]" value="{{ $item['name'] ?? '' }}" placeholder="Contoh: Dokumen Skripsi" required>
+                    </label>
+                    <label class="form-field acss-field-tight">
+                        <span>Tipe</span>
+                        <select name="items[{{ $index }}][type]">
+                            <option value="file" {{ ($item['type'] ?? 'file') === 'file' ? 'selected' : '' }}>File Upload</option>
+                            <option value="link" {{ ($item['type'] ?? 'file') === 'link' ? 'selected' : '' }}>Google Drive Link</option>
+                        </select>
+                    </label>
+                    <label class="form-field acss-field-tight">
+                        <span>Sifat</span>
+                        <select name="items[{{ $index }}][is_required]">
                                 <option value="1" {{ ($item['is_required'] ?? false) ? 'selected' : '' }}>Wajib</option>
                                 <option value="0" {{ ! ($item['is_required'] ?? false) ? 'selected' : '' }}>Opsional</option>
                             </select>
@@ -60,11 +68,18 @@
 
 <template id="item-row-template">
     <div class="acss-page-card document-item-row" data-item-row>
-        <div class="acss-page-card__body" style="display:grid;gap:1rem;grid-template-columns:minmax(0,1fr) 180px;">
+        <div class="acss-page-card__body" style="display:grid;gap:1rem;grid-template-columns:minmax(0,1fr) 180px 180px;">
             <input type="hidden" data-name-template="items[__INDEX__][id]" value="">
             <label class="form-field acss-field-tight">
                 <span>Nama Dokumen</span>
                 <input type="text" data-name-template="items[__INDEX__][name]" placeholder="Contoh: Dokumen Skripsi" required>
+            </label>
+            <label class="form-field acss-field-tight">
+                <span>Tipe</span>
+                <select data-name-template="items[__INDEX__][type]">
+                    <option value="file" selected>File Upload</option>
+                    <option value="link">Google Drive Link</option>
+                </select>
             </label>
             <label class="form-field acss-field-tight">
                 <span>Sifat</span>

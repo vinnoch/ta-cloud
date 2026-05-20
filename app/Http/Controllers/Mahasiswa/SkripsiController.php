@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Mahasiswa\FinalSubmissionController;
+use App\Models\DocumentSubmission;
 use App\Models\DocumentVersion;
+use App\Models\FinalDocumentApproval;
 use App\Models\Skripsi;
 use App\Services\MahasiswaSkripsiDataService;
 use App\Services\StudentDocumentPathService;
@@ -71,6 +73,9 @@ class SkripsiController extends Controller
             'documents' => $documents,
             'canManageNonSkripsi' => $activeSkripsi?->type === 'non_skripsi',
             'hasNonSkripsiRecord' => $activeSkripsi?->type === 'non_skripsi' ? $activeSkripsi->nonSkripsiRecord()->exists() : false,
+            'completedSkripsi' => ! $activeSkripsi
+                ? Skripsi::query()->where('student_id', $request->user()->id)->where('current_phase', 'skripsi_selesai')->latest()->first()
+                : null,
         ]);
     }
 
@@ -179,6 +184,30 @@ class SkripsiController extends Controller
             && $skripsi->proposal_review_status !== 'approved';
 
         $needsProposalUpload = $canProposalUpload && $proposalVersions->isEmpty();
+        $dokumenFinalVisible = in_array($skripsi->current_phase, ['revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'], true);
+        $dokumenFinalStatus = null;
+
+        if ($dokumenFinalVisible) {
+            $finalApprovals = FinalDocumentApproval::query()
+                ->where('skripsi_id', $skripsi->id)
+                ->get();
+
+            $hasDocumentSubmissions = DocumentSubmission::query()
+                ->where('skripsi_id', $skripsi->id)
+                ->exists();
+
+            $allApproved = $finalApprovals->isNotEmpty() && $finalApprovals->every(fn ($approval) => $approval->status === 'approved');
+
+            $dokumenFinalStatus = [
+                'label' => $allApproved || $skripsi->current_phase === 'skripsi_selesai' ? 'Approved' : 'Sedang Dicek',
+                'description' => $hasDocumentSubmissions
+                    ? ($allApproved || $skripsi->current_phase === 'skripsi_selesai'
+                        ? 'Semua dokumen final sudah disetujui.'
+                        : 'Dokumen final masih diperiksa dosen dan kaprodi.')
+                    : 'Belum ada dokumen final yang dikirim.',
+                'href' => route('mahasiswa.skripsi.final.skripsi.index', $skripsi),
+            ];
+        }
 
         return view('mahasiswa.skripsi.show', [
             'skripsi' => $skripsi,
@@ -192,6 +221,8 @@ class SkripsiController extends Controller
             'documents' => $skripsiData->documents($skripsi),
             'proposalFinalSubmission' => FinalSubmissionController::buildSubmissionState($skripsi, 'sidang_proposal'),
             'skripsiFinalSubmission' => FinalSubmissionController::buildSubmissionState($skripsi, 'sidang_skripsi'),
+            'dokumenFinalVisible' => $dokumenFinalVisible,
+            'dokumenFinalStatus' => $dokumenFinalStatus,
         ]);
     }
 

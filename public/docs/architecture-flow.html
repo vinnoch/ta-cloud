@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagram Alur & Data — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</head>
+<body>
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="index.html">Home</a>
+            <a href="architecture-flow.html" class="active">Diagram</a>
+            <a href="kaprodi.html">Kaprodi</a>
+            <a href="dosen.html">Dosen</a>
+            <a href="mahasiswa.html">Mahasiswa</a>
+        </div>
+    </nav>
+
+    <main class="content content--wide">
+        <h1>Diagram Alur & Struktur Data TA Cloud</h1>
+        <p>Halaman ini merangkum bagaimana data bergerak di dalam sistem dan bagaimana peran Kaprodi, Dosen, dan Mahasiswa saling terhubung dalam satu alur kerja tugas akhir.</p>
+
+        <h2>1. Alur Proses Utama (UML / Activity Style)</h2>
+        <p>Diagram berikut menunjukkan alur besar proses skripsi dari pengajuan awal sampai review dokumen final dan nilai akhir.</p>
+        <div class="mermaid">
+flowchart TD
+    A[Mahasiswa membuat skripsi] --> B[Mahasiswa unggah proposal]
+    B --> C[Kaprodi review proposal]
+    C -->|Approve| D[Kaprodi assign pembimbing]
+    C -->|Reject| B
+    D --> E[Dosen memberi bimbingan]
+    E --> F[Mahasiswa unggah revisi]
+    F --> E
+    E --> G[Dosen ajukan permohonan sidang]
+    G --> H[Kaprodi approve/reject permohonan sidang]
+    H -->|Approve| I[Dosen input nilai sidang]
+    H -->|Reject| E
+    I --> J[Nilai terkunci]
+    J --> K{Perlu koreksi?}
+    K -->|Ya| L[Dosen request unlock]
+    L --> M[Kaprodi unlock nilai]
+    M --> I
+    K -->|Tidak| N[Mahasiswa lihat nilai]
+    N --> O[Mahasiswa final submission / dokumen akhir]
+    O --> P[Kaprodi review dokumen final]
+    P --> Q[Skripsi selesai / siap library]
+        </div>
+
+        <h2>2. DFD Ringkas (Arus Data Antar Peran)</h2>
+        <p>Diagram ini menekankan siapa mengirim data ke siapa, dan penyimpanan utama apa yang dipakai sistem.</p>
+        <div class="mermaid">
+flowchart LR
+    MHS[Mahasiswa]
+    DOS[Dosen]
+    KAP[Kaprodi]
+
+    SK[(Skripsi)]
+    DOC[(Document Versions)]
+    BIM[(Bimbingan)]
+    SID[(Sidang Requests)]
+    NIL[(Grades)]
+    NST[(Non-Skripsi Records)]
+    NOTIF[(Notifications)]
+
+    MHS -->|buat skripsi| SK
+    MHS -->|unggah proposal/revisi| DOC
+    MHS -->|kirim respon revisi| BIM
+    MHS -->|kelola non-skripsi| NST
+
+    DOS -->|catatan bimbingan| BIM
+    DOS -->|ajukan sidang| SID
+    DOS -->|input nilai| NIL
+    DOS -->|request unlock| NIL
+
+    KAP -->|approve/reject proposal| SK
+    KAP -->|assign reviewer| SK
+    KAP -->|approve/reject sidang| SID
+    KAP -->|unlock nilai| NIL
+    KAP -->|review final| SK
+
+    SK --> NOTIF
+    BIM --> NOTIF
+    SID --> NOTIF
+    NIL --> NOTIF
+        </div>
+
+        <h2>3. Relasi Data Inti (UML / Class Style)</h2>
+        <p>Diagram ini menunjukkan objek data utama dan keterhubungan antarnya.</p>
+        <div class="mermaid">
+classDiagram
+    class User {
+        +id
+        +name
+        +email
+        +role
+        +nim
+        +nidn_nip
+    }
+
+    class UserLevel {
+        +users_id
+        +users_level
+    }
+
+    class Skripsi {
+        +id
+        +student_id
+        +periode_id
+        +title
+        +type
+        +current_phase
+        +journal_article_url
+    }
+
+    class Periode {
+        +id
+        +kode_periode
+        +semester
+        +status
+        +is_aktif
+    }
+
+    class Bimbingan {
+        +id
+        +skripsi_id
+        +reviewer_id
+        +phase
+        +meeting_date
+        +student_notes
+        +lecturer_notes
+    }
+
+    class DocumentVersion {
+        +id
+        +skripsi_id
+        +phase
+        +version_number
+        +file_path
+        +uploaded_by
+    }
+
+    class ReviewerAssignment {
+        +id
+        +skripsi_id
+        +lecturer_id
+        +role_type
+    }
+
+    class SidangRequest {
+        +id
+        +skripsi_id
+        +lecturer_id
+        +status
+    }
+
+    class Grade {
+        +id
+        +skripsi_id
+        +reviewer_id
+        +format_penilaian_id
+        +status
+        +score
+        +locked_at
+        +unlock_requested_at
+    }
+
+    class GradeItem {
+        +id
+        +grade_id
+        +item_penilaian_id
+        +score
+    }
+
+    class FormatPenilaian {
+        +id
+        +study_program_id
+        +nama
+        +template_type
+    }
+
+    class ItemPenilaian {
+        +id
+        +format_penilaian_id
+        +name
+        +weight
+    }
+
+    class NonSkripsiRecord {
+        +id
+        +skripsi_id
+        +summary
+        +abstract
+        +publication_url
+        +final_score
+    }
+
+    User "many" --> "1" UserLevel : belongsTo
+    User "1" --> "0..1" Skripsi : mahasiswa owns
+    Skripsi "many" --> "1" Periode : belongsTo
+    Skripsi "1" --> "many" Bimbingan : hasMany
+    Skripsi "1" --> "many" DocumentVersion : hasMany
+    Skripsi "1" --> "many" ReviewerAssignment : hasMany
+    Skripsi "1" --> "many" SidangRequest : hasMany
+    Skripsi "1" --> "many" Grade : hasMany
+    Skripsi "1" --> "0..1" NonSkripsiRecord : hasOne
+    Bimbingan "many" --> "1" User : reviewer
+    DocumentVersion "many" --> "1" User : uploader
+    ReviewerAssignment "many" --> "1" User : lecturer
+    SidangRequest "many" --> "1" User : lecturer
+    Grade "many" --> "1" User : reviewer
+    Grade "1" --> "many" GradeItem : hasMany
+    Grade "many" --> "1" FormatPenilaian : template
+    FormatPenilaian "1" --> "many" ItemPenilaian : hasMany
+        </div>
+
+        <h2>4. Cara Membaca Diagram Ini</h2>
+        <ul>
+            <li><strong>Mahasiswa</strong> memulai hampir semua data primer: skripsi, proposal, revisi, non-skripsi.</li>
+            <li><strong>Dosen</strong> bekerja di level proses: bimbingan, sidang request, penilaian, unlock request.</li>
+            <li><strong>Kaprodi</strong> bekerja di level kontrol: approval proposal, assignment reviewer, approval sidang, unlock nilai, final review.</li>
+            <li><strong>Notifications</strong> dipicu oleh perubahan penting lintas proses.</li>
+        </ul>
+
+        <div class="callout">
+            Rekomendasi penggunaan halaman ini: tampilkan saat onboarding tim, presentasi alur sistem, atau saat menjelaskan hubungan antar menu ke user baru.
+        </div>
+
+        <footer class="page-footer">
+            TACLOUD Internal Documentation &bull; Diagram Alur & Struktur Data
+        </footer>
+    </main>
+</body>
+</html>

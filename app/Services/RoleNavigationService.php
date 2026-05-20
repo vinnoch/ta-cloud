@@ -27,7 +27,7 @@ class RoleNavigationService
                     ['label' => 'Skripsi', 'href' => route('kaprodi.skripsi.index'), 'active' => 'kaprodi.skripsi.index', 'icon' => 'partials.icons.file'],
                     ['label' => 'Pengajuan Proposal', 'href' => route('kaprodi.proposal-submissions.index'), 'active' => 'kaprodi.proposal-submissions.*', 'icon' => 'partials.icons.clipboard'],
                     ['label' => 'Permohonan Sidang', 'href' => route('kaprodi.sidang-requests.index'), 'active' => 'kaprodi.sidang-requests.*', 'icon' => 'partials.icons.phase-flag'],
-                    ['label' => 'Review Dokumen Final', 'href' => route('kaprodi.final-reviews.index'), 'active' => 'kaprodi.final-reviews.*', 'icon' => 'partials.icons.phase-flag'],
+                    ['label' => 'Dokumen Final', 'href' => route('kaprodi.final-reviews.index'), 'active' => 'kaprodi.final-reviews.*', 'icon' => 'partials.icons.phase-flag'],
                 ],
             ],
             [
@@ -73,12 +73,22 @@ class RoleNavigationService
         $items[] = ['label' => 'Tugas Akhir', 'href' => route('mahasiswa.skripsi.index'), 'active' => ['mahasiswa.skripsi.index', 'mahasiswa.skripsi.show', 'mahasiswa.skripsi.create', 'mahasiswa.skripsi.edit'], 'icon' => 'partials.icons.file'];
 
         if ($resolvedSkripsiId) {
+            $resolvedSkripsi = Skripsi::query()->select(['id', 'current_phase'])->find($resolvedSkripsiId);
+
             if (Route::has('mahasiswa.skripsi.bimbingan.index')) {
                 $items[] = ['label' => 'Bimbingan', 'href' => route('mahasiswa.skripsi.bimbingan.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.bimbingan.*', 'icon' => 'partials.icons.chat'];
             }
 
             if (Route::has('mahasiswa.skripsi.nilai.index')) {
                 $items[] = ['label' => 'Nilai', 'href' => route('mahasiswa.skripsi.nilai.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.nilai.*', 'icon' => 'partials.icons.phase-flag'];
+            }
+
+            if (
+                $resolvedSkripsi
+                && Route::has('mahasiswa.skripsi.final.skripsi.index')
+                && in_array($resolvedSkripsi->current_phase, ['revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'], true)
+            ) {
+                $items[] = ['label' => 'Dokumen Final', 'href' => route('mahasiswa.skripsi.final.skripsi.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.final.skripsi.*', 'icon' => 'partials.icons.file-plain'];
             }
         }
 

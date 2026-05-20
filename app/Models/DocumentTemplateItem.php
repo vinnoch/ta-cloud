@@ -12,6 +12,7 @@ class DocumentTemplateItem extends Model
         'document_template_id',
         'nama',
         'kode',
+        'type',
         'is_required',
         'sort_order',
     ];
@@ -23,6 +24,7 @@ class DocumentTemplateItem extends Model
     protected $appends = [
         'name',
         'code',
+        'type_label',
     ];
 
     public function template(): BelongsTo
@@ -43,6 +45,13 @@ class DocumentTemplateItem extends Model
         return Attribute::make(
             get: fn () => $this->attributes['kode'] ?? null,
             set: fn (?string $value) => ['kode' => $value],
+        );
+    }
+
+    protected function typeLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => ($this->attributes['type'] ?? 'file') === 'link' ? 'Google Drive Link' : 'File Upload',
         );
     }
 }

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Kaprodi — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="kaprodi.html" class="active">Kaprodi</a>
+            <a href="dosen.html">Dosen</a>
+            <a href="mahasiswa.html">Mahasiswa</a>
+            <a href="common-features.html">Fitur Umum</a>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="sidebar__title">Panduan Kaprodi</div>
+            <a href="#overview">Ringkasan Peran</a>
+            <a href="#menu-map">Peta Menu</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#proposal-submissions">Pengajuan Proposal</a>
+            <a href="#skripsi-menu">Menu Skripsi</a>
+            <a href="#sidang-requests">Permohonan Sidang</a>
+            <a href="#final-reviews">Review Dokumen Final</a>
+            <a href="#nilai-menu">Nilai & Unlock</a>
+            <a href="#document-templates">Dokumen Final</a>
+            <a href="#master-data">Master Data</a>
+            <a href="#imports">Import Data</a>
+            <a href="#static-pages">Halaman Monitoring</a>
+            <a href="#arsip">Unduh / Arsip Internal</a>
+        </aside>
+
+        <main class="content">
+            <h1>Panduan Kaprodi</h1>
+            <span class="badge badge--kaprodi">Kaprodi</span>
+
+            <h2 id="overview">Ringkasan Peran</h2>
+            <p>Kaprodi adalah operator akademik utama dalam TA Cloud. Peran ini mengelola data master, memvalidasi proposal, memantau progres skripsi semua mahasiswa, menetapkan pembimbing/penguji, menyetujui permohonan sidang, meninjau nilai akhir, dan menangani permintaan buka kunci nilai.</p>
+            <div class="callout">
+                Fokus utama Kaprodi: <strong>validasi awal</strong>, <strong>penugasan reviewer</strong>, <strong>kontrol fase</strong>, dan <strong>monitoring akhir</strong>.
+            </div>
+
+            <h2 id="menu-map">Peta Menu Kaprodi</h2>
+            <table>
+                <thead>
+                    <tr><th>Menu</th><th>Sub-menu / Aksi</th><th>Fungsi</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Dashboard</td><td>Pilih periode, buka kartu statistik</td><td>Memantau proposal, reviewer belum terpasang, permohonan sidang, dan final review.</td></tr>
+                    <tr><td>Pengajuan Proposal</td><td>List, filter, approve, reject</td><td>Memvalidasi proposal masuk sebelum mahasiswa lanjut ke fase berikutnya.</td></tr>
+                    <tr><td>Skripsi</td><td>List, detail, proposal, bimbingan, logbook, dokumen, assign reviewer, update status, jadwal sidang</td><td>Pusat kontrol skripsi per mahasiswa.</td></tr>
+                    <tr><td>Permohonan Sidang</td><td>List, approve, reject</td><td>Memproses pengajuan sidang dari dosen.</td></tr>
+                    <tr><td>Review Dokumen Final</td><td>List, approve final review</td><td>Meninjau dokumen akhir sebelum skripsi selesai.</td></tr>
+                    <tr><td>Nilai</td><td>Rekap nilai final</td><td>Melihat hasil nilai yang sudah final.</td></tr>
+                    <tr><td>Format Penilaian</td><td>CRUD, duplikasi, tambah periode, lihat nilai, buka kunci nilai</td><td>Mengelola template penilaian dan membuka nilai yang sudah dikunci.</td></tr>
+                    <tr><td>Dokumen Final</td><td>CRUD, duplikasi, tambah periode</td><td>Mengelola template/format dokumen final per periode.</td></tr>
+                    <tr><td>Dosen</td><td>CRUD, arsip, pulihkan</td><td>Mengelola data dosen.</td></tr>
+                    <tr><td>Mahasiswa</td><td>CRUD, arsip, pulihkan, update status skripsi</td><td>Mengelola data mahasiswa dan status tugas akhir.</td></tr>
+                    <tr><td>Tahun Akademik</td><td>CRUD, arsip</td><td>Mengelola tahun akademik aktif dan historis.</td></tr>
+                    <tr><td>Periode</td><td>CRUD, arsip</td><td>Mengelola periode akademik yang dipakai skripsi dan template.</td></tr>
+                    <tr><td>Import</td><td>Import dosen, import mahasiswa</td><td>Upload CSV untuk data massal.</td></tr>
+                    <tr><td>Fase</td><td>Board monitoring</td><td>Melihat distribusi mahasiswa per fase.</td></tr>
+                    <tr><td>Keputusan</td><td>Detail keputusan akhir</td><td>Ringkasan hasil akhir sidang.</td></tr>
+                    <tr><td>Library</td><td>Daftar publikasi final</td><td>Monitoring arsip library yang siap tayang.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="dashboard">Dashboard</h2>
+            <p>Dashboard Kaprodi menampilkan kartu statistik dan grafik fase berdasarkan periode terpilih.</p>
+            <ul>
+                <li><strong>Proposal Diajukan</strong>: jumlah proposal yang menunggu persetujuan.</li>
+                <li><strong>Menunggu Assign</strong>: proposal yang sudah siap reviewer tetapi pembimbing belum ditetapkan.</li>
+                <li><strong>Permohonan Sidang</strong>: permintaan sidang dari dosen yang masih menunggu keputusan Kaprodi.</li>
+                <li><strong>Review Dokumen Final</strong>: skripsi yang sudah masuk tahap pemeriksaan dokumen akhir.</li>
+            </ul>
+            <div class="screenshot">Screenshot 1: Dashboard Kaprodi + filter periode</div>
+
+            <h2 id="proposal-submissions">Menu Pengajuan Proposal</h2>
+            <p>Menu ini dipakai untuk memvalidasi proposal awal mahasiswa.</p>
+            <div class="step-box"><div class="step-box__number">Langkah 1</div><div class="step-box__title">Buka daftar pengajuan</div><p>Masuk ke menu <strong>Pengajuan Proposal</strong>. Gunakan filter reviewer status atau periode bila diperlukan.</p></div>
+            <div class="step-box"><div class="step-box__number">Langkah 2</div><div class="step-box__title">Tinjau proposal</div><p>Klik proposal mahasiswa. Pastikan dokumen proposal sudah ada dan metadata skripsi sesuai.</p></div>
+            <div class="step-box"><div class="step-box__number">Langkah 3</div><div class="step-box__title">Approve atau Reject</div><p>Jika proposal layak lanjut, pilih <strong>Approve</strong>. Jika ada masalah administratif atau isi belum sesuai, pilih <strong>Reject</strong>.</p></div>
+            <div class="callout callout--warning">Proposal yang di-approve biasanya menjadi kandidat untuk tahap penugasan pembimbing dan/atau sidang proposal sesuai alur sistem.</div>
+
+            <h2 id="skripsi-menu">Menu Skripsi</h2>
+            <p>Menu ini adalah pusat kendali skripsi per mahasiswa.</p>
+            <h3>Sub-menu dan aksi utama</h3>
+            <ul>
+                <li><strong>List Skripsi</strong>: cari, filter, dan buka detail.</li>
+                <li><strong>Detail Skripsi</strong>: melihat ringkasan mahasiswa, fase, reviewer, dan dokumen.</li>
+                <li><strong>Proposal</strong>: meninjau dokumen proposal dan aksi approve/reject proposal.</li>
+                <li><strong>Bimbingan</strong>: melihat semua catatan bimbingan.</li>
+                <li><strong>Detail Bimbingan</strong>: membaca satu catatan/sesi bimbingan secara spesifik.</li>
+                <li><strong>Reviewer Search</strong>: mencari dosen untuk assignment.</li>
+                <li><strong>Assign Pembimbing</strong>: menetapkan pembimbing 1/2.</li>
+                <li><strong>Assign Penguji</strong>: menetapkan penguji 1/2.</li>
+                <li><strong>Hapus Reviewer</strong>: membatalkan assignment jika salah pasang.</li>
+                <li><strong>Logbook</strong>: unduh catatan bimbingan sebagai dokumen rekap.</li>
+                <li><strong>Document Download</strong>: unduh dokumen revisi/final dari mahasiswa.</li>
+                <li><strong>Update Status</strong>: memindahkan status skripsi sesuai progres.</li>
+                <li><strong>Sidang Schedule</strong>: memperbarui jadwal sidang jika fitur dipakai.</li>
+                <li><strong>Final Review Approve</strong>: menyetujui review dokumen final pada tahap akhir.</li>
+            </ul>
+            <div class="callout">Urutan kerja Kaprodi paling umum: <strong>cek proposal → assign pembimbing → pantau bimbingan → proses permohonan sidang → pantau review final → cek nilai akhir</strong>.</div>
+            <div class="screenshot">Screenshot 2: Halaman detail skripsi dan aksi assignment reviewer</div>
+
+            <h2 id="sidang-requests">Menu Permohonan Sidang</h2>
+            <p>Permohonan sidang diajukan dari sisi dosen. Kaprodi berwenang menyetujui atau menolak.</p>
+            <ul>
+                <li>Periksa siapa dosen pengaju.</li>
+                <li>Pastikan mahasiswa sudah berada di fase yang benar.</li>
+                <li>Pastikan reviewer sudah lengkap bila aturan prodi mensyaratkan.</li>
+                <li>Lakukan <strong>Approve</strong> atau <strong>Reject</strong>.</li>
+            </ul>
+            <div class="screenshot">Screenshot 3: Daftar permohonan sidang</div>
+
+            <h2 id="final-reviews">Menu Review Dokumen Final</h2>
+            <p>Menu ini menampilkan skripsi yang sudah masuk tahap pemeriksaan dokumen akhir. Kaprodi dapat meninjau apakah dokumen sudah siap dianggap selesai.</p>
+            <div class="callout callout--warning">Backend otomatisasi untuk publish ke library masih parsial. Gunakan menu ini sebagai kontrol administrasi internal.</div>
+
+            <h2 id="nilai-menu">Menu Nilai & Unlock Nilai</h2>
+            <p>Ada dua area yang perlu dipahami:</p>
+            <ul>
+                <li><strong>Nilai</strong>: rekap akhir seluruh nilai yang sudah final.</li>
+                <li><strong>Format Penilaian → Grades</strong>: halaman detail nilai berdasarkan template/skripsi yang juga memuat aksi <strong>Unlock</strong>.</li>
+            </ul>
+            <h3>Alur buka kunci nilai</h3>
+            <ol>
+                <li>Dosen mengajukan permintaan buka kunci dari halaman penilaian.</li>
+                <li>Kaprodi menerima notifikasi / melihat status permintaan.</li>
+                <li>Kaprodi membuka halaman grade terkait.</li>
+                <li>Kaprodi menjalankan aksi <strong>Unlock</strong>.</li>
+                <li>Dosen dapat memperbaiki nilai dan menyimpan ulang.</li>
+            </ol>
+            <div class="screenshot">Screenshot 4: Rekap nilai dan halaman unlock grade</div>
+
+            <h2 id="document-templates">Menu Dokumen Final</h2>
+            <p>Menu <strong>Dokumen Final</strong> dipakai untuk mengelola template atau definisi dokumen final yang berlaku untuk periode tertentu.</p>
+            <ul>
+                <li><strong>Create</strong>: membuat template dokumen final baru.</li>
+                <li><strong>Show</strong>: melihat detail template.</li>
+                <li><strong>Edit</strong>: memperbarui informasi template.</li>
+                <li><strong>Duplicate</strong>: menyalin template untuk periode baru.</li>
+                <li><strong>Add Periode</strong>: mengaitkan template ke periode tertentu.</li>
+                <li><strong>Remove Periode</strong>: melepas kaitan template dari periode tertentu.</li>
+            </ul>
+
+            <h2 id="master-data">Menu Master Data</h2>
+            <h3>Dosen</h3>
+            <ul>
+                <li><strong>Index</strong>: lihat daftar dosen, cari, filter, dan buka detail.</li>
+                <li><strong>Store/Update</strong>: tambah atau ubah data dosen.</li>
+                <li><strong>Archive</strong>: arsipkan dosen tanpa menghapus permanen.</li>
+                <li><strong>Restore</strong>: pulihkan dosen yang sudah diarsipkan.</li>
+                <li><strong>Destroy</strong>: hapus permanen bila benar-benar tidak diperlukan.</li>
+            </ul>
+            <h3>Mahasiswa</h3>
+            <ul>
+                <li><strong>Index</strong>: daftar mahasiswa aktif / arsip.</li>
+                <li><strong>Store/Update</strong>: tambah atau ubah data mahasiswa.</li>
+                <li><strong>Update Skripsi Status</strong>: ubah status skripsi dari level mahasiswa.</li>
+                <li><strong>Archive/Restore/Destroy</strong>: kelola data historis mahasiswa.</li>
+            </ul>
+            <h3>Tahun Akademik</h3>
+            <p>Dipakai untuk struktur kalender akademik. Tersedia aksi create, update, archive, dan destroy.</p>
+            <h3>Periode</h3>
+            <p>Dipakai untuk pengelompokan aktivitas skripsi per semester/periode. Tersedia aksi show, update, archive, dan destroy.</p>
+            <h3>Format Penilaian</h3>
+            <p>Dipakai untuk menyusun rubrik nilai. Tersedia aksi create, edit, duplicate, add/remove periode, lihat nilai per skripsi, dan unlock grade.</p>
+
+            <h2 id="imports">Menu Import Data</h2>
+            <p>Gunakan impor CSV jika ingin memasukkan data dosen atau mahasiswa secara massal.</p>
+            <ol>
+                <li>Buka menu <strong>Import Dosen</strong> atau <strong>Import Mahasiswa</strong>.</li>
+                <li>Unduh atau ikuti struktur template kolom yang diminta.</li>
+                <li>Unggah file CSV.</li>
+                <li>Tinjau ringkasan hasil impor: data berhasil, diperbarui, atau dilewati.</li>
+            </ol>
+            <div class="screenshot">Screenshot 5: Halaman import CSV</div>
+
+            <h2 id="static-pages">Halaman Monitoring Tambahan</h2>
+            <ul>
+                <li><strong>Fase</strong>: board distribusi mahasiswa per fase. Berguna untuk monitoring cepat.</li>
+                <li><strong>Keputusan</strong>: halaman ringkasan keputusan akhir sidang per skripsi.</li>
+                <li><strong>Library</strong>: halaman monitoring item yang siap masuk arsip publik/library.</li>
+            </ul>
+            <div class="callout callout--warning">Ketiga halaman ini sudah tersedia, tetapi sebagian logika backend masih belum sepenuhnya otomatis.</div>
+
+            <h2 id="arsip">Unduh / Arsip Internal</h2>
+            <p>Pada sisi Kaprodi, fitur yang benar-benar tersedia saat ini adalah <strong>unduh logbook</strong> dan <strong>unduh dokumen</strong> dari halaman detail skripsi. Fitur ini berguna untuk arsip internal, rapat, audit akademik, atau pemeriksaan manual di luar sistem.</p>
+            <ul>
+                <li><strong>Logbook</strong>: mengunduh rangkuman catatan bimbingan mahasiswa.</li>
+                <li><strong>Document Download</strong>: mengunduh proposal, revisi, atau dokumen final yang diunggah mahasiswa.</li>
+            </ul>
+            <div class="callout">Catatan: dokumentasi ini tidak lagi menyebut fitur cetak khusus Kaprodi karena yang tersedia saat ini adalah unduh dokumen/logbook, bukan menu print tersendiri.</div>
+
+            <footer class="page-footer">TACLOUD Internal Documentation &bull; Kaprodi Guide</footer>
+        </main>
+    </div>
+</body>
+</html>

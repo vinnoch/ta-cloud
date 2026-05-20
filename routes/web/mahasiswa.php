@@ -31,6 +31,8 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth', 'role:mahasi
         Route::delete('/{skripsi}/bimbingan/{bimbingan}/revision', [\App\Http\Controllers\Mahasiswa\BimbinganController::class, 'destroyRevision'])->name('bimbingan.revision.destroy');
 
         Route::get('/{skripsi}/nilai', [\App\Http\Controllers\Mahasiswa\NilaiController::class, 'index'])->name('nilai.index');
+        Route::get('/{skripsi}/dokumen-final', [FinalSubmissionController::class, 'skripsiFinal'])->name('final.skripsi.index');
+        Route::post('/{skripsi}/dokumen-final', [FinalSubmissionController::class, 'storeSkripsiFinal'])->name('final.skripsi.store');
     });
 
     Route::get('/skripsi/{skripsi}/final-submission/{event}', [FinalSubmissionController::class, 'index'])->name('final.index');
