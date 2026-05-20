@@ -1,86 +1,93 @@
 # TACLOUD Implementation Plan
 
 ## 1. Project Planning Summary
-
-This document captures the implementation tracks for TACLOUD. The goal is to transition the system from a role-based prototype to a production-ready academic management system.
+This document captures the active implementation tracks for TACLOUD and reflects current progress as of 20 Mei 2026.
 
 ---
 
 ## 2. Realtime Infrastructure
 **Status: [DONE]**
-- **Implemented**: Laravel Reverb + Echo integration.
-- **Current State**: Private user channels (`users.{userId}`) are active. Payload supports notification details and unread counts.
+- Laravel Reverb + Echo active.
+- Private user notification channels active.
+- Realtime unread badge and dropdown state stable.
 
 ## 3. Persistent Notification System
 **Status: [DONE]**
-- **Implemented**: Database-backed notifications via Laravel's native system.
-- **Current State**: Trigger matrix for Proposal Submit, Final Submit, and Bimbingan notes is active. Dropdown UI with read/unread state is implemented. Unlock-request notifications are now part of grading flow.
+- Database-backed notification flow active.
+- Trigger matrix active for proposal, bimbingan, final submission, sidang flow, and unlock-request flow.
 
-## 4. User Role Implementation (Academic Layer)
+## 4. Academic Role Layers
 **Status: [DONE]**
-- **Kaprodi Layer**: Full CRUD for Master Data, Assignment logic, Sidang Request approvals, and grade unlock approval.
-- **Dosen Layer**: Reviewer-scoped access, Bimbingan notes management, grading input, and grade unlock requests.
-- **Mahasiswa Layer**: Own skripsi CRUD, Document Versioning, Bimbingan responses, and Non-Skripsi record management.
+- **Kaprodi**: CRUD master data, assignment, approvals, unlock nilai, template dokumen final.
+- **Dosen**: reviewer-scoped skripsi access, bimbingan, grading, sidang request, request unlock nilai.
+- **Mahasiswa**: skripsi CRUD, proposal upload, document versions, bimbingan response, final submission, nilai, non-skripsi.
 
 ## 5. Reusable UI Framework
 **Status: [DONE]**
-- **Implemented**: Modular Blade partials in `resources/views/partials`.
-- **Components**: Page headers, data tables, form fields, metric cards, role-aware sidebars/topbars, and expanded export/print icon widgets.
+- Shared Blade partial system active in `resources/views/partials`.
+- Export/print icon widgets now present.
+- Large-widget migration to Blade Components remains future cleanup, not blocker.
 
-## 6. Google Login Integration
+## 6. Proposal / Review Workflow Hardening
+**Status: [DONE]**
+- Proposal approval routes active.
+- Final review approval routes active.
+- Grade unlock flow active.
+
+## 7. Document Template Management
+**Status: [DONE]**
+- Kaprodi document template CRUD active.
+- Periode attach/detach flow active.
+- Duplicate template flow active.
+
+## 8. Google Login Integration
 **Status: [TODO]**
-- **Objective**: Integrate `laravel/socialite` for Google OAuth.
-- **Next Steps**: Install package, configure `services.php`, and implement callback controller.
+- Socialite-based Google auth not yet integrated.
 
-## 7. Super Admin & Advanced RBAC
+## 9. Super Admin & Advanced RBAC
 **Status: [TODO]**
-- **Objective**: Implement Super Admin for global governance and Program Admin for scoped operations.
-- **Next Steps**: Design `role_permissions` and `user_program_scopes` tables to replace simple role strings.
+- Still basic role model.
+- Program Admin / Super Admin / scoped capability matrix not yet implemented.
 
-## 8. Program-Specific Workflow & Grading Variability
+## 10. Program-Specific Workflow & Grading Variability
 **Status: [TODO]**
-- **Objective**: Allow different study programs to define their own phases and grading weights.
-- **Next Steps**: Implement Workflow Profiles and versioned Grading Templates.
+- Phase board exists as workspace view.
+- Full configurable workflow engine per program still pending.
 
-## 9. Critical Fixes & Gap Closures (Short-term)
+## 11. Critical Gaps & Closures
 **Status: [IN PROGRESS]**
-- **[ ] Final Submission Wiring**: Restore `mahasiswa.final.*` routes to connect `FinalSubmissionController` to the UI.
-- **[ ] Kaprodi Export Logic**: Implement backend for CSV/PDF export of skripsi data.
-- **[ ] Workflow Automation**: Add logic for "Keputusan Akhir" and "Phase Board" (move from static views to active state management).
-- **[ ] Dosen Final Approval**: Add specific approval/rejection methods for final document review.
-- **[ ] Library Backend**: Connect `library.*` routes to actual finalized skripsi records.
+- **[DONE]** Final submission wiring restored.
+- **[DONE]** Proposal approval queue active.
+- **[DONE]** Final review queue active.
+- **[DONE]** Document template module active.
+- **[IN PROGRESS]** Kaprodi export / global rekap backend.
+- **[IN PROGRESS]** Library publication backend.
+- **[IN PROGRESS]** Phase board / keputusan akhir automation.
+- **[TODO]** Dosen-side explicit final document approval workflow.
 
-## 10. Testing & Quality Assurance
+## 12. Testing & Quality Assurance
 **Status: [IN PROGRESS]**
-- **[DONE]** Basic CRUD and Role Middleware tests.
-- **[TODO]** Final Submission flow tests.
-- **[TODO]** Notification delivery assertions.
-- **[TODO]** Cross-role edge case tests (e.g., Dosen modifying others' notes).
+- **[DONE]** Core CRUD tests and role middleware tests.
+- **[TODO]** Final submission tests.
+- **[TODO]** Document template tests.
+- **[TODO]** Proposal/final review approval tests.
+- **[TODO]** Notification assertions for unlock/final-review flows.
+
+## 13. Progress Lock Snapshot (2026-05-20)
+**Status: [LOCKED]**
+- Notification infrastructure stable.
+- Kaprodi operational layer stable.
+- Dosen operational layer stable.
+- Mahasiswa operational layer stable.
+- Reusable Blade partial library stable.
+- New document template module now part of locked scope.
 
 ---
 
 ## Execution Priority
-1. **Fix Final Submission Flow** (Unblocks Mahasiswa completion)
-2. **Restore/Build RBAC Foundation** (Unblocks scaling to multi-program)
-3. **Implement Workflow/Grading Variability** (Core academic requirement)
-4. **Close Kaprodi Gaps** (Export, Decisions, Phase Board)
-5. **Google Login & API layer** (Polish/Expansion)
-
-## 11. Progress Lock Snapshot (2026-05-19)
-**Status: [LOCKED]**
-- **Stable / keep**:
-  - Notification infrastructure and dropdown UX
-  - Kaprodi CRUD + reviewer assignment + grade unlock handling
-  - Dosen grading + unlock request handling
-  - Mahasiswa CRUD/progress/document/non-skripsi flows
-  - Blade partial/widget layer in `resources/views/partials`
-- **Do not regress**:
-  - Role middleware ownership checks
-  - Grade lock/unlock workflow
-  - Reusable partial-based layout strategy
-- **Open next**:
-  - Final submission route restore
-  - Export backend
-  - Library publication backend
-  - Advanced RBAC
-  - Program-specific workflow config
+1. Kaprodi export + rekap backend
+2. Library publication backend
+3. Dosen final document approval flow
+4. Program-specific workflow engine
+5. Advanced RBAC
+6. Google Login + API layer
