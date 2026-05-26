@@ -8,7 +8,7 @@
   - **Realtime**: Laravel Reverb
   - **Testing**: Pest
   - **Database**: Eloquent ORM untuk `users`, `skripsis`, `periodes`, `bimbingans`, `document_versions`, `grades`, `notifications`, `document_templates`, dan relasi pendukung
-- **Auth**: Session auth dengan Breeze package tersedia, login request custom, pembatasan akses via `RoleMiddleware`.
+- **Auth**: Session auth aktif dengan Breeze-style login flow, Google Auth via Socialite, login request custom, dan pembatasan akses via `RoleMiddleware`.
 
 # 2. User Roles & Permissions
 
@@ -66,6 +66,7 @@
 - **[DONE]** Notifications dropdown persistent + realtime.
 - **[DONE]** Preview / download dokumen via `DocumentAccessController`.
 - **[DONE]** Search route pada workspace tertentu (`dosen.skripsi.search`, `mahasiswa.skripsi.search`).
+- **[DONE]** Google login aktif via Socialite + route auth khusus.
 - **[DONE]** Reusable Blade partial/widget layer aktif di `resources/views/partials`.
 
 # 4. Non-Functional Requirements
@@ -89,6 +90,7 @@
 - **Auth stack status**:
   - Breeze package ada.
   - Session auth aktif.
+  - Google Auth aktif via Socialite (`routes/auth.php`, `Auth\\GoogleController`, `config/services.php`).
   - Sanctum / API token flow belum jadi layer aktif.
 
 # 5. Data Models
@@ -222,6 +224,7 @@
 
 # 7. Updates & Changes (Current Delta)
 - Final submission route gap is closed. Flow now active for Mahasiswa final submission.
+- Google Auth is now active with dedicated auth routes, controller callback flow, and schema support for Google account linkage.
 - Bimbingan export CSV/PDF added for Mahasiswa.
 - Proposal submission queue and approval routes are active for Kaprodi.
 - Final review queue and approval route are active for Kaprodi.

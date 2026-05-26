@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard UML Activity Diagram — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .uml-page-wrap{display:flex;justify-content:center;width:100%}
+        .uml-header{margin-bottom:1.5rem}
+        .uml-note{background:#fffbeb;border-left:4px solid #d97706;padding:12px 14px;border-radius:0 6px 6px 0;margin-bottom:1rem;font-size:.9rem;color:#92400e}
+        .uml-links{display:flex;flex-wrap:wrap;gap:.75rem;margin:1rem 0 1.5rem}
+        .uml-links a{text-decoration:none}
+        .uml-chip{display:inline-block;padding:.45rem .75rem;border:1px solid var(--color-border);border-radius:999px;background:var(--color-surface);color:var(--color-text-muted);font-size:.85rem}
+        .uml-chip:hover{border-color:var(--color-primary);color:var(--color-primary)}
+        .uml-container{background:white;padding:24px;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.05);overflow:auto}
+        .svg-diagram{width:1000px;height:1780px;display:block}
+        .swimlane-label{font-weight:bold;font-size:16px;fill:#4a5568;text-anchor:middle}
+        .action{fill:#fff;stroke:#333;stroke-width:1.5;rx:10;ry:10}
+        .action-text{font-size:12px;text-anchor:middle;fill:#1f2937;pointer-events:none}
+        .decision{fill:#fff;stroke:#333;stroke-width:1.5}
+        .decision-text{font-size:11px;text-anchor:middle;fill:#1f2937}
+        .guard{font-size:11px;fill:#718096;font-style:italic}
+        .start-node{fill:#000}
+        .end-node{fill:#fff;stroke:#000;stroke-width:2}
+        .end-node-inner{fill:#000}
+        .arrow{stroke:#4a5568;stroke-width:1.5;fill:none;marker-end:url(#arrowhead)}
+        .lane-line{stroke:#cbd5e0;stroke-width:1}
+        @media print {
+          .topnav,.uml-links,.page-footer{display:none}
+          .page-shell{margin-top:0;min-height:auto}
+          .content{max-width:100%;padding:0}
+          .uml-container{box-shadow:none;border:none;padding:0}
+        }
+    </style>
+</head>
+<body>
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="visual-check.html" class="active">UML Activity</a>
+            <a href="kaprodi.html">Kaprodi</a>
+            <a href="dosen.html">Dosen</a>
+            <a href="mahasiswa.html">Mahasiswa</a>
+            <a href="common-features.html">Fitur Umum</a>
+            <a href="faq.html">FAQ</a>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <main class="content content--wide">
+            <div class="uml-header">
+                <span class="badge badge--warning">Diagram & Visual</span>
+                <h1>Siklus Hidup Tugas Akhir (Standard UML Activity Diagram)</h1>
+                <p>Halaman ini adalah bagian dari dokumentasi TA Cloud. Diagram memakai pendekatan notasi UML Activity Diagram: initial node, action, decision, guard, swimlane, dan final node.</p>
+            </div>
+
+            <div class="uml-links">
+                <a href="index.html" class="uml-chip">← Kembali ke Beranda Docs</a>
+                <a href="architecture-flow.html" class="uml-chip">Lihat Diagram Alur & Data</a>
+                <a href="kaprodi.html" class="uml-chip">Panduan Kaprodi</a>
+                <a href="dosen.html" class="uml-chip">Panduan Dosen</a>
+                <a href="mahasiswa.html" class="uml-chip">Panduan Mahasiswa</a>
+            </div>
+
+            <div class="uml-note"><strong>Tip:</strong> buka halaman ini di browser lalu <strong>Print → Save as PDF</strong> bila ingin cek visual atau membagikan versi statis.</div>
+
+            <div class="uml-page-wrap">
+                <div class="uml-container">
+                    <svg class="svg-diagram" viewBox="0 0 1000 1780" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#4a5568" /></marker>
+                        </defs>
+                        <line x1="333" y1="50" x2="333" y2="1730" class="lane-line" />
+                        <line x1="666" y1="50" x2="666" y2="1730" class="lane-line" />
+                        <text x="166" y="30" class="swimlane-label">MAHASISWA</text>
+                        <text x="500" y="30" class="swimlane-label">DOSEN</text>
+                        <text x="833" y="30" class="swimlane-label">KAPRODI</text>
+
+                        <circle cx="166" cy="80" r="8" class="start-node" />
+                        <rect x="116" y="110" width="100" height="40" class="action" /><text x="166" y="135" class="action-text">Login & Buat TA</text><path d="M166 88 L166 110" class="arrow" />
+                        <rect x="116" y="180" width="100" height="40" class="action" /><text x="166" y="205" class="action-text">Upload Proposal</text><path d="M166 150 L166 180" class="arrow" />
+                        <path d="M216 200 L800 200 L800 240" class="arrow" />
+
+                        <rect x="750" y="240" width="100" height="40" class="action" /><text x="800" y="265" class="action-text">Review Proposal</text>
+                        <polygon points="800,300 830,330 800,360 770,330" class="decision" /><text x="800" y="335" class="decision-text">Setuju?</text><path d="M800 280 L800 300" class="arrow" />
+                        <path d="M770 330 L216 330 L216 220" class="arrow" /><text x="500" y="320" class="guard">Reject</text>
+                        <path d="M800 360 L800 390" class="arrow" /><text x="810" y="375" class="guard">Approve</text>
+
+                        <rect x="750" y="390" width="100" height="40" class="action" /><text x="800" y="415" class="action-text">Assign Reviewer</text>
+                        <path d="M750 410 L500 410 L500 450" class="arrow" />
+
+                        <rect x="430" y="450" width="140" height="40" class="action" /><text x="500" y="475" class="action-text">Bimbingan & Catatan</text>
+                        <path d="M430 470 L216 470 L216 510" class="arrow" />
+                        <rect x="116" y="510" width="100" height="40" class="action" /><text x="166" y="535" class="action-text">Upload Revisi</text>
+                        
+                        <!-- Path to Siap Sidang decision diamond -->
+                        <path d="M166 550 L166 575" class="arrow" />
+                        <polygon points="166,575 210,610 166,645 122,610" class="decision" /><text x="166" y="614" class="decision-text">Siap Sidang?</text>
+                        
+                        <!-- Belum → Bimbingan & Catatan (goes up on X=480, no overlap) -->
+                        <path d="M210 610 L480 610 L480 490" class="arrow" /><text x="290" y="600" class="guard">Belum</text>
+                        
+                        <!-- Ya → Ajukan Sidang (goes down on X=500) -->
+                        <path d="M166 645 L166 660 L500 660 L500 680" class="arrow" /><text x="290" y="650" class="guard">Ya</text>
+
+                        <rect x="450" y="680" width="100" height="40" class="action" /><text x="500" y="705" class="action-text">Ajukan Sidang</text>
+                        <path d="M550 700 L800 700 L800 740" class="arrow" />
+                        
+                        <polygon points="800,740 835,775 800,810 765,775" class="decision" /><text x="800" y="779" class="decision-text">Setujui?</text>
+                        <path d="M800 730 L800 740" class="arrow" />
+                        
+                        <!-- Reject → Bimbingan & Catatan (goes up on X=530, no overlap) -->
+                        <path d="M765 775 L530 775 L530 490" class="arrow" /><text x="640" y="765" class="guard">Reject</text>
+                        
+                        <!-- Approve → Set Jadwal & Penguji -->
+                        <path d="M800 810 L800 830" class="arrow" /><text x="815" y="820" class="guard">Approve</text>
+
+                        <rect x="735" y="830" width="130" height="40" class="action" /><text x="800" y="855" class="action-text">Set Jadwal & Penguji</text>
+                        <path d="M800 870 L500 870 L500 910" class="arrow" />
+                        <rect x="435" y="910" width="130" height="40" class="action" /><text x="500" y="935" class="action-text">Pelaksanaan Sidang</text>
+                        <path d="M500 950 L500 990" class="arrow" />
+                        <rect x="450" y="990" width="100" height="40" class="action" /><text x="500" y="1015" class="action-text">Input Nilai</text>
+                        <path d="M500 1030 L500 1070" class="arrow" />
+                        <rect x="450" y="1070" width="100" height="40" class="action" /><text x="500" y="1095" class="action-text">Nilai Terkunci</text>
+
+                        <!-- === KOREKSI branch (spread out) === -->
+                        <polygon points="500,1110 535,1145 500,1180 465,1145" class="decision" /><text x="500" y="1150" class="decision-text">Koreksi?</text>
+
+                        <!-- Ya → Request Unlock (left, Dosen lane) -->
+                        <path d="M465 1145 L370 1145 L370 1210" class="arrow" /><text x="388" y="1135" class="guard">Ya</text>
+                        <rect x="305" y="1210" width="130" height="44" class="action" /><text x="370" y="1237" class="action-text">Request Unlock</text>
+
+                        <!-- Request Unlock → Approve Unlock (Kaprodi lane) -->
+                        <path d="M435 1232 L800 1232 L800 1280" class="arrow" />
+                        <rect x="735" y="1280" width="130" height="44" class="action" /><text x="800" y="1307" class="action-text">Approve Unlock</text>
+
+                        <!-- Approve Unlock loops back to Input Nilai -->
+                        <path d="M735 1302 L660 1302 L660 1012 L565 1012" class="arrow" /><text x="680" y="1292" class="guard">Unlock</text>
+
+                        <!-- Tidak → Final Review (Kaprodi lane, clear vertical gap) -->
+                        <path d="M535 1145 L800 1145 L800 1360" class="arrow" /><text x="680" y="1135" class="guard">Tidak</text>
+                        <rect x="735" y="1360" width="130" height="44" class="action" /><text x="800" y="1387" class="action-text">Final Review</text>
+
+                        <!-- Final Review decision -->
+                        <polygon points="800,1415 835,1450 800,1485 765,1450" class="decision" /><text x="800" y="1455" class="decision-text">Approve?</text>
+                        <path d="M800 1404 L800 1415" class="arrow" />
+
+                        <!-- Reject → back to Upload Revisi -->
+                        <path d="M765 1450 L70 1450 L70 530 L116 530" class="arrow" /><text x="420" y="1440" class="guard">Reject / Revisi</text>
+
+                        <!-- Approve → Final Submission (Mahasiswa lane) -->
+                        <path d="M800 1485 L166 1485 L166 1540" class="arrow" /><text x="450" y="1475" class="guard">Approve</text>
+                        <rect x="105" y="1540" width="122" height="44" class="action" /><text x="166" y="1567" class="action-text">Final Submission</text>
+                        <path d="M166 1584 L166 1620" class="arrow" />
+                        <circle cx="166" cy="1635" r="14" class="end-node" /><circle cx="166" cy="1635" r="6" class="end-node-inner" />
+                    </svg>
+                </div>
+            </div>
+
+            <footer class="page-footer">
+                Halaman visual ini ditambahkan sebagai pelengkap dokumentasi utama tanpa mengganti panduan per peran yang sudah ada.
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

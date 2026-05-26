@@ -26,7 +26,7 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        return redirect()->intended($this->dashboardRouteFor($request->user()->role));
+        return redirect()->intended(static::dashboardRouteForRole($request->user()->role));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -110,7 +110,7 @@ class AuthenticatedSessionController extends Controller
         ];
     }
 
-    private function dashboardRouteFor(string $role): string
+    public static function dashboardRouteForRole(string $role): string
     {
         return match ($role) {
             'mahasiswa' => route('mahasiswa.skripsi.index'),

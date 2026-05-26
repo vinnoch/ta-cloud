@@ -92,6 +92,7 @@ Panduan HTML multi-halaman tersedia di folder `docs/`:
 - notifications realtime
 - final submission routes
 - document template module
+- Google login
 
 **Masih terbuka**
 - export / rekap global Kaprodi
@@ -99,7 +100,7 @@ Panduan HTML multi-halaman tersedia di folder `docs/`:
 - automation phase board / keputusan akhir
 - advanced RBAC
 - program-specific workflow engine
-- Google login
+- API / token auth layer
 
 ## Pengembangan Lokal
 Project memakai Laravel 13 + PHP 8.3 + Vite + Tailwind v4 + Reverb.

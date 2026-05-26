@@ -41,8 +41,11 @@ This document captures the active implementation tracks for TACLOUD and reflects
 - Duplicate template flow active.
 
 ## 8. Google Login Integration
-**Status: [TODO]**
-- Socialite-based Google auth not yet integrated.
+**Status: [DONE]**
+- Socialite-based Google auth integrated.
+- Google auth routes active in `routes/auth.php`.
+- Dedicated callback controller active for Google sign-in/link flow.
+- Users table already extended for Google account linkage metadata.
 
 ## 9. Super Admin & Advanced RBAC
 **Status: [TODO]**
@@ -90,4 +93,4 @@ This document captures the active implementation tracks for TACLOUD and reflects
 3. Dosen final document approval flow
 4. Program-specific workflow engine
 5. Advanced RBAC
-6. Google Login + API layer
+6. API layer / token auth
