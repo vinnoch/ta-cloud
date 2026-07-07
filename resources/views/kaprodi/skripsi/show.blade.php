@@ -19,6 +19,8 @@
             ->map(fn ($assignment) => \Illuminate\Support\Str::title((string) ($assignment->lecturer?->name ?? '-')))
             ->filter()
             ->values();
+        $hasAllAdvisorSidangApprovals = $advisorAssignments->isNotEmpty()
+            && $approvedAdvisorIds->count() >= $advisorAssignments->pluck('lecturer_id')->filter()->unique()->count();
     @endphp
 
     <div id="reviewer-feedback">
@@ -306,7 +308,7 @@
                 @endif
             </section>
 
-            <section class="card">
+            <section class="card {{ $hasAllAdvisorSidangApprovals ? '' : 'acss-section-card--inactive' }}">
                 <div class="section-heading">
                 <div>
                     <h3>Set Jadwal Sidang</h3>
@@ -324,7 +326,11 @@
                     ? $activeSchedule->format('Y-m-d\TH:i')
                     : now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
             @endphp
-            @if ($activeSchedule)
+            @if (! $hasAllAdvisorSidangApprovals)
+                <div class="acss-muted acss-sidang-schedule-current">
+                    Jadwal sidang aktif setelah seluruh dosen pembimbing mengajukan dan disetujui Kaprodi.
+                </div>
+            @elseif ($activeSchedule)
                 <div class="acss-muted acss-sidang-schedule-current">
                     Jadwal aktif {{ $scheduleLabel }}: <strong>{{ $activeSchedule->translatedFormat('d M Y H:i') }}</strong>
                 </div>
@@ -333,8 +339,8 @@
                     @csrf
                     @method('PUT')
                     <label class="form-field acss-sidang-schedule-field">
-                        <div class="acss-datetime-picker {{ $activeSchedule ? 'is-disabled' : '' }}" data-acss-datetime-picker data-value="{{ old($scheduleField, $defaultSidangSchedule) }}" data-min="{{ now()->format('Y-m-d\TH:i') }}" data-locked="{{ $activeSchedule ? 'true' : 'false' }}">
-                            <button type="button" class="acss-datetime-picker__trigger" data-acss-datetime-trigger aria-haspopup="dialog" aria-expanded="false">
+                        <div class="acss-datetime-picker {{ $activeSchedule || ! $hasAllAdvisorSidangApprovals ? 'is-disabled' : '' }}" data-acss-datetime-picker data-value="{{ old($scheduleField, $defaultSidangSchedule) }}" data-min="{{ now()->format('Y-m-d\TH:i') }}" data-locked="{{ $activeSchedule || ! $hasAllAdvisorSidangApprovals ? 'true' : 'false' }}">
+                            <button type="button" class="acss-datetime-picker__trigger" data-acss-datetime-trigger aria-haspopup="dialog" aria-expanded="false" @disabled(! $hasAllAdvisorSidangApprovals)>
                                 <span class="acss-datetime-picker__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M6.667 1.667v2.5M13.333 1.667v2.5M2.5 7.083h15M4.583 3.75h10.834A1.25 1.25 0 0 1 16.667 5v10.417a1.25 1.25 0 0 1-1.25 1.25H4.583a1.25 1.25 0 0 1-1.25-1.25V5a1.25 1.25 0 0 1 1.25-1.25Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                                 <span class="acss-datetime-picker__value" data-acss-datetime-value></span>
                             </button>
@@ -359,7 +365,7 @@
                         @enderror
                     </label>
                     <div class="form-actions form-actions--inline acss-sidang-schedule-actions">
-                        <button class="button button--inline" type="{{ $activeSchedule ? 'button' : 'submit' }}" data-sidang-schedule-toggle>{{ $activeSchedule ? 'Edit Jadwal' : 'Simpan Jadwal' }}</button>
+                        <button class="button button--inline" type="{{ $activeSchedule ? 'button' : 'submit' }}" data-sidang-schedule-toggle @disabled(! $hasAllAdvisorSidangApprovals)>{{ $activeSchedule ? 'Edit Jadwal' : 'Simpan Jadwal' }}</button>
                     </div>
                 </form>
             </section>

@@ -70,11 +70,18 @@ TA Cloud adalah platform akademik berbasis role untuk mendigitalisasi seluruh li
 - unlock request dan review event masuk ke flow notifikasi
 
 ## Reusable UI
-Current UI reuse strategy memakai:
+Strategi reusable UI saat ini memakai:
 - Blade partials di `resources/views/partials`
 - shared icons
 - table/form/card/header widgets
-- ada satu anonymous component file, tetapi proyek ini masih mengandalkan Blade partials sebagai pola utama reusable UI
+- proyek ini mengandalkan Blade partials sebagai pola utama reusable UI
+- tidak ada lagi sisa anonymous Blade component di layer UI aktif
+
+## Progress UI/UX Terkini
+- penyegaran layout dan styling lintas halaman utama
+- perapian tampilan detail skripsi Kaprodi
+- penyesuaian navigasi role-based agar lebih konsisten dengan fase skripsi
+- pembaruan ikon, tabel, filter, dan elemen interaksi pada workspace utama
 
 ## Dokumentasi Pengguna
 Panduan HTML multi-halaman tersedia di folder `public/docs/`:

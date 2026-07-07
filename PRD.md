@@ -232,6 +232,7 @@
 - Monitoring non-skripsi Kaprodi now has dedicated index/detail pages.
 - Library pages now use controller-backed data instead of static placeholder pages.
 - Export skripsi Kaprodi already has dedicated page/route and is moving toward full export workflow.
+- New UI/UX pass is active across workspace views, navigation, iconography, filters, and detail pages.
 - Request unlock nilai now fully visible in current routing and controller graph.
 - Reusable widget layer still relies mainly on Blade partials, not Laravel class-based components.
 - Search routes now exist for Dosen and Mahasiswa skripsi pages.
@@ -290,7 +291,7 @@ Proyek saat ini lebih banyak memakai Blade partials yang reusable dibanding Lara
 - `file-plain.blade.php`
 
 ## Catatan arsitektur saat ini
-- Ada satu anonymous Blade component: `resources/views/components/card.blade.php`
+- Sisa anonymous Blade component sudah dihapus dari layer UI aktif.
 - Belum ditemukan penggunaan aktif Laravel Component berbasis class.
 - Belum ditemukan pola `<x-...>` yang dipakai aktif sebagai pola utama di hasil scan saat ini.
 - Jalur cleanup paling aman ke depan: pertahankan icon/partial kecil, lalu migrasikan widget menengah/besar ke Blade Components secara bertahap.
@@ -312,6 +313,7 @@ Proyek saat ini lebih banyak memakai Blade partials yang reusable dibanding Lara
   - Kaprodi monitoring non-skripsi
   - Library pages backed by controller/query layer
   - Kaprodi export skripsi page
+  - New UI/UX refresh pada halaman utama dan detail workspace
 - **Still open**:
   - Kaprodi export backend
   - Library publication backend
