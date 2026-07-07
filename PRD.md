@@ -1,7 +1,7 @@
 # 1. Project Overview
 - **App name**: TA Cloud / `tacloud`
 - **Purpose**: Sistem manajemen tugas akhir untuk mengelola proposal, bimbingan, permohonan sidang, penilaian, dokumen final, template dokumen final, dan arsip akademik.
-- **Current implementation scope**: Kaprodi, Dosen, dan Mahasiswa sudah aktif dengan alur inti. Realtime notifications, request unlock nilai, final submission, dan template dokumen final sudah masuk ke alur aktif.
+- **Cakupan implementasi saat ini**: Kaprodi, Dosen, dan Mahasiswa sudah aktif dengan alur inti. Notifikasi realtime, request unlock nilai, final submission, dan template dokumen final sudah masuk ke alur aktif.
 - **Tech stack**:
   - **Backend**: Laravel 13, PHP 8.3
   - **Frontend**: Blade, Tailwind CSS v4, Vite, Alpine-style server-rendered UI
@@ -153,7 +153,7 @@
 - `auth + role:dosen`
 - `auth + role:mahasiswa`
 - `auth` only for profile/overview
-- public/general for login and library pages
+- halaman publik / umum untuk login dan library
 
 ## Kaprodi routes
 - **Monitoring & workflow**:
@@ -222,13 +222,16 @@
 - `profile.edit`, `profile.update`
 - `library.index`, `library.show`
 
-# 7. Updates & Changes (Current Delta)
+# 7. Updates & Changes (Delta Terkini)
 - Final submission route gap is closed. Flow now active for Mahasiswa final submission.
 - Google Auth is now active with dedicated auth routes, controller callback flow, and schema support for Google account linkage.
 - Bimbingan export CSV/PDF added for Mahasiswa.
 - Proposal submission queue and approval routes are active for Kaprodi.
 - Final review queue and approval route are active for Kaprodi.
 - Document template module added for Kaprodi final document management.
+- Monitoring non-skripsi Kaprodi now has dedicated index/detail pages.
+- Library pages now use controller-backed data instead of static placeholder pages.
+- Export skripsi Kaprodi already has dedicated page/route and is moving toward full export workflow.
 - Request unlock nilai now fully visible in current routing and controller graph.
 - Reusable widget layer still relies mainly on Blade partials, not Laravel class-based components.
 - Search routes now exist for Dosen and Mahasiswa skripsi pages.
@@ -240,7 +243,7 @@
   - Dosen bimbingan, penilaian, skripsi view
   - Mahasiswa skripsi, bimbingan view, document versions, nilai, non-skripsi
   - Role middleware and cross-role tests
-- **Current next additions**:
+- **Prioritas penambahan berikutnya**:
   - Final submission flow tests
   - Document template controller tests
   - Proposal submission / final review approval tests
@@ -262,7 +265,7 @@
 
 # 10. Reusable UI Components (Blade Partials / Widgets)
 
-Current project mostly uses reusable Blade partials instead of Laravel Components.
+Proyek saat ini lebih banyak memakai Blade partials yang reusable dibanding Laravel Components.
 
 ## Active reusable partials
 - `page-header.blade.php`
@@ -286,11 +289,11 @@ Current project mostly uses reusable Blade partials instead of Laravel Component
 - `download-arrow.blade.php`
 - `file-plain.blade.php`
 
-## Current architecture note
-- One anonymous Blade component exists: `resources/views/components/card.blade.php`
-- No active class-based Laravel Component usage found.
-- No active `<x-...>` component pattern found in current scan.
-- Best future cleanup path: keep small icons/partials as-is, migrate medium/large widgets to Blade Components incrementally.
+## Catatan arsitektur saat ini
+- Ada satu anonymous Blade component: `resources/views/components/card.blade.php`
+- Belum ditemukan penggunaan aktif Laravel Component berbasis class.
+- Belum ditemukan pola `<x-...>` yang dipakai aktif sebagai pola utama di hasil scan saat ini.
+- Jalur cleanup paling aman ke depan: pertahankan icon/partial kecil, lalu migrasikan widget menengah/besar ke Blade Components secara bertahap.
 
 # 11. Progress Lock Snapshot (2026-05-20)
 - **Locked scope**:
@@ -306,6 +309,9 @@ Current project mostly uses reusable Blade partials instead of Laravel Component
   - Final review approval flow
   - Document template management module
   - Mahasiswa bimbingan export CSV/PDF
+  - Kaprodi monitoring non-skripsi
+  - Library pages backed by controller/query layer
+  - Kaprodi export skripsi page
 - **Still open**:
   - Kaprodi export backend
   - Library publication backend

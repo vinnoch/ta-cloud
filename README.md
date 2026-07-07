@@ -25,7 +25,7 @@ TA Cloud adalah platform akademik berbasis role untuk mendigitalisasi seluruh li
 
 ## Peran Pengguna
 
-| Role | Scope | Kemampuan utama |
+| Role | Scope | Fitur |
 |------|-------|-----------------|
 | Kaprodi | Global | CRUD master data, assignment, approve proposal/sidang/final review, unlock nilai, manage document templates |
 | Dosen | Assigned only | Bimbingan, penilaian, sidang request, request unlock nilai |
@@ -35,12 +35,14 @@ TA Cloud adalah platform akademik berbasis role untuk mendigitalisasi seluruh li
 
 ### Kaprodi
 - monitoring skripsi
+- monitoring non-skripsi
 - proposal submission approval
 - sidang request approval
 - final review approval
 - grade unlock approval
 - format penilaian management
 - document template management
+- export data skripsi
 - dosen / mahasiswa / periode / tahun akademik CRUD
 - import CSV dosen dan mahasiswa
 
@@ -72,17 +74,18 @@ Current UI reuse strategy memakai:
 - Blade partials di `resources/views/partials`
 - shared icons
 - table/form/card/header widgets
-- one anonymous component file exists, but project belum memakai Laravel Components secara aktif sebagai pattern utama
+- ada satu anonymous component file, tetapi proyek ini masih mengandalkan Blade partials sebagai pola utama reusable UI
 
 ## Dokumentasi Pengguna
-Panduan HTML multi-halaman tersedia di folder `docs/`:
-- `docs/index.html`
-- `docs/kaprodi.html`
-- `docs/dosen.html`
-- `docs/mahasiswa.html`
-- `docs/common-features.html`
-- `docs/faq.html`
-- `docs/known-limitations.html`
+Panduan HTML multi-halaman tersedia di folder `public/docs/`:
+- `public/docs/index.html`
+- `public/docs/kaprodi.html`
+- `public/docs/dosen.html`
+- `public/docs/mahasiswa.html`
+- `public/docs/common-features.html`
+- `public/docs/faq.html`
+- `public/docs/known-limitations.html`
+- `public/docs/visual-check.html`
 
 ## Status Saat Ini
 **Stabil / locked**
@@ -93,6 +96,9 @@ Panduan HTML multi-halaman tersedia di folder `docs/`:
 - final submission routes
 - document template module
 - Google login
+- monitoring non-skripsi Kaprodi
+- library page berbasis controller
+- export skripsi Kaprodi
 
 **Masih terbuka**
 - export / rekap global Kaprodi
@@ -104,4 +110,4 @@ Panduan HTML multi-halaman tersedia di folder `docs/`:
 
 ## Pengembangan Lokal
 Project memakai Laravel 13 + PHP 8.3 + Vite + Tailwind v4 + Reverb.
-Lihat konfigurasi lokal dan dokumen tambahan pada file markdown lain di root project serta folder `docs/`.
+Lihat konfigurasi lokal dan dokumen tambahan pada file markdown lain di root project serta folder `public/docs/`.
