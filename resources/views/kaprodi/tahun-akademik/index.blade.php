@@ -4,8 +4,8 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="list-root" data-endpoint="{{ route('kaprodi.tahun-akademik.index') }}">
-        <div class="acss-crud-head acss-crud-head--inline">
+    <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.tahun-akademik.index') }}">
+        <div class="section-heading acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Tahun Akademik</h1>
                 <p class="acss-muted " id="count-text">{{ $tahunAkademik->total() }} tahun akademik ditemukan.</p>
@@ -15,8 +15,7 @@
             </div>
         </div>
 
-        <div class="acss-crud-body">
-            <form class="filter-bar" id="filter-form" method="GET" action="{{ route('kaprodi.tahun-akademik.index') }}">
+                    <form class="filter-bar" id="filter-form" method="GET" action="{{ route('kaprodi.tahun-akademik.index') }}">
                     <input type="hidden" id="sort-input" name="sort" value="{{ $sort ?? '' }}">
                     <input type="hidden" id="direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
                 <label class="form-field acss-search-field">
@@ -28,7 +27,6 @@
 
             <div id="table-wrapper">@include('kaprodi.tahun-akademik.partials.table', ['tahunAkademik' => $tahunAkademik, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc'])</div>
             <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.tahun-akademik.partials.pagination', ['tahunAkademik' => $tahunAkademik])</div>
-        </div>
     </section>
 
 @include('partials.ajax-list-script', [

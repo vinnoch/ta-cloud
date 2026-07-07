@@ -17,8 +17,8 @@
         </div>
     </section>
 
-    <section class="acss-crud-card">
-        <div class="acss-crud-head acss-crud-head--inline">
+    <section class="card">
+        <div class="section-heading acss-crud-head--inline">
             <div><h3 class="acss-card-title">Riwayat Pertemuan</h3></div>
             <div class="acss-crud-head__actions">
                 <form method="GET" action="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) }}" class="acss-inline-filter-form">
@@ -49,8 +49,7 @@
                 </div>
             </div>
         </div>
-        <div class="acss-crud-body">
-            <div class="table-shell">
+        <div class="table-shell">
                 <div class="table-shell__head table-shell__grid acss-table-cols-mhs-bimbingan-log">
                     <span>Tanggal</span>
                     <span>Dosen</span>
@@ -61,6 +60,7 @@
                     <div id="bimbingan-{{ $meeting['record']->id }}" class="table-shell__row table-shell__grid acss-table-cols-mhs-bimbingan-log acss-hover-row-group" title="Maksimum 2 MB. Format file: DOC, DOCX, atau PDF.">
                         <div class="table-shell__cell">
                             <strong>{{ $meeting['date'] }}</strong>
+                            <small class="acss-time-sub">{{ $meeting['record']->meeting_date?->format('H:i') ?? '-' }}</small>
                         </div>
                         <div class="table-shell__cell">{{ $meeting['reviewer'] ?? '-' }}</div>
                         <div class="table-shell__cell">{{ $meeting['summary'] }}</div>
@@ -97,7 +97,6 @@
                 @empty
                     <div class="empty-state">Belum ada histori bimbingan.</div>
                 @endforelse
-            </div>
         </div>
     </section>
 

@@ -61,29 +61,27 @@
             $eventAverage = $eventGrades->whereNotNull('score')->avg('score');
             $eventName = str($event)->replace('_', ' ')->title();
         @endphp
-        <section class="acss-section-card">
-            <div class="acss-section-card__head">
+        <section class="card">
+            <div class="section-heading">
                 <div>
                     <h3 class="acss-card-title">Nilai {{ $eventName }}</h3>
                 </div>
             </div>
-            <div class="acss-section-card__body">
-                <div class="table-shell">
-                    <div class="table-shell__head table-shell__grid acss-table-cols-mhs-nilai-summary">
-                        <span>Dosen</span>
-                        <span>Nilai</span>
-                    </div>
-                    @foreach ($eventGrades as $grade)
-                        <div class="table-shell__row table-shell__grid acss-table-cols-mhs-nilai-summary">
-                            <div class="table-shell__cell">{{ $grade->reviewer?->name ?? '-' }}</div>
-                            <div class="table-shell__cell"><strong>{{ $grade->score ?? '-' }}</strong></div>
-                        </div>
-                    @endforeach
+            <div class="table-shell">
+                <div class="table-shell__head table-shell__grid acss-table-cols-mhs-nilai-summary">
+                    <span>Dosen</span>
+                    <span>Nilai</span>
                 </div>
-                <p class="acss-muted  pt-2">
-                    Rata-rata Nilai: <strong>{{ $eventAverage ? number_format($eventAverage, 1) : '-' }}</strong>
-                </p>
+                @foreach ($eventGrades as $grade)
+                    <div class="table-shell__row table-shell__grid acss-table-cols-mhs-nilai-summary">
+                        <div class="table-shell__cell">{{ $grade->reviewer?->name ?? '-' }}</div>
+                        <div class="table-shell__cell"><strong>{{ $grade->score ?? '-' }}</strong></div>
+                    </div>
+                @endforeach
             </div>
+            <p class="acss-muted acss-table-note-gap">
+                Rata-rata Nilai: <strong>{{ $eventAverage ? number_format($eventAverage, 1) : '-' }}</strong>
+            </p>
         </section>
     @empty
         <section class="acss-section-card">

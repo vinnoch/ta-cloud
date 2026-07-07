@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DocumentAccessController;
+use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,30 +57,6 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::prefix('library')->name('library.')->group(function () {
-    Route::get('/', function () {
-        return view('library.index', [
-            'title' => 'Library Skripsi',
-            'heading' => 'Library Skripsi',
-            'crumbs' => 'LIBRARY • INDEX',
-            'libraryStats' => [
-                ['label' => 'Total Skripsi', 'value' => '1,240'],
-                ['label' => 'Tahun Aktif', 'value' => '2024'],
-            ],
-            'rows' => [
-                [
-                    'Arsitektur Microservices Cloud',
-                    'Adrian Sterling',
-                    'Sistem Informasi',
-                    '<a class="text-link" href="' . route('library.show', 'arsitektur-microservices-cloud') . '">Detail</a>',
-                ],
-            ],
-            'filters' => [
-                ['eyebrow' => 'Filter', 'title' => 'Tahun Lulus', 'description' => '2023, 2024'],
-            ],
-        ]);
-    })->name('index');
-
-    Route::get('/{slug}', function () {
-        return response('<html><body>Detail Library Skripsi</body></html>');
-    })->name('show');
+    Route::get('/', [LibraryController::class, 'index'])->name('index');
+    Route::get('/{slug}', [LibraryController::class, 'show'])->name('show');
 });

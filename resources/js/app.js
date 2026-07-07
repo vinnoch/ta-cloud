@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initLoginShortcut();
     initCenteredConfirm();
     initFilterBars();
+    initDatetimePickers();
 });
 
 function initNotifications() {
@@ -319,9 +320,12 @@ function initCenteredConfirm() {
         }
     });
 
-    window.taConfirm = (message) => new Promise((resolve) => {
+    const defaultAcceptText = acceptButton.textContent;
+
+    window.taConfirm = (message, acceptText = defaultAcceptText) => new Promise((resolve) => {
         resolver = resolve;
         messageNode.textContent = message || 'Anda yakin ingin melanjutkan tindakan ini?';
+        acceptButton.textContent = acceptText;
         modal.hidden = false;
         document.body.classList.add('acss-modal-open');
     });
@@ -398,7 +402,7 @@ function initTopbarUserMenu() {
 }
 
 function initTopbarSkripsiSearch() {
-    const searchBox = document.querySelector('.top-bar__actions .search-box[data-search-endpoint]');
+    const searchBox = document.querySelector('.search-box[data-search-endpoint]');
     const input = document.getElementById('ta-search');
     const suggestions = document.getElementById('topbar-ta-suggestions');
     if (!searchBox || !input || !suggestions) return;
@@ -476,7 +480,7 @@ function initTopbarSkripsiSearch() {
     });
 
     document.addEventListener('click', (event) => {
-        if (!event.target.closest('.top-bar__actions .search-box')) {
+        if (!event.target.closest('.search-box')) {
             hideSuggestions();
         }
     });
@@ -516,5 +520,185 @@ function initFilterBars() {
 
         const count = Math.max(1, Math.min(fields.length, 4));
         bar.classList.add(`filter-bar--count-${count}`);
+    });
+}
+
+function initDatetimePickers() {
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+    document.querySelectorAll('[data-acss-datetime-picker]').forEach((wrapper) => {
+        const trigger = wrapper.querySelector('[data-acss-datetime-trigger]');
+        const valueSpan = wrapper.querySelector('[data-acss-datetime-value]');
+        const input = wrapper.querySelector('[data-acss-datetime-input]');
+        const panel = wrapper.querySelector('[data-acss-datetime-panel]');
+        const prevBtn = wrapper.querySelector('[data-acss-datetime-prev]');
+        const nextBtn = wrapper.querySelector('[data-acss-datetime-next]');
+        const monthLabel = wrapper.querySelector('[data-acss-datetime-label]');
+        const daysContainer = wrapper.querySelector('[data-acss-datetime-days]');
+        const hourSelect = wrapper.querySelector('[data-acss-datetime-hour]');
+        const minuteSelect = wrapper.querySelector('[data-acss-datetime-minute]');
+        const applyBtn = wrapper.querySelector('[data-acss-datetime-apply]');
+
+        if (!trigger || !valueSpan || !input || !panel || !prevBtn || !nextBtn || !monthLabel || !daysContainer || !hourSelect || !minuteSelect || !applyBtn) {
+            return;
+        }
+
+        for (let i = 0; i < 24; i++) {
+            const str = String(i).padStart(2, '0');
+            hourSelect.add(new Option(str, str));
+        }
+        for (let i = 0; i < 60; i += 5) {
+            const str = String(i).padStart(2, '0');
+            minuteSelect.add(new Option(str, str));
+        }
+
+        const minVal = wrapper.dataset.min ? new Date(wrapper.dataset.min) : null;
+        let currentVal = input.value ? new Date(input.value) : new Date();
+        if (isNaN(currentVal.getTime())) {
+            currentVal = new Date();
+        }
+
+        let viewingYear = currentVal.getFullYear();
+        let viewingMonth = currentVal.getMonth();
+        let selectedDate = new Date(currentVal.getFullYear(), currentVal.getMonth(), currentVal.getDate());
+
+        const formatTriggerText = (date, hour, minute) => {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year} ${hour}:${minute}`;
+        };
+
+        const formatIsoString = (date, hour, minute) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hour}:${minute}`;
+        };
+
+        hourSelect.value = String(currentVal.getHours()).padStart(2, '0');
+        minuteSelect.value = String(Math.round(currentVal.getMinutes() / 5) * 5).padStart(2, '0');
+        if (minuteSelect.value === '60') {
+            minuteSelect.value = '55';
+        }
+        valueSpan.textContent = formatTriggerText(selectedDate, hourSelect.value, minuteSelect.value);
+
+        panel.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
+        const renderCalendar = () => {
+            monthLabel.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+            daysContainer.innerHTML = '';
+
+            const firstDayIndex = new Date(viewingYear, viewingMonth, 1).getDay();
+            const lastDayDate = new Date(viewingYear, viewingMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const span = document.createElement('span');
+                span.className = 'acss-datetime-picker__day is-empty';
+                daysContainer.appendChild(span);
+            }
+
+            for (let day = 1; day <= lastDayDate; day++) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'acss-datetime-picker__day';
+                button.textContent = String(day);
+
+                const thisDate = new Date(viewingYear, viewingMonth, day);
+                thisDate.setHours(0, 0, 0, 0);
+
+                if (minVal) {
+                    const compMin = new Date(minVal.getFullYear(), minVal.getMonth(), minVal.getDate());
+                    if (thisDate < compMin) {
+                        button.disabled = true;
+                    }
+                }
+
+                if (selectedDate && thisDate.getTime() === selectedDate.getTime()) {
+                    button.classList.add('is-selected');
+                }
+
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    selectedDate = new Date(viewingYear, viewingMonth, day);
+                    renderCalendar();
+                });
+
+                daysContainer.appendChild(button);
+            }
+        };
+
+        trigger.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (wrapper.dataset.locked === 'true') {
+                return;
+            }
+            const open = panel.hidden;
+            document.querySelectorAll('[data-acss-datetime-panel]').forEach((item) => item.setAttribute('hidden', ''));
+            document.querySelectorAll('[data-acss-datetime-picker]').forEach((item) => item.classList.remove('is-open'));
+
+            if (open) {
+                panel.removeAttribute('hidden');
+                wrapper.classList.add('is-open');
+                renderCalendar();
+            } else {
+                panel.setAttribute('hidden', '');
+            }
+        });
+
+        prevBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            viewingMonth -= 1;
+            if (viewingMonth < 0) {
+                viewingMonth = 11;
+                viewingYear -= 1;
+            }
+            renderCalendar();
+        });
+
+        nextBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            viewingMonth += 1;
+            if (viewingMonth > 11) {
+                viewingMonth = 0;
+                viewingYear += 1;
+            }
+            renderCalendar();
+        });
+
+        applyBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const hour = hourSelect.value;
+            const minute = minuteSelect.value;
+            const isoValue = formatIsoString(selectedDate, hour, minute);
+
+            input.value = isoValue;
+            valueSpan.textContent = formatTriggerText(selectedDate, hour, minute);
+            panel.setAttribute('hidden', '');
+            wrapper.classList.remove('is-open');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!wrapper.contains(event.target)) {
+                panel.setAttribute('hidden', '');
+                wrapper.classList.remove('is-open');
+            }
+        });
+
+        const editButton = wrapper.closest('form')?.querySelector('[data-sidang-schedule-toggle]');
+        editButton?.addEventListener('click', (event) => {
+            if (wrapper.dataset.locked !== 'true') {
+                return;
+            }
+
+            event.preventDefault();
+            wrapper.dataset.locked = 'false';
+            wrapper.classList.remove('is-disabled');
+            editButton.type = 'submit';
+            editButton.textContent = 'Simpan Jadwal';
+            trigger.focus();
+        });
     });
 }

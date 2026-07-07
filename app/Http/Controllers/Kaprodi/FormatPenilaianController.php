@@ -452,11 +452,11 @@ class FormatPenilaianController extends Controller
             ->where('template_type', $validated['format_type'])
             ->when($format instanceof FormatPenilaian, fn ($query) => $query->whereKeyNot($format->id))
             ->whereHas('periodes', fn ($query) => $query->whereIn('periodes.id', $periodeIds))
-            ->with('periodes:id,name')
+            ->with(['periodes:id,tahun_akademik_id,kode_periode,semester', 'periodes.tahunAkademik:id,tahun_awal,tahun_akhir'])
             ->get()
             ->flatMap(fn ($existingFormat) => $existingFormat->periodes
                 ->whereIn('id', $periodeIds)
-                ->pluck('name'))
+                ->map(fn ($periode) => $periode->name))
             ->unique()
             ->values();
 

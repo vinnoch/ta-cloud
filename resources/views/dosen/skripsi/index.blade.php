@@ -1,14 +1,13 @@
 @extends('layouts.app')
 @section('content')
-    <section class="acss-crud-card" id="skripsi-list-root" data-endpoint="{{ route('dosen.skripsi.index') }}">
-        <div class="acss-crud-head">
+    <section class="card" id="skripsi-list-root" data-endpoint="{{ route('dosen.skripsi.index') }}">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Skripsi Mahasiswa Bimbingan</h1>
                 <p id="skripsi-count-text" class="acss-muted ">{{ $skripsis->total() }} skripsi ditemukan.</p>
             </div>
         </div>
-        <div class="acss-crud-body">
-            <div id="skripsi-stats-wrapper">@include('dosen.skripsi.partials.stats', ['chartData' => $chartData])</div>
+                    <div id="skripsi-stats-wrapper">@include('dosen.skripsi.partials.stats', ['chartData' => $chartData])</div>
 
             <form class="filter-bar" id="skripsi-filter-form" method="GET" action="{{ route('dosen.skripsi.index') }}">
                 <input type="hidden" name="sort" value="{{ $sort ?? 'tanggal' }}">
@@ -33,7 +32,6 @@
             </form>
             <div id="skripsi-table-wrapper">@include('dosen.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort, 'direction' => $direction])</div>
             <div id="skripsi-pagination-wrapper">@include('dosen.skripsi.partials.pagination', ['skripsis' => $skripsis])</div>
-        </div>
     </section>
     @include('partials.ajax-list-script', ['rootId'=>'skripsi-list-root','formId'=>'skripsi-filter-form','searchInputId'=>'skripsi-search-input','statusSelectId'=>'skripsi-fase-select','tableWrapperId'=>'skripsi-table-wrapper','paginationWrapperId'=>'skripsi-pagination-wrapper','statsWrapperId'=>'skripsi-stats-wrapper','countTextId'=>'skripsi-count-text'])
 @endsection

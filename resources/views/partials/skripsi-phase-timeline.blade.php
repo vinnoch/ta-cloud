@@ -9,17 +9,10 @@
             ['key' => 'sidang_proposal', 'label' => 'Sidang Proposal'],
             ['key' => 'bimbingan_skripsi', 'label' => 'Bimbingan Skripsi'],
             ['key' => 'sidang_skripsi', 'label' => 'Sidang Skripsi'],
-            ['key' => 'revisi_sidang_skripsi', 'label' => 'Revisi Sidang Skripsi'],
-            ['key' => 'review_dokumen_final', 'label' => 'Review Dokumen Final'],
+            ['key' => 'revisi_sidang_skripsi', 'label' => 'Revisi Skripsi'],
+            ['key' => 'review_dokumen_final', 'label' => 'Dokumen Final'],
             ['key' => 'skripsi_selesai', 'label' => 'Skripsi Selesai'],
         ];
-        $phaseGroups = [
-            [['key' => 'proposal', 'label' => 'Proposal'], ['key' => 'sidang_proposal', 'label' => 'Sidang Proposal']],
-            [['key' => 'bimbingan_skripsi', 'label' => 'Bimbingan Skripsi']],
-            [['key' => 'sidang_skripsi', 'label' => 'Sidang Skripsi'], ['key' => 'revisi_sidang_skripsi', 'label' => 'Revisi Sidang Skripsi']],
-            [['key' => 'review_dokumen_final', 'label' => 'Review Dokumen Final'], ['key' => 'skripsi_selesai', 'label' => 'Skripsi Selesai']],
-        ];
-
         $normalizedPhase = str((string) ($timelineSkripsi->current_phase ?? ''))
             ->lower()
             ->replace(['-', ' '], '_')
@@ -47,37 +40,27 @@
             </div>
         </div>
         <div class="acss-phase-lanes">
-            @foreach ($phaseGroups as $group)
+            @foreach ($phaseTimeline as $index => $phaseItem)
                 @php
-                    $groupIndexes = collect($group)->map(
-                        fn($phaseItem) => collect($phaseTimeline)->search(
-                            fn($item) => $item['key'] === $phaseItem['key'],
-                        ),
-                    );
-                    $groupStateClass = $groupIndexes->contains($currentPhaseIndex)
-                        ? 'is-current'
-                        : ($groupIndexes->max() < $currentPhaseIndex ? 'is-complete' : '');
+                    $stateClass = $index < $currentPhaseIndex ? 'is-complete' : ($index === $currentPhaseIndex ? 'is-current' : '');
                 @endphp
-                <div class="acss-phase-lane {{ $groupStateClass }}">
+                <div class="acss-phase-lane {{ $stateClass }}">
                     <span class="acss-phase-lane__status">
-                        {{ $groupIndexes->contains($currentPhaseIndex) ? 'Fase aktif' : ($groupIndexes->max() < $currentPhaseIndex ? 'Selesai' : 'Menunggu') }}
+                        {{ $index < $currentPhaseIndex ? 'Selesai' : ($index === $currentPhaseIndex ? 'Fase aktif' : 'Menunggu') }}
                     </span>
                     <div class="acss-phase-lane__items">
-                        @foreach ($group as $phaseItem)
-                            @php
-                                $index = collect($phaseTimeline)->search(
-                                    fn($item) => $item['key'] === $phaseItem['key'],
-                                );
-                                $stateClass = $index < $currentPhaseIndex ? 'is-complete' : ($index === $currentPhaseIndex ? 'is-current' : '');
-                            @endphp
-                            <div class="acss-phase-chip {{ $stateClass }}">
-                                <div class="acss-phase-chip__icon">{{ $index + 1 }}</div>
-                                <div>
-                                    <strong class="acss-phase-chip__title">{{ $phaseItem['label'] }}</strong>
-                                    <span class="acss-phase-chip__meta">{{ $index < $currentPhaseIndex ? 'Selesai' : ($index === $currentPhaseIndex ? 'Sedang berjalan' : 'Belum dimulai') }}</span>
-                                </div>
+                        <div class="acss-phase-chip {{ $stateClass }}">
+                            <div class="acss-phase-chip__icon">
+                                @if ($index < $currentPhaseIndex)
+                                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 10.5 8 14l7.5-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                @else
+                                    {{ $index + 1 }}
+                                @endif
                             </div>
-                        @endforeach
+                            <div>
+                                <strong class="acss-phase-chip__title">{{ $phaseItem['label'] }}</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endforeach

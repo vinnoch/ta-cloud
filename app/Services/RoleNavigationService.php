@@ -30,6 +30,7 @@ class RoleNavigationService
                     ['label' => 'Dokumen Final', 'href' => route('kaprodi.final-reviews.index'), 'active' => 'kaprodi.final-reviews.*', 'icon' => 'partials.icons.phase-flag'],
                 ],
             ],
+            ['label' => 'Non-Skripsi', 'href' => route('kaprodi.non-skripsi.index'), 'active' => 'kaprodi.non-skripsi.*', 'icon' => 'partials.icons.file'],
             [
                 'label' => 'Master Data',
                 'href' => route('kaprodi.dosen.index'),
@@ -45,8 +46,9 @@ class RoleNavigationService
                 ],
             ],
             ['label' => 'Nilai', 'href' => route('kaprodi.nilai.index'), 'active' => ['kaprodi.nilai.*', 'kaprodi.formats.grades.show'], 'icon' => 'partials.icons.clipboard'],
-            ['label' => 'Import Dosen', 'href' => route('kaprodi.import.dosen'), 'active' => 'kaprodi.import.dosen', 'icon' => 'partials.icons.download'],
-            ['label' => 'Import Mahasiswa', 'href' => route('kaprodi.import.mahasiswa'), 'active' => 'kaprodi.import.mahasiswa', 'icon' => 'partials.icons.download'],
+            ['label' => 'Import Dosen', 'href' => route('kaprodi.import.dosen'), 'active' => 'kaprodi.import.dosen', 'icon' => 'partials.icons.upload'],
+            ['label' => 'Import Mahasiswa', 'href' => route('kaprodi.import.mahasiswa'), 'active' => 'kaprodi.import.mahasiswa', 'icon' => 'partials.icons.upload'],
+            ['label' => 'Export Skripsi', 'href' => route('kaprodi.skripsi.export.page'), 'active' => 'kaprodi.skripsi.export.page', 'icon' => 'partials.icons.download'],
         ];
     }
 
@@ -74,12 +76,14 @@ class RoleNavigationService
 
         if ($resolvedSkripsiId) {
             $resolvedSkripsi = Skripsi::query()->select(['id', 'current_phase'])->find($resolvedSkripsiId);
+            $canAccessProgressMenus = $resolvedSkripsi
+                && ! in_array($resolvedSkripsi->current_phase, ['proposal', 'sidang_proposal'], true);
 
-            if (Route::has('mahasiswa.skripsi.bimbingan.index')) {
+            if ($canAccessProgressMenus && Route::has('mahasiswa.skripsi.bimbingan.index')) {
                 $items[] = ['label' => 'Bimbingan', 'href' => route('mahasiswa.skripsi.bimbingan.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.bimbingan.*', 'icon' => 'partials.icons.chat'];
             }
 
-            if (Route::has('mahasiswa.skripsi.nilai.index')) {
+            if ($canAccessProgressMenus && Route::has('mahasiswa.skripsi.nilai.index')) {
                 $items[] = ['label' => 'Nilai', 'href' => route('mahasiswa.skripsi.nilai.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.nilai.*', 'icon' => 'partials.icons.phase-flag'];
             }
 

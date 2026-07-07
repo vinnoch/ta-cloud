@@ -1,6 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $isProposalPhase = $skripsi->isProposalPhase();
+        $hideSkripsiDefenseCards = in_array($skripsi->current_phase, ['proposal', 'sidang_proposal'], true);
+        $advisorAssignments = $skripsi->assignments
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
+            ->values();
+        $approvedAdvisorIds = $skripsi->sidangRequests
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
+            ->where('status', 'approved')
+            ->pluck('lecturer_id')
+            ->filter()
+            ->unique()
+            ->values();
+        $pendingAdvisorNames = $advisorAssignments
+            ->filter(fn ($assignment) => ! $approvedAdvisorIds->contains($assignment->lecturer_id))
+            ->map(fn ($assignment) => \Illuminate\Support\Str::title((string) ($assignment->lecturer?->name ?? '-')))
+            ->filter()
+            ->values();
+    @endphp
+
     <div id="reviewer-feedback">
         @if (session('success'))
             <div class="notice notice--success">{{ session('success') }}</div>
@@ -8,7 +28,12 @@
         @if ($errors->any())
             <div class="notice notice--danger">{{ $errors->first() }}</div>
         @endif
-        @if ($skripsi->current_phase === 'proposal' && $skripsi->proposal_review_status !== 'approved')
+        @if ($skripsi->isProposalPhase() && $skripsi->isRejected())
+            <div class="notice notice--danger">
+                <strong>Proposal sudah dikembalikan untuk revisi.</strong>
+                <div class="">Menunggu mahasiswa mengunggah revisi proposal terbaru.</div>
+            </div>
+        @elseif ($skripsi->isProposalPhase() && ! $skripsi->isApproved())
             <div class="notice notice--warning">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -18,9 +43,9 @@
                     <div class="flex gap-2">
                         <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}" onsubmit="return confirm('Setujui proposal ini?')">
                             @csrf
-                            <button class="button button--small button--success" type="submit">Setujui Proposal</button>
+                            <button class="button button--small button--success acss-proposal-approve-button" type="submit"><span class="dosen-btn-icon">@include('partials.icons.check')</span><span>Setujui Proposal</span></button>
                         </form>
-                        <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-proposal-reject-modal]').hidden = false">Tolak / Revisi</button>
+                        <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-proposal-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.edit')</span><span>Tolak / Revisi</span></button>
                     </div>
                 </div>
             </div>
@@ -37,24 +62,62 @@
                     <div class="flex gap-2">
                         <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
                             @csrf
-                            <button class="button button--small button--success" type="submit">Setujui Sidang</button>
+                            <button class="button button--small button--success acss-sidang-approve-button" type="submit">Setujui Sidang</button>
                         </form>
+                        <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-sidang-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.archive')</span><span>Tolak Sidang</span></button>
                     </div>
                 </div>
             </div>
         @endif
+
     </div>
 
-    <section class="card card--profile">
+    @if (!empty($pendingSidangRequest))
+        <div class="acss-modal" data-sidang-reject-modal hidden>
+            <div class="acss-modal__backdrop" onclick="this.parentElement.hidden = true"></div>
+            <div class="acss-modal__dialog acss-modal__dialog--master">
+                <div class="acss-modal__head">
+                    <div>
+                        <h3 class="acss-card-title">Tolak Sidang</h3>
+                    </div>
+                    <button type="button" class="acss-modal__close" onclick="this.closest('[data-sidang-reject-modal]').hidden = true" aria-label="Tutup">×</button>
+                </div>
+                <form class="acss-form-stack-tight" method="POST" action="{{ route('kaprodi.skripsi.sidang-request.reject', [$skripsi, $pendingSidangRequest]) }}">
+                    @csrf
+                    <div class="acss-master-form-shell">
+                        <label class="form-field">
+                            <span>Catatan Penolakan</span>
+                            <textarea name="note" rows="5" placeholder="Berikan catatan penolakan sidang..." required></textarea>
+                        </label>
+                    </div>
+                    <div class="form-actions form-actions--inline">
+                        <button class="button button--muted button--inline" type="button" onclick="this.closest('[data-sidang-reject-modal]').hidden = true">Batal</button>
+                        <button class="button button--danger button--inline" type="submit">Kirim Penolakan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    @php
+        $studentNameParts = preg_split('/\s+/', trim((string) $skripsi->student->name)) ?: [];
+        $avatarInitials = collect($studentNameParts)
+            ->filter()
+            ->take(2)
+            ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+            ->implode('');
+    @endphp
+
+    <section class="card card--profile acss-skripsi-detail-topcompact">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name, 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ $avatarInitials !== '' ? $avatarInitials : mb_strtoupper(mb_substr((string) $skripsi->student->name, 0, 1)) }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
-                        <h2>{{ $skripsi->student->name }}</h2>
+                        <h2>{{ \Illuminate\Support\Str::title((string) $skripsi->student->name) }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} •
                             {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
-                        <div class="acss-quote-title">{{ $skripsi->title }}</div>
+                        <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) $skripsi->title) }}</div>
                     </div>
                     <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
@@ -63,182 +126,257 @@
 
     </section>
 
-    @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Fase Skripsi'])
+    @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Skripsi'])
 
-
-    <div class="acss-stack-sections">
-        <section class="card">
-            <div class="section-heading">
+    @if ($isProposalPhase)
+        <section class="card" id="riwayat-proposal">
+            <div class="section-heading acss-crud-head--inline">
                 <div>
-                    <h3>Jadwal Sidang Skripsi</h3>
-                    <p class="acss-muted ">Atur tanggal dan waktu sidang. Notifikasi akan dikirim ke mahasiswa dan dosen terkait.</p>
+                    <h3 class="acss-card-title">Riwayat Proposal</h3>
                 </div>
             </div>
-            <form method="POST" action="{{ route('kaprodi.skripsi.sidang-schedule.update', $skripsi) }}" class="acss-master-form-shell">
-                @csrf
-                @method('PUT')
-                <label class="form-field">
-                    <span>Tanggal &amp; Waktu Sidang</span>
-                    <input
-                        type="datetime-local"
-                        name="sidang_skripsi_datetime"
-                        value="{{ old('sidang_skripsi_datetime', optional($sidangSkripsiSchedule)->format('Y-m-d\\TH:i')) }}"
-                        required
-                    >
-                </label>
-                <div class="form-actions form-actions--inline">
-                    <button class="button button--inline" type="submit">Simpan Jadwal</button>
-                </div>
-            </form>
-            @if ($sidangSkripsiSchedule)
-                <div class="acss-muted ">
-                    Jadwal aktif: <strong>{{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</strong>
-                </div>
-            @endif
+            <div class="table-shell table-shell--proposal-docs">
+                @forelse (($proposalVersions ?? []) as $document)
+                    @if ($loop->first)
+                        <div class="table-shell__head table-shell__grid acss-table-cols-proposal-docs-detail">
+                            <span>Tanggal</span>
+                            <span>Versi</span>
+                            <span>Catatan</span>
+                            <span>File PDF</span>
+                        </div>
+                    @endif
+                    <div class="table-shell__row table-shell__grid acss-table-cols-proposal-docs-detail acss-hover-row-group">
+                        <div class="table-shell__cell">
+                            <strong>{{ $document->created_at?->format('d/m/Y') ?? '-' }}</strong>
+                            <div class="text-[10px] acss-muted">{{ $document->created_at?->format('H:i') ?? '' }}</div>
+                        </div>
+                        <div class="table-shell__cell"><span class="pill">V{{ $document->version_number }}</span></div>
+                        <div class="table-shell__cell">{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
+                        <div class="table-shell__cell table-shell__cell--action">
+                            <button type="button" class="text-link acss-action-link" onclick="openPdfModal('{{ route('documents.preview', $document) }}', 'Proposal v{{ $document->version_number }}')">
+                                @include('partials.icons.eye')<span>File PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <div class="empty-state">Belum ada proposal yang diunggah.</div>
+                @endforelse
+            </div>
         </section>
+    @endif
 
+    @if (! $isProposalPhase)
+    <div class="acss-stack-sections">
         @if ($skripsi->current_phase === 'review_dokumen_final')
             <section class="card card--notice acss-final-review-card">
                 <div class="section-heading">
                     <div>
                         <h3>Validasi Dokumen Final</h3>
-                        <p class="acss-muted ">Periksa dokumen final yang sudah dikirim mahasiswa sebelum menyelesaikan skripsi.</p>
                     </div>
                 </div>
-                <div class="acss-action-group p-4">
-                    <p>Seluruh reviewer telah menyetujui dokumen final. Lakukan validasi akhir untuk menyatakan skripsi selesai.</p>
-
-                    <div class="acss-final-documents ">
-                        @forelse ($finalReviewDocuments as $document)
-                            <div class="acss-final-documents__item">
-                                <div>
-                                    <strong>{{ str($document->phase)->replace('_', ' ')->title() }}</strong>
-                                    <small>{{ $document->created_at?->format('d/m/Y H:i') ?? '-' }} · {{ $document->uploader?->name ?? 'Mahasiswa' }}</small>
-                                </div>
-                                <button type="button" class="text-link acss-action-link" onclick="openPdfModal('{{ route('kaprodi.skripsi.documents.download', [$skripsi, $document]) }}', '{{ str($document->phase)->replace('_', ' ')->title() }}')">@include('partials.icons.eye')<span>Dokumen PDF</span></button>
-                            </div>
-                        @empty
-                            <div class="empty-state">Belum ada dokumen final yang terunggah.</div>
-                        @endforelse
-
-                        @if ($journalArticleUrl)
-                            <div class="acss-final-documents__item">
-                                <div>
-                                    <strong>Artikel Jurnal</strong>
-                                    <small>Tautan artikel jurnal yang dikirim mahasiswa.</small>
-                                </div>
-                                <a class="text-link acss-action-link" href="{{ $journalArticleUrl }}" target="_blank" rel="noopener noreferrer">@include('partials.icons.eye')<span>Buka Tautan</span></a>
-                            </div>
-                        @endif
+                <div class="acss-final-review-card__body acss-final-review-card__body--split">
+                    <div class="acss-final-review-card__content">
+                        <p class="acss-final-review-card__intro">Seluruh reviewer telah menyetujui dokumen final. Lakukan validasi akhir untuk menyatakan skripsi selesai.</p>
+                        <div class="flex gap-2">
+                            <form method="POST" action="{{ route('kaprodi.skripsi.final-review.approve', $skripsi) }}" onsubmit="return confirm('Validasi dokumen final dan selesaikan skripsi?')">
+                                @csrf
+                                <button class="button button--small acss-final-review-card__button" type="submit">Validasi & Selesaikan Skripsi</button>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="flex gap-2 ">
-                        <form method="POST" action="{{ route('kaprodi.skripsi.final-review.approve', $skripsi) }}" onsubmit="return confirm('Validasi dokumen final dan selesaikan skripsi?')">
-                            @csrf
-                            <button class="button button--small button--success" type="submit">Validasi & Selesaikan Skripsi</button>
-                        </form>
+                    <div class="acss-final-review-card__docs">
+                        <div class="acss-final-documents">
+                            @forelse ($finalReviewDocuments as $document)
+                                <div class="acss-final-documents__item">
+                                    <div>
+                                        <strong>{{ str($document->phase)->replace('_', ' ')->title() }}</strong>
+                                        <small>{{ $document->created_at?->format('d/m/Y H:i') ?? '-' }} · {{ $document->uploader?->name ?? 'Mahasiswa' }}</small>
+                                    </div>
+                                    <button type="button" class="text-link acss-action-link" onclick="openPdfModal('{{ route('documents.preview', $document) }}', '{{ str($document->phase)->replace('_', ' ')->title() }}')">@include('partials.icons.eye')<span>Dokumen PDF</span></button>
+                                </div>
+                            @empty
+                                <div class="empty-state">Belum ada dokumen final yang terunggah.</div>
+                            @endforelse
+
+                            @if ($journalArticleUrl)
+                                <div class="acss-final-documents__item">
+                                    <div>
+                                        <strong>Artikel Jurnal</strong>
+                                        <small>Tautan artikel jurnal yang dikirim mahasiswa.</small>
+                                    </div>
+                                    <a class="text-link acss-action-link" href="{{ $journalArticleUrl }}" target="_blank" rel="noopener noreferrer">@include('partials.icons.eye')<span>Buka Tautan</span></a>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </section>
         @endif
 
-        <section class="card">
-            <div class="section-heading">
-                <div>
-                    <h3>Reviewer</h3>
+        @if (! $hideSkripsiDefenseCards)
+        <div class="acss-detail-pair-grid">
+            @php
+                $canShowScheduleCard = in_array($skripsi->current_phase, ['sidang_proposal', 'sidang_skripsi', 'revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'], true);
+            @endphp
+            <section class="card">
+                <div class="section-heading acss-crud-head--inline">
+                    <div>
+                        <h3>Reviewer</h3>
+                    </div>
+                    <button type="button" class="acss-link-subtle acss-link-subtle--icon" data-reviewer-modal-open><span class="acss-link-subtle__icon">@include('partials.icons.plus')</span><span>Tambahkan</span></button>
                 </div>
-            </div>
-            <div id="reviewer-list">{!! $reviewerTableHtml !!}</div>
-            <div class="acss-link-gap-top">
-                <button type="button" class="acss-link-subtle" data-reviewer-modal-open>Tambahkan Reviewer</button>
-            </div>
-        </section>
+                <div id="reviewer-list">{!! $reviewerTableHtml !!}</div>
+            </section>
 
-        <section class="card">
-            <div class="section-heading">
-                <div>
-                    <h3>Histori Bimbingan Terakhir</h3>
+            <section class="card">
+                <div class="section-heading acss-crud-head--inline">
+                    <div>
+                        <h3>Bimbingan</h3>
+                    </div>
+                    <div class="acss-inline-actions">
+                        <a class="acss-link-subtle" href="{{ route('kaprodi.skripsi.bimbingan', $skripsi) }}">Lihat Histori</a>
+                        <a class="acss-link-subtle" href="{{ route('kaprodi.skripsi.logbook', $skripsi) }}">Download Logbook</a>
+                    </div>
                 </div>
-            </div>
-            <div class="table-shell">
-                @if (count($latestBimbingans ?? []) > 0)
-                    <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(4,minmax(0,1fr));">
-                        <span>Tanggal</span>
-                        <span>Fase</span>
-                        <span>Reviewer</span>
-                        <span>Catatan</span>
+                <div class="table-shell">
+                    @if (count($latestBimbingans ?? []) > 0)
+                        <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(3,minmax(0,1fr));">
+                            <span>Tanggal</span>
+                            <span>Reviewer</span>
+                            <span>Catatan</span>
+                        </div>
+                    @endif
+                    @forelse (($latestBimbingans ?? []) as $bimbingan)
+                        <div class="table-shell__row table-shell__grid" style="--table-cols:repeat(3,minmax(0,1fr));">
+                            <div class="table-shell__cell"><strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong></div>
+                            <div class="table-shell__cell">{{ $bimbingan->reviewer?->name ?? '-' }}</div>
+                            <div class="table-shell__cell">{{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 80) }}</div>
+                        </div>
+                    @empty
+                        <div class="empty-state">Belum ada histori bimbingan.</div>
+                    @endforelse
+                </div>
+            </section>
+        </div>
+
+        <div class="acss-detail-pair-grid">
+            <section class="card">
+                <div class="section-heading">
+                    <div>
+                        <h3>Pengajuan Sidang</h3>
+                    </div>
+                </div>
+                <div class="table-shell">
+                    @if (count($sidangRequests ?? []) > 0)
+                        <div class="table-shell__head table-shell__grid acss-table-cols-pengajuan-sidang">
+                            <span>Tanggal</span>
+                            <span>Reviewer</span>
+                        </div>
+                    @endif
+                    @forelse (($sidangRequests ?? []) as $sidangRequest)
+                        <div class="table-shell__row table-shell__grid acss-table-cols-pengajuan-sidang">
+                            <div class="table-shell__cell">
+                                <div>{{ $sidangRequest->submitted_at?->format('d/m/Y') ?? '-' }}</div>
+                                @if ($sidangRequest->status === 'approved')
+                                    <div class="acss-muted text-xs">disetujui Kaprodi {{ $sidangRequest->updated_at?->format('d/m/Y') ?? '-' }}</div>
+                                @endif
+                            </div>
+                            <div class="table-shell__cell">
+                                <div><strong>{{ \Illuminate\Support\Str::title((string) ($sidangRequest->lecturer?->name ?? '-')) }}</strong></div>
+                                <div class="acss-muted text-xs">{{ str($sidangRequest->role_type)->replace('_', ' ')->title() }}</div>
+                                @if ($sidangRequest->status !== 'approved')
+                                    <div class="acss-row-actions acss-row-actions--always acss-row-actions--compact">
+                                        <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $sidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
+                                            @csrf
+                                            <button class="button button--small button--success" type="submit">Approve</button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="empty-state">Belum ada permohonan sidang.</div>
+                    @endforelse
+                </div>
+                @if (! $isProposalPhase && $pendingAdvisorNames->isNotEmpty() && $skripsi->sidangRequests->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->where('status', 'approved')->isNotEmpty())
+                    <div class="acss-link-gap-top text-xs" style="color: var(--danger);">
+                        Menunggu pengajuan sidang oleh dosen pembimbing lain.
                     </div>
                 @endif
-                @forelse (($latestBimbingans ?? []) as $bimbingan)
-                    <div class="table-shell__row table-shell__grid" style="--table-cols:repeat(4,minmax(0,1fr));">
-                        <div class="table-shell__cell"><strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong></div>
-                        <div class="table-shell__cell">{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
-                        <div class="table-shell__cell">{{ $bimbingan->reviewer?->name ?? '-' }}</div>
-                        <div class="table-shell__cell">
-                            {{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 80) }}
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">Belum ada histori bimbingan.</div>
-                @endforelse
-            </div>
-            <div class="acss-link-gap-top">
-                <a class="acss-link-subtle" href="{{ route('kaprodi.skripsi.bimbingan', $skripsi) }}">Lihat Semua Histori
-                    Bimbingan</a>
-                <span class="acss-action-separator">|</span>
-                <a class="acss-link-subtle" href="{{ route('kaprodi.skripsi.logbook', $skripsi) }}">Download Logbook
-                    CSV</a>
-            </div>
-        </section>
+            </section>
 
-        <section class="card">
-            <div class="section-heading">
+            <section class="card">
+                <div class="section-heading">
                 <div>
-                    <h3>Permohonan Sidang</h3>
+                    <h3>Set Jadwal Sidang</h3>
                 </div>
             </div>
-            <div class="table-shell">
-                @if (count($sidangRequests ?? []) > 0)
-                    <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(3,minmax(0,1fr));">
-                        <span>Tanggal</span>
-                        <span>Reviewer</span>
-                        <span>Aksi</span>
-                    </div>
-                @endif
-                @forelse (($sidangRequests ?? []) as $sidangRequest)
-                    <div class="table-shell__row table-shell__grid" style="--table-cols:repeat(3,minmax(0,1fr));">
-                        <div class="table-shell__cell">{{ $sidangRequest->submitted_at?->format('d/m/Y') ?? '-' }}</div>
-                        <div class="table-shell__cell">{{ $sidangRequest->lecturer?->name ?? '-' }}</div>
-                        <div class="table-shell__cell">
-                            @if ($sidangRequest->status !== 'approved')
-                                <form method="POST"
-                                    action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $sidangRequest]) }}"
-                                    onsubmit="return confirm('Setujui permohonan sidang ini?')">
-                                    @csrf
-                                    <button class="button button--small button--success" type="submit">Approve</button>
-                                </form>
-                            @else
-                                <span class="pill">Disetujui</span>
-                            @endif
+            @php
+                $isProposalSchedule = $skripsi->current_phase === 'sidang_proposal';
+                $scheduleField = $isProposalSchedule ? 'sidang_proposal_datetime' : 'sidang_skripsi_datetime';
+                $activeSchedule = $isProposalSchedule ? ($sidangProposalSchedule ?? null) : ($sidangSkripsiSchedule ?? null);
+                $scheduleRoute = $isProposalSchedule
+                    ? route('kaprodi.skripsi.sidang-proposal-schedule.update', $skripsi)
+                    : route('kaprodi.skripsi.sidang-schedule.update', $skripsi);
+                $scheduleLabel = $isProposalSchedule ? 'Sidang Proposal' : 'Sidang Skripsi';
+                $defaultSidangSchedule = $activeSchedule
+                    ? $activeSchedule->format('Y-m-d\TH:i')
+                    : now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
+            @endphp
+            @if ($activeSchedule)
+                <div class="acss-muted acss-sidang-schedule-current">
+                    Jadwal aktif {{ $scheduleLabel }}: <strong>{{ $activeSchedule->translatedFormat('d M Y H:i') }}</strong>
+                </div>
+            @endif
+                <form method="POST" action="{{ $scheduleRoute }}" class="acss-master-form-shell acss-sidang-schedule-form acss-sidang-schedule-form--stacked">
+                    @csrf
+                    @method('PUT')
+                    <label class="form-field acss-sidang-schedule-field">
+                        <div class="acss-datetime-picker {{ $activeSchedule ? 'is-disabled' : '' }}" data-acss-datetime-picker data-value="{{ old($scheduleField, $defaultSidangSchedule) }}" data-min="{{ now()->format('Y-m-d\TH:i') }}" data-locked="{{ $activeSchedule ? 'true' : 'false' }}">
+                            <button type="button" class="acss-datetime-picker__trigger" data-acss-datetime-trigger aria-haspopup="dialog" aria-expanded="false">
+                                <span class="acss-datetime-picker__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M6.667 1.667v2.5M13.333 1.667v2.5M2.5 7.083h15M4.583 3.75h10.834A1.25 1.25 0 0 1 16.667 5v10.417a1.25 1.25 0 0 1-1.25 1.25H4.583a1.25 1.25 0 0 1-1.25-1.25V5a1.25 1.25 0 0 1 1.25-1.25Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                                <span class="acss-datetime-picker__value" data-acss-datetime-value></span>
+                            </button>
+                            <input type="hidden" name="{{ $scheduleField }}" value="{{ old($scheduleField, $defaultSidangSchedule) }}" data-acss-datetime-input required>
+                            <div class="acss-datetime-picker__panel" data-acss-datetime-panel hidden>
+                                <div class="acss-datetime-picker__head">
+                                    <button type="button" class="acss-datetime-picker__nav" data-acss-datetime-prev aria-label="Bulan sebelumnya">‹</button>
+                                    <strong data-acss-datetime-label></strong>
+                                    <button type="button" class="acss-datetime-picker__nav" data-acss-datetime-next aria-label="Bulan berikutnya">›</button>
+                                </div>
+                                <div class="acss-datetime-picker__weekdays"><span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span></div>
+                                <div class="acss-datetime-picker__days" data-acss-datetime-days></div>
+                                <div class="acss-datetime-picker__time">
+                                    <label class="form-field acss-field-tight"><span>Jam</span><select data-acss-datetime-hour></select></label>
+                                    <label class="form-field acss-field-tight"><span>Menit</span><select data-acss-datetime-minute></select></label>
+                                </div>
+                                <div class="acss-datetime-picker__actions"><button type="button" class="button button--inline" data-acss-datetime-apply>Pilih Jadwal</button></div>
+                            </div>
                         </div>
+                        @error($scheduleField)
+                            <small class="field-error" style="color: #b42318; display: block; margin-top: 0.25rem;">{{ $message }}</small>
+                        @enderror
+                    </label>
+                    <div class="form-actions form-actions--inline acss-sidang-schedule-actions">
+                        <button class="button button--inline" type="{{ $activeSchedule ? 'button' : 'submit' }}" data-sidang-schedule-toggle>{{ $activeSchedule ? 'Edit Jadwal' : 'Simpan Jadwal' }}</button>
                     </div>
-                @empty
-                    <div class="empty-state">Belum ada permohonan sidang.</div>
-                @endforelse
-            </div>
-        </section>
-
+                </form>
+            </section>
+            @endif
+        </div>
+        @if (! $hideSkripsiDefenseCards)
         <section class="card">
-            <div class="section-heading">
+            <div class="section-heading acss-crud-head--inline">
                 <div>
                     <h3>Penilaian Sidang Skripsi</h3>
-                    <p class="acss-muted ">Pantau dosen yang sudah dan belum mengirim nilai.</p>
                 </div>
+                <a class="acss-link-subtle" href="{{ route('kaprodi.nilai.index', ['skripsi_id' => $skripsi->id]) }}">Lihat Semua Nilai</a>
             </div>
             <div class="acss-grading-progress-grid">
                 <div class="acss-grading-progress-card acss-grading-progress-card--stacked">
                     <div class="acss-grading-progress-head">
-                        <span class="acss-grading-progress-label">Sudah Final</span>
+                        <span class="acss-grading-progress-label">Sudah Mengirim</span>
                         <strong class="acss-grading-progress-count">{{ $gradingProgress['submitted_count'] }}/{{ $gradingProgress['expected_count'] }}</strong>
                     </div>
                     <div class="acss-grading-progress-lists ">
@@ -247,7 +385,7 @@
                                 @forelse ($gradingProgress['submitted_reviewers'] as $reviewer)
                                     <span class="pill pill--blue">{{ $reviewer['name'] }} • {{ $reviewer['role'] }}</span>
                                 @empty
-                                    <span class="acss-muted">Belum ada dosen yang mengirim nilai.</span>
+                                    <span class="acss-grading-inline-empty">Belum ada dosen yang mengirim nilai.</span>
                                 @endforelse
                             </div>
                         </div>
@@ -255,7 +393,7 @@
                 </div>
                 <div class="acss-grading-progress-card acss-grading-progress-card--stacked">
                     <div class="acss-grading-progress-head">
-                        <span class="acss-grading-progress-label">Belum Final</span>
+                        <span class="acss-grading-progress-label">Belum Mengirim</span>
                     </div>
                     <div class="acss-grading-progress-lists ">
                         <div>
@@ -264,9 +402,9 @@
                                     <span class="pill">{{ $reviewer['name'] }} • {{ $reviewer['role'] }}</span>
                                 @empty
                                     @if (($gradingProgress['expected_count'] ?? 0) === 0)
-                                        <span class="acss-muted">Belum ada dosen penilai yang ditetapkan.</span>
+                                        <span class="acss-grading-inline-empty">Belum ada dosen penilai yang ditetapkan.</span>
                                     @else
-                                        <span class="acss-muted">Semua dosen penilai sudah mengirim nilai.</span>
+                                        <span class="acss-grading-inline-empty">Semua dosen penilai sudah mengirim nilai.</span>
                                     @endif
                                 @endforelse
                             </div>
@@ -274,12 +412,10 @@
                     </div>
                 </div>
             </div>
-            <div class="acss-link-gap-top">
-                <a class="acss-link-subtle" href="{{ route('kaprodi.nilai.index', ['skripsi_id' => $skripsi->id]) }}">Lihat Semua Nilai</a>
-            </div>
         </section>
+        @endif
 
-
+        @if (! $hideSkripsiDefenseCards)
         <section class="card">
             <div class="section-heading">
                 <div>
@@ -288,14 +424,8 @@
             </div>
             @if ($journalArticleUrl)
                 <div class="acss-journal-link">
-                    <a href="{{ $journalArticleUrl }}" target="_blank" rel="noopener noreferrer"
-                        class="acss-journal-link__anchor">
-                        <svg class="acss-journal-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                        </svg>
+                    <a href="{{ $journalArticleUrl }}" target="_blank" rel="noopener noreferrer" class="acss-journal-link__anchor">
+                        <span class="acss-journal-link__icon" aria-hidden="true">@include('partials.icons.link-out')</span>
                         <span>{{ $journalArticleUrl }}</span>
                     </a>
                 </div>
@@ -303,7 +433,9 @@
                 <div class="empty-state">Belum ada link artikel jurnal.</div>
             @endif
         </section>
+        @endif
     </div>
+    @endif
 
     <div class="acss-modal" data-reviewer-modal hidden>
         <div class="acss-modal__backdrop" data-reviewer-modal-close></div>
@@ -433,7 +565,7 @@
             const bindRemoveButtons = () => {
                 reviewerList.querySelectorAll('.reviewer-remove-button').forEach((button) => {
                     button.onclick = async () => {
-                        if (!await window.taConfirm('Unassign reviewer ini?')) {
+                        if (!await window.taConfirm('Remove reviewer ini?', 'Remove')) {
                             return;
                         }
 
@@ -459,7 +591,7 @@
                         }
 
                         reviewerList.innerHTML = data.reviewers_html;
-                        showMessage(data.message || 'Reviewer berhasil di-unassign.');
+                        showMessage(data.message || 'Reviewer berhasil di-remove.');
                         bindRemoveButtons();
                     };
                 });
@@ -547,28 +679,31 @@
             bindRemoveButtons();
         })();
     </script>
-@endsection
 
     <div class="acss-modal" data-proposal-reject-modal hidden>
         <div class="acss-modal__backdrop" onclick="this.parentElement.hidden = true"></div>
-        <div class="acss-modal__dialog">
-            <div class="acss-modal__content">
-                <div class="acss-modal__header">
-                    <h2 class="acss-modal__title">Tolak / Revisi Proposal</h2>
+        <div class="acss-modal__dialog acss-modal__dialog--master">
+            <div class="acss-modal__head">
+                <div>
+                    <h3 class="acss-card-title">Tolak / Revisi Proposal</h3>
                 </div>
-                <form method="POST" action="{{ route('kaprodi.skripsi.proposal.reject', $skripsi) }}">
-                    @csrf
-                    <div class="acss-modal__body">
-                        <div class="form-field">
-                            <label>Catatan Revisi</label>
-                            <textarea name="note" rows="4" placeholder="Berikan catatan perbaikan untuk mahasiswa..." required></textarea>
-                        </div>
-                    </div>
-                    <div class="acss-modal__footer">
-                        <button class="button button--muted" type="button" onclick="this.closest('[data-proposal-reject-modal]').hidden = true">Batal</button>
-                        <button class="button button--danger" type="submit">Kirim Penolakan</button>
-                    </div>
-                </form>
+                <button type="button" class="acss-modal__close" onclick="this.closest('[data-proposal-reject-modal]').hidden = true" aria-label="Tutup">×</button>
             </div>
+            <form class="acss-form-stack-tight" method="POST" action="{{ route('kaprodi.skripsi.proposal.reject', $skripsi) }}">
+                @csrf
+                <div class="acss-master-form-shell">
+                    <label class="form-field">
+                        <span>Catatan Revisi</span>
+                        <textarea name="note" rows="5" placeholder="Berikan catatan perbaikan untuk mahasiswa..." required></textarea>
+                    </label>
+                </div>
+                <div class="form-actions form-actions--inline">
+                    <button class="button button--muted button--inline" type="button" onclick="this.closest('[data-proposal-reject-modal]').hidden = true">Batal</button>
+                    <button class="button button--danger button--inline" type="submit">Kirim Penolakan</button>
+                </div>
+            </form>
         </div>
     </div>
+
+    @include('partials.pdf-viewer-modal')
+@endsection

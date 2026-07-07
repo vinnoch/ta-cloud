@@ -4,8 +4,8 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="list-root" data-endpoint="{{ route('kaprodi.periode.index') }}">
-        <div class="acss-crud-head acss-crud-head--inline">
+    <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.periode.index') }}">
+        <div class="section-heading acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Daftar Periode</h1>
                 <p class="acss-muted " id="count-text">{{ $periode->total() }} periode akademik tersedia.</p>
@@ -15,8 +15,7 @@
             </div>
         </div>
 
-        <div class="acss-crud-body">
-            <form class="filter-bar" id="filter-form" method="GET" action="{{ route('kaprodi.periode.index') }}">
+                    <form class="filter-bar" id="filter-form" method="GET" action="{{ route('kaprodi.periode.index') }}">
                     <input type="hidden" id="sort-input" name="sort" value="{{ $sort ?? '' }}">
                     <input type="hidden" id="direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
                 <label class="form-field acss-search-field">
@@ -28,7 +27,6 @@
 
             <div id="table-wrapper">@include('kaprodi.periode.partials.table', ['periode' => $periode, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc'])</div>
             <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.periode.partials.pagination', ['periode' => $periode])</div>
-        </div>
     </section>
 
 @include('partials.ajax-list-script', [
@@ -104,15 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 @method('PUT')
                 <div class="acss-master-form-shell">
                 <div class="acss-form-stack-tight">
-                    <section class="acss-crud-card">
-                        <div class="acss-crud-head">
+                    <section class="card">
+                        <div class="section-heading">
                             <div>
                                 <h3 class="acss-card-title">Tahun Akademik</h3>
                                 <p class="acss-muted ">Pilih tahun akademik dan semester periode.</p>
                             </div>
                         </div>
-                        <div class="acss-crud-body">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <label class="form-field acss-field-tight">
                                     <span>Tahun Akademik</span>
                                     <select name="tahun_akademik_id" data-periode-edit-tahun-akademik-id required>
@@ -131,15 +128,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </section>
-                    <section class="acss-crud-card">
-                        <div class="acss-crud-head">
+                    <section class="card">
+                        <div class="section-heading">
                             <div>
                                 <h3 class="acss-card-title">Dokumen SK</h3>
                                 <p class="acss-muted ">Lengkapi dokumen SK dan masa berlaku periode.</p>
                             </div>
                         </div>
-                        <div class="acss-crud-body">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <label class="form-field acss-field-tight">
                                     <span>Nomor SK</span>
                                     <input type="text" name="sk_nomor" data-periode-edit-sk-nomor placeholder="Contoh: SK-FTI/2026/014">

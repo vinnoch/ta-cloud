@@ -10,6 +10,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Throwable;
 
 class SidangRequestController extends Controller
 {
@@ -24,7 +25,7 @@ class SidangRequestController extends Controller
         $sort = (string) $request->query('sort', 'tanggal');
         $direction = strtolower((string) $request->query('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        if (! in_array($approvalStatus, ['all', 'pending_approval', 'approved'], true)) {
+        if (! in_array($approvalStatus, ['all', 'pending_approval', 'approved', 'rejected'], true)) {
             $approvalStatus = 'all';
         }
 
@@ -47,6 +48,9 @@ class SidangRequestController extends Controller
             })
             ->when($approvalStatus === 'approved', function ($query) {
                 $query->where('sidang_requests.status', 'approved');
+            })
+            ->when($approvalStatus === 'rejected', function ($query) {
+                $query->where('sidang_requests.status', 'rejected');
             })
             ->when($sidangType === 'proposal', function ($query) {
                 $query->where('sidang_requests.role_type', 'mahasiswa');
@@ -105,7 +109,7 @@ class SidangRequestController extends Controller
             'direction' => $direction,
         ]));
     }
-public function approve(Skripsi $skripsi, SidangRequest $sidangRequest, NotificationService $notifications): RedirectResponse
+    public function approve(Skripsi $skripsi, SidangRequest $sidangRequest, NotificationService $notifications): RedirectResponse
     {
         abort_unless($sidangRequest->skripsi_id === $skripsi->id, 404);
 
@@ -123,21 +127,92 @@ public function approve(Skripsi $skripsi, SidangRequest $sidangRequest, Notifica
                 'proposal_review_note' => null,
             ]);
 
-            $notifications->send([$skripsi->student], [
-                'type' => 'sidang_request_approved',
-                'title' => 'Permohonan Sidang Disetujui',
-                'message' => 'Permohonan sidang Anda telah disetujui Kaprodi.',
-                'url' => route('mahasiswa.skripsi.show', $skripsi, false),
-                'actor' => auth()->user()->name,
-                'meta' => ['skripsi_id' => $skripsi->id],
-            ]);
+            try {
+                $notifications->send([$skripsi->student], [
+                    'type' => 'sidang_request_approved',
+                    'title' => 'Permohonan Sidang Disetujui',
+                    'message' => 'Permohonan sidang Anda telah disetujui Kaprodi.',
+                    'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                    'actor' => auth()->user()->name,
+                    'meta' => ['skripsi_id' => $skripsi->id],
+                ]);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         } else {
             $this->syncSkripsiPhaseIfReady($skripsi->fresh());
+
+            try {
+                $skripsi->loadMissing('student');
+                $sidangRequest->loadMissing('lecturer');
+
+                $recipients = collect([$skripsi->student, $sidangRequest->lecturer])->filter()->unique('id')->values();
+
+                $notifications->send($recipients, [
+                    'type' => 'sidang_request_approved',
+                    'title' => 'Permohonan Sidang Disetujui',
+                    'message' => 'Kaprodi telah menyetujui permohonan sidang untuk skripsi: ' . $skripsi->title,
+                    'url' => route('dosen.skripsi.show', $skripsi, false),
+                    'actor' => auth()->user()->name,
+                    'meta' => ['skripsi_id' => $skripsi->id],
+                ]);
+
+                if ($skripsi->student) {
+                    $notifications->send([$skripsi->student], [
+                        'type' => 'sidang_request_approved',
+                        'title' => 'Permohonan Sidang Disetujui',
+                        'message' => 'Kaprodi telah menyetujui permohonan sidang untuk skripsi Anda: ' . $skripsi->title,
+                        'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                        'actor' => auth()->user()->name,
+                        'meta' => ['skripsi_id' => $skripsi->id],
+                    ]);
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        try {
+            return redirect()
+                ->route('kaprodi.skripsi.show', $skripsi)
+                ->with('success', 'Permohonan sidang berhasil disetujui.');
+        } catch (\Throwable $e) {
+            \Log::error('Approve Sidang Redirect Failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function reject(Request $request, Skripsi $skripsi, SidangRequest $sidangRequest, NotificationService $notifications): RedirectResponse
+    {
+        abort_unless($sidangRequest->skripsi_id === $skripsi->id, 404);
+
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $sidangRequest->update([
+            'status' => 'rejected',
+            'rejected_at' => now(),
+            'approved_by' => auth()->id(),
+            'note' => $validated['note'] ?? $sidangRequest->note,
+        ]);
+
+        try {
+            $notifications->send([$skripsi->student], [
+                'type' => 'sidang_request_rejected',
+                'title' => 'Permohonan Sidang Ditolak',
+                'message' => 'Permohonan sidang Anda ditolak Kaprodi.' . (! empty($validated['note']) ? ' Catatan: ' . $validated['note'] : ''),
+                'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                'actor' => auth()->user()->name,
+                'meta' => ['skripsi_id' => $skripsi->id, 'note' => $validated['note'] ?? null],
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
         }
 
         return redirect()
-            ->route('kaprodi.skripsi.show', $skripsi, false)
-            ->with('success', 'Permohonan sidang berhasil disetujui.');
+            ->route('kaprodi.skripsi.show', $skripsi)
+            ->with('success', 'Permohonan sidang berhasil ditolak.');
     }
 
 
@@ -170,6 +245,9 @@ public function approve(Skripsi $skripsi, SidangRequest $sidangRequest, Notifica
             $skripsi->update([
                 'current_phase' => 'sidang_skripsi',
             ]);
+            \Log::debug('Skripsi phase updated to sidang_skripsi for ID ' . $skripsi->id);
+        } else {
+            \Log::debug('Skripsi phase not yet updated. Approved: ' . $approvedCount . ' / Expected: ' . $advisorIds->count() . ' for Skripsi ID ' . $skripsi->id);
         }
     }
 }

@@ -8,11 +8,14 @@ use App\Models\DocumentSubmission;
 use App\Models\DocumentVersion;
 use App\Models\FinalDocumentApproval;
 use App\Models\Skripsi;
+use App\Models\User;
 use App\Services\MahasiswaSkripsiDataService;
+use App\Services\NotificationService;
 use App\Services\StudentDocumentPathService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\View\View;
 
 class SkripsiController extends Controller
@@ -132,7 +135,7 @@ class SkripsiController extends Controller
         ]);
     }
 
-    public function store(Request $request, StudentDocumentPathService $documentPathService): RedirectResponse
+    public function store(Request $request, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse
     {
         $validated = $request->validate([
             'periode_id' => ['required', 'exists:periodes,id'],
@@ -142,16 +145,49 @@ class SkripsiController extends Controller
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'max:20480'],
         ]);
 
-        $skripsi = Skripsi::query()->create([
-            'student_id' => $request->user()->id,
-            'periode_id' => $validated['periode_id'],
-            'title' => $validated['title'],
-            'type' => $validated['type'],
-            'journal_article_url' => $validated['journal_article_url'] ?? null,
-            'current_phase' => 'proposal',
-        ]);
+        $isDraft = $request->input('save_mode', 'draft') !== 'published';
 
-        if ($request->hasFile('proposal_file')) {
+        $existingSkripsi = Skripsi::query()
+            ->where('student_id', $request->user()->id)
+            ->latest('id')
+            ->first();
+
+        if ($existingSkripsi !== null) {
+            return redirect()
+                ->route('mahasiswa.skripsi.show', $existingSkripsi)
+                ->with('error', 'Anda sudah memiliki tugas akhir. Gunakan data yang sudah ada.');
+        }
+
+        try {
+            $skripsi = Skripsi::query()->create([
+                'student_id' => $request->user()->id,
+                'periode_id' => $validated['periode_id'],
+                'title' => $validated['title'],
+                'type' => $validated['type'],
+                'journal_article_url' => $validated['journal_article_url'] ?? null,
+                'current_phase' => 'proposal',
+                'proposal_review_status' => $isDraft ? 'draft' : 'published',
+            ]);
+        } catch (QueryException $exception) {
+            if ((int) $exception->getCode() === 23000) {
+                $existingSkripsi = Skripsi::query()
+                    ->where('student_id', $request->user()->id)
+                    ->latest('id')
+                    ->first();
+
+                if ($existingSkripsi !== null) {
+                    return redirect()
+                        ->route('mahasiswa.skripsi.show', $existingSkripsi)
+                        ->with('error', 'Anda sudah memiliki tugas akhir. Gunakan data yang sudah ada.');
+                }
+            }
+
+            throw $exception;
+        }
+
+        $hasProposalFile = $request->hasFile('proposal_file');
+
+        if ($hasProposalFile) {
             $file = $request->file('proposal_file');
             $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), 'proposal', 1, $file), 'local');
 
@@ -166,7 +202,54 @@ class SkripsiController extends Controller
             ]);
         }
 
-        return redirect()->route('mahasiswa.skripsi.show', $skripsi, false)->with('success', 'Skripsi berhasil dibuat.');
+        $kaprodiUsers = User::query()->forRole('kaprodi')->get();
+
+        if ($hasProposalFile && ! $isDraft && $kaprodiUsers->isNotEmpty()) {
+            $notifications->send($kaprodiUsers, [
+                'type' => 'proposal_submitted',
+                'title' => 'Pengajuan proposal baru',
+                'message' => $request->user()->name . ' mengajukan proposal skripsi: ' . $skripsi->title,
+                'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                'actor' => $request->user()->name,
+                'meta' => [
+                    'skripsi_id' => $skripsi->id,
+                    'phase' => 'proposal',
+                ],
+            ]);
+        }
+
+        return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Skripsi berhasil dibuat.');
+    }
+
+    public function publish(Skripsi $skripsi, NotificationService $notifications): RedirectResponse
+    {
+        $this->authorizeOwner(request(), $skripsi);
+
+        if ($skripsi->isDraft()) {
+            $skripsi->update([
+                'proposal_review_status' => 'published',
+            ]);
+
+            $kaprodiUsers = User::query()->forRole('kaprodi')->get();
+
+            if ($kaprodiUsers->isNotEmpty()) {
+                $notifications->send($kaprodiUsers, [
+                    'type' => 'proposal_submitted',
+                    'title' => 'Pengajuan proposal baru',
+                    'message' => $skripsi->student->name . ' mengajukan proposal skripsi: ' . $skripsi->title,
+                    'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                    'actor' => $skripsi->student->name,
+                    'meta' => [
+                        'skripsi_id' => $skripsi->id,
+                        'phase' => 'proposal',
+                    ],
+                ]);
+            }
+
+            return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Pengajuan proposal berhasil dikirim.');
+        }
+
+        return back()->with('error', 'Skripsi ini tidak dalam status draft proposal.');
     }
 
     public function show(Request $request, Skripsi $skripsi, MahasiswaSkripsiDataService $skripsiData): View
@@ -223,6 +306,8 @@ class SkripsiController extends Controller
             'skripsiFinalSubmission' => FinalSubmissionController::buildSubmissionState($skripsi, 'sidang_skripsi'),
             'dokumenFinalVisible' => $dokumenFinalVisible,
             'dokumenFinalStatus' => $dokumenFinalStatus,
+            'sidangProposalSchedule' => $skripsi->sidang_proposal_datetime,
+            'sidangSkripsiSchedule' => $skripsi->sidang_skripsi_datetime,
         ]);
     }
 
@@ -236,7 +321,7 @@ class SkripsiController extends Controller
         ]);
     }
 
-    public function update(Request $request, Skripsi $skripsi): RedirectResponse
+    public function update(Request $request, Skripsi $skripsi, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
 
@@ -244,11 +329,68 @@ class SkripsiController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:skripsi,non_skripsi'],
             'journal_article_url' => ['nullable', 'url', 'max:500'],
+            'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'max:20480'],
+            'save_mode' => ['nullable', 'in:draft,published'],
         ]);
+
+        $publishAfterSave = ($validated['save_mode'] ?? 'draft') === 'published';
 
         $skripsi->update($validated);
 
-        return redirect()->route('mahasiswa.skripsi.show', $skripsi, false)->with('success', 'Skripsi berhasil diperbarui.');
+        if ($skripsi->proposal_review_status === 'draft' && $request->hasFile('proposal_file')) {
+            $file = $request->file('proposal_file');
+            $existingVersion = $skripsi->documentVersions()
+                ->where('phase', 'proposal')
+                ->orderBy('version_number')
+                ->first();
+
+            $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), 'proposal', 1, $file), 'local');
+
+            if ($existingVersion) {
+                $existingVersion->update([
+                    'file_path' => $path,
+                    'mime_type' => 'application/pdf',
+                    'size' => $file->getSize(),
+                    'uploaded_by' => $request->user()->id,
+                ]);
+            } else {
+                DocumentVersion::query()->create([
+                    'skripsi_id' => $skripsi->id,
+                    'phase' => 'proposal',
+                    'version_number' => 1,
+                    'file_path' => $path,
+                    'mime_type' => 'application/pdf',
+                    'size' => $file->getSize(),
+                    'uploaded_by' => $request->user()->id,
+                ]);
+            }
+        }
+
+        if ($publishAfterSave && $skripsi->isDraft()) {
+            $skripsi->update([
+                'proposal_review_status' => 'published',
+            ]);
+
+            $kaprodiUsers = User::query()->forRole('kaprodi')->get();
+
+            if ($kaprodiUsers->isNotEmpty()) {
+                $notifications->send($kaprodiUsers, [
+                    'type' => 'proposal_submitted',
+                    'title' => 'Pengajuan proposal baru',
+                    'message' => $skripsi->student->name . ' mengajukan proposal skripsi: ' . $skripsi->title,
+                    'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                    'actor' => $skripsi->student->name,
+                    'meta' => [
+                        'skripsi_id' => $skripsi->id,
+                        'phase' => 'proposal',
+                    ],
+                ]);
+            }
+
+            return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Pengajuan proposal berhasil dikirim.');
+        }
+
+        return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Proposal draft berhasil diperbarui.');
     }
 
     public function destroy(Request $request, Skripsi $skripsi): RedirectResponse

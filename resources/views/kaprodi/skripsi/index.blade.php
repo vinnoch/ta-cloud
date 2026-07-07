@@ -5,16 +5,15 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="list-root" data-endpoint="{{ route('kaprodi.skripsi.index') }}">
-        <div class="acss-crud-head">
+    <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.skripsi.index') }}">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Monitoring Skripsi</h1>
                 <p class="acss-muted " id="count-text">{{ $skripsis->total() }} skripsi ditemukan.</p>
             </div>
         </div>
 
-        <div class="acss-crud-body">
-
+        
         <div id="stats-wrapper">@include('kaprodi.skripsi.partials.stats', ['chartData' => $chartData])</div>
 
         <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route('kaprodi.skripsi.index') }}" autocomplete="off">
@@ -39,7 +38,6 @@
 
         <div id="table-wrapper">@include('kaprodi.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc'])</div>
         <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.skripsi.partials.pagination', ['skripsis' => $skripsis])</div>
-        </div>
     </section>
 
 @include('partials.ajax-list-script', [

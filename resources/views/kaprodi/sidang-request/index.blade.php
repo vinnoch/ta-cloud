@@ -5,16 +5,15 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="sidang-list-root" data-endpoint="{{ route('kaprodi.sidang-requests.index') }}">
-        <div class="acss-crud-head">
+    <section class="card" id="sidang-list-root" data-endpoint="{{ route('kaprodi.sidang-requests.index') }}">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Permohonan Sidang</h1>
                 <p id="sidang-count-text" class="acss-muted ">{{ $requests->total() }} permohonan sidang ditemukan.</p>
             </div>
         </div>
 
-        <div class="acss-crud-body">
-            <form class="filter-bar" id="sidang-filter-form" method="GET" action="{{ route('kaprodi.sidang-requests.index') }}">
+                    <form class="filter-bar" id="sidang-filter-form" method="GET" action="{{ route('kaprodi.sidang-requests.index') }}">
                 <input type="hidden" id="sidang-sort-input" name="sort" value="{{ $sort ?? 'tanggal' }}">
                 <input type="hidden" id="sidang-direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
                 <input type="hidden" name="periode_id" value="{{ ($periodeId ?? 0) > 0 ? $periodeId : "" }}">
@@ -44,7 +43,6 @@
 
             <div id="sidang-table-wrapper">@include('kaprodi.sidang-request.partials.table', ['requests' => $requests, 'sort' => $sort ?? 'tanggal', 'direction' => $direction ?? 'desc'])</div>
             <div id="sidang-pagination-wrapper">@include('kaprodi.sidang-request.partials.pagination', ['requests' => $requests])</div>
-        </div>
     </section>
 
 @include('partials.ajax-list-script', [

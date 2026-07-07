@@ -1,6 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $isProposalPhase = $skripsi->isProposalPhase();
+        $hasSubmittedProposal = ($proposalVersions ?? collect())->isNotEmpty();
+        $isProposalProcessing = $skripsi->isProposalPhase()
+            && $hasSubmittedProposal
+            && $skripsi->isProcessing();
+        $needsProposalRevision = $skripsi->isProposalPhase() && $skripsi->isRejected();
+    @endphp
+
+    @if ($needsProposalRevision)
+        <div class="notice notice--danger">
+            <strong>Proposal perlu direvisi.</strong>
+            <div class="">{{ $skripsi->proposal_review_note ?: 'Kaprodi telah meminta Anda mengunggah revisi proposal terbaru.' }}</div>
+        </div>
+    @elseif ($isProposalProcessing)
+        <div class="notice notice--danger">Pengajuan Proposal sedang diproses oleh Kaprodi.</div>
+    @endif
+
     <section class="card card--profile">
         <div class="profile-card">
             <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
@@ -10,10 +28,19 @@
                         <h2>{{ $skripsi->student->name ?? '-' }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
+                        @if (($sidangProposalSchedule ?? null) || ($sidangSkripsiSchedule ?? null))
+                            <div class="acss-muted" style="margin-top:.4rem; line-height:1.6;">
+                                @if ($sidangProposalSchedule ?? null)
+                                    <div><strong>Sidang Proposal:</strong> {{ $sidangProposalSchedule->translatedFormat('d M Y H:i') }}</div>
+                                @endif
+                                @if ($sidangSkripsiSchedule ?? null)
+                                    <div><strong>Sidang Skripsi:</strong> {{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</div>
+                                @endif
+                            </div>
+                        @endif
                         
                     </div>
                     <div class="acss-profile-badges">
-                        <span class="pill">{{ str($skripsi->type ?? 'skripsi')->replace('_', ' ')->title() }}</span>
                         <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                     </div>
                 </div>
@@ -27,16 +54,16 @@
         <section class="acss-section-card">
             <div class="acss-section-card__head">
                 <div>
-                    <strong class="text-red-600 font-bold uppercase tracking-wide">Anda belum mengirimkan Proposal.</strong>
-                    <p class="acss-muted ">Upload sekarang agar proses review bisa dimulai.</p>
+                    <strong class="text-red-600 font-bold uppercase tracking-wide">{{ $needsProposalRevision ? 'Proposal perlu direvisi.' : 'Anda belum mengirimkan Proposal.' }}</strong>
+                    <p class="acss-muted ">{{ $needsProposalRevision ? 'Upload revisi proposal terbaru agar proses review dapat dilanjutkan.' : 'Upload sekarang agar proses review bisa dimulai.' }}</p>
                 </div>
-                <button type="button" class="button button--inline" data-proposal-modal-trigger>Upload Proposal</button>
+                <button type="button" class="button button--inline" data-proposal-modal-trigger>{{ $needsProposalRevision ? 'Upload Revisi Proposal' : 'Upload Proposal' }}</button>
             </div>
         </section>
     @endif
 
     @if (($proposalFinalSubmission['allowed'] ?? false) || ($skripsiFinalSubmission['allowed'] ?? false))
-        <section class="acss-section-card">
+        <section class="acss-section-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Final Submission</h3>
@@ -65,7 +92,7 @@
     @endif
 
     @if ($dokumenFinalVisible ?? false)
-        <section class="acss-section-card">
+        <section class="acss-section-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Dokumen Final</h3>
@@ -81,7 +108,7 @@
     <section class="card" id="riwayat-proposal">
         <div class="section-heading acss-crud-head--inline">
             <div>
-                <h3 class="acss-card-title">Riwayat Proposal</h3>
+                <h3 class="acss-card-title">Proposal Skripsi</h3>
             </div>
             @if (($canProposalUpload ?? false) && !($needsProposalUpload ?? false))
                 <div class="acss-crud-head__actions">
@@ -121,7 +148,7 @@
         </div>
     </section>
 
-    <section class="card">
+    <section class="card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
         <div class="section-heading"><div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div></div>
         <div class="table-shell">
             @if (count($latestBimbingans ?? []) > 0)
@@ -162,7 +189,7 @@
         </div>
     </section>
 
-    <section class="card">
+    <section class="card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
         <div class="section-heading"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
         <div class="table-shell">
             @if (count($reviewers ?? []) > 0)
@@ -308,8 +335,8 @@
         <div class="acss-modal__dialog">
             <div class="acss-modal__head">
                 <div>
-                    <h3>Upload Proposal</h3>
-                    <p class="acss-muted ">Upload proposal awal untuk memulai proses review.</p>
+                    <h3>{{ $needsProposalRevision ? 'Upload Revisi Proposal' : 'Upload Proposal' }}</h3>
+                    <p class="acss-muted ">{{ $needsProposalRevision ? 'Upload revisi proposal terbaru sesuai catatan Kaprodi.' : 'Upload proposal awal untuk memulai proses review.' }}</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-proposal-modal-close aria-label="Tutup">×</button>
             </div>

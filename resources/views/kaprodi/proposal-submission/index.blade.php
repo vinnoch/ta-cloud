@@ -5,7 +5,7 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="proposal-list-root" data-endpoint="{{ route('kaprodi.proposal-submissions.index') }}">
+    <section class="acss-crud-card acss-crud-card--topflush" id="proposal-list-root" data-endpoint="{{ route('kaprodi.proposal-submissions.index') }}">
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Pengajuan Proposal</h1>
@@ -18,9 +18,19 @@
                 <input type="hidden" id="proposal-sort-input" name="sort" value="{{ $sort ?? 'tanggal' }}">
                 <input type="hidden" id="proposal-direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
                 <input type="hidden" name="periode_id" value="{{ ($periodeId ?? 0) > 0 ? $periodeId : '' }}">
+                <input type="hidden" name="reviewer_status" value="{{ $reviewerStatus ?? 'pending_approval' }}">
                 <label class="form-field acss-search-field">
                     <span>Cari Pengajuan</span>
                     <input id="proposal-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari NIM, nama, atau judul proposal">
+                </label>
+                <label class="form-field acss-field-tight">
+                    <span>Status</span>
+                    <select name="status" id="proposal-status-input">
+                        <option value="all" {{ ($statusFilter ?? 'all') === 'all' ? 'selected' : '' }}>Semua</option>
+                        <option value="pending" {{ ($statusFilter ?? 'all') === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="approved" {{ ($statusFilter ?? 'all') === 'approved' ? 'selected' : '' }}>Disetujui</option>
+                        <option value="rejected" {{ ($statusFilter ?? 'all') === 'rejected' ? 'selected' : '' }}>Revisi / Tolak</option>
+                    </select>
                 </label>
             </form>
 

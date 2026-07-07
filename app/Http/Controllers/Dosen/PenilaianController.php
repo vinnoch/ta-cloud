@@ -74,7 +74,7 @@ class PenilaianController extends Controller
             'tanggal' => 'reviewer_assignments.created_at',
             'mahasiswa' => 'students_sort.name',
             'judul' => 's_sort.title',
-            'periode' => 'periodes_sort.name',
+            'periode' => 'periodes_sort.kode_periode',
             'peran' => 'reviewer_assignments.role_type',
             'status' => 'reviewer_assignments.id',
         ];

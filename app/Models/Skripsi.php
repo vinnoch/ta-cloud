@@ -16,6 +16,9 @@ class Skripsi extends Model
 
     protected $casts = [
         'proposal_reviewed_at' => 'datetime',
+        'proposal_rejected_at' => 'datetime',
+        'sidang_proposal_datetime' => 'datetime',
+        'sidang_proposal_grade_notified_at' => 'datetime',
         'sidang_skripsi_datetime' => 'datetime',
         'sidang_skripsi_grade_notified_at' => 'datetime',
     ];
@@ -28,8 +31,11 @@ class Skripsi extends Model
         'current_phase',
         'proposal_review_status',
         'proposal_reviewed_at',
+        'proposal_rejected_at',
         'proposal_review_note',
         'journal_article_url',
+        'sidang_proposal_datetime',
+        'sidang_proposal_grade_notified_at',
         'sidang_skripsi_datetime',
         'sidang_skripsi_grade_notified_at',
     ];
@@ -85,5 +91,31 @@ class Skripsi extends Model
     public function finalDocumentApprovals(): HasMany
     {
         return $this->hasMany(FinalDocumentApproval::class);
+    }
+
+    public function isProposalPhase(): bool
+    {
+        return $this->current_phase === 'proposal';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->proposal_review_status === 'draft';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->proposal_review_status === 'rejected';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->proposal_review_status === 'approved';
+    }
+
+    public function isProcessing(): bool
+    {
+        return in_array($this->proposal_review_status, [null, 'pending', 'published'], true)
+            && $this->proposal_review_status !== 'draft';
     }
 }

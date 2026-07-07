@@ -171,7 +171,7 @@ class SkripsiViewController extends Controller
             ->where('lecturer_id', $request->user()->id)
             ->first();
 
-        $skripsi->load(['student', 'periode', 'bimbingans.reviewer', 'bimbingans.reviewedVersion', 'documentVersions.uploader', 'grades.reviewer', 'finalDocumentApprovals.reviewer']);
+        $skripsi->load(['student', 'periode', 'assignments.lecturer', 'bimbingans.reviewer', 'bimbingans.reviewedVersion', 'documentVersions.uploader', 'grades.reviewer', 'finalDocumentApprovals.reviewer', 'sidangRequests']);
 
         $showGradeReminder = false;
 
@@ -190,6 +190,8 @@ class SkripsiViewController extends Controller
             'myRoleType' => $assignment?->role_type,
             'finalApprovals' => $skripsi->finalDocumentApprovals->sortBy('role_type')->values(),
             'showGradeReminder' => $showGradeReminder,
+            'sidangProposalSchedule' => $skripsi->sidang_proposal_datetime,
+            'sidangSkripsiSchedule' => $skripsi->sidang_skripsi_datetime,
         ]));
     }
 

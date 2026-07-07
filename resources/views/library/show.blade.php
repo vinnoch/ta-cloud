@@ -1,35 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-    @include('partials.page-header', [
-        'title' => $thesis['title'],
-        'eyebrow' => 'Library Detail',
-        'description' => 'Halaman detail karya akhir yang sudah dipublikasikan untuk arsip kampus dan referensi akademik.',
-        'actions' => [
-            ['href' => '#', 'label' => 'Unduh PDF'],
-        ],
-    ])
-
-    <section class="split-layout">
-        <article class="card">
-            <div class="two-column">
-                @foreach ($metadata as $item)
-                    @include('partials.cards.info', $item)
-                @endforeach
+    <section class="acss-crud-card">
+        <div class="acss-crud-head">
+            <div>
+                <h1 class="acss-page-title">{{ $skripsi->title }}</h1>
+                <p class="acss-muted">{{ $skripsi->student?->name ?? '-' }} • {{ $skripsi->student?->level?->name ?? 'Sistem Informasi' }}</p>
             </div>
-            <div class="card" style="margin-top:1rem;padding:0;">
-                <div class="section-heading" style="padding:1.25rem 1.25rem 0;">
-                    <div><h3>Abstrak</h3></div>
+        </div>
+        <div class="acss-crud-body">
+            <div class="table-shell">
+                <div class="table-shell__head table-shell__grid" style="--table-cols:1.2fr .9fr .9fr">
+                    <span>Dokumen</span>
+                    <span>Preview</span>
+                    <span>Download</span>
                 </div>
-                <div style="padding:0 1.25rem 1.25rem;">
-                    <p>{{ $thesis['abstract'] }}</p>
+                <div class="table-shell__row table-shell__grid" style="--table-cols:1.2fr .9fr .9fr">
+                    <div class="table-shell__cell">
+                        <strong>{{ basename($finalDocument->file_path) }}</strong>
+                    </div>
+                    <div class="table-shell__cell">
+                        <a class="text-link acss-action-link" href="{{ route('documents.preview', $finalDocument) }}" target="_blank">Preview PDF</a>
+                    </div>
+                    <div class="table-shell__cell">
+                        <a class="text-link acss-action-link" href="{{ route('documents.download', $finalDocument) }}">Download PDF</a>
+                    </div>
                 </div>
             </div>
-        </article>
-
-        <aside class="stack-list">
-            @include('partials.cards.info', $documentCard)
-            @include('partials.cards.info', $keywordsCard)
-        </aside>
+        </div>
     </section>
 @endsection

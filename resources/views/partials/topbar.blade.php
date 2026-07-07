@@ -1,5 +1,5 @@
-<header class="top-bar">
-    <div>
+<div class="workspace-header">
+    <div class="workspace-header__meta">
         @php
             $topbarRoleLabel = match (auth()->user()?->role) {
                 'kaprodi' => 'Kaprodi',
@@ -34,7 +34,7 @@
                 : ($crumbs ?? null);
         @endphp
         @if (!empty($topbarEyebrow))
-            <p class="eyebrow">{{ $topbarEyebrow }}</p>
+            <p class="workspace-header__breadcrumb">{{ $topbarEyebrow }}</p>
         @endif
     </div>
 
@@ -57,8 +57,8 @@
         $skripsiSearchEnabled = !empty($skripsiSearchEndpoint);
     @endphp
 
-    <div class="top-bar__actions">
-        <label class="search-box acss-relative" for="ta-search" @if($skripsiSearchEnabled) data-search-endpoint="{{ $skripsiSearchEndpoint }}" data-search-results-url="{{ $skripsiSearchResultsUrl }}" @endif>
+    <div class="workspace-header__actions top-bar__actions">
+        <label class="search-box acss-relative workspace-header__search" for="ta-search" @if($skripsiSearchEnabled) data-search-endpoint="{{ $skripsiSearchEndpoint }}" data-search-results-url="{{ $skripsiSearchResultsUrl }}" @endif>
             <span class="search-box__icon">@include('partials.icons.search')</span>
             <input id="ta-search" class="ta-search" type="text" placeholder="Cari judul TA..." autocomplete="off" />
             <div id="topbar-ta-suggestions" class="reviewer-results acss-reviewer-results acss-topbar-results"></div>
@@ -128,8 +128,7 @@
             <a class="button button--inline" href="{{ route('login') }}">Masuk</a>
         @endauth
     </div>
-</header>
-
+</div>
 
 
 

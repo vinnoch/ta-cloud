@@ -72,7 +72,7 @@
                 <tr>
                     <td>
                         {{ $row->meeting_date?->format('d/m/Y') ?? '-' }}<br>
-                        <small>{{ $row->created_at?->format('H:i') ?? '-' }}</small>
+                        <small>{{ $row->meeting_date?->format('H:i') ?? '-' }}</small>
                     </td>
                     <td>{{ $row->reviewer?->name ?? '-' }}</td>
                     <td>{{ $row->student_notes ?: ($row->lecturer_notes ?: '-') }}</td>

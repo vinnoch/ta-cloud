@@ -31,6 +31,26 @@ class SkripsiController extends Controller
 
 
     use BuildsKaprodiPage;
+
+    public function exportPage(Request $request): View
+    {
+        $search = $request->string('q')->toString();
+        $status = $request->string('status')->toString();
+        $periodeId = (int) $request->integer('periode_id');
+        $periodes = \App\Models\Periode::query()
+            ->with('tahunAkademik')
+            ->orderByDesc('is_aktif')
+            ->orderByDesc('kode_periode')
+            ->get(['id', 'kode_periode', 'tahun_akademik_id', 'semester', 'is_aktif']);
+
+        return view('kaprodi.skripsi.export', $this->kaprodiPage('Export Skripsi', 'KAPRODI • EXPORT SKRIPSI', [
+            'search' => $search,
+            'status' => $status,
+            'periodeId' => $periodeId,
+            'periodes' => $periodes,
+        ]));
+    }
+
     public function index(Request $request)
     {
         $scope = trim((string) $request->query('scope', ''));
@@ -62,17 +82,10 @@ class SkripsiController extends Controller
         $sort = $request->string('sort')->toString();
         $direction = strtolower($request->string('direction')->toString()) === 'asc' ? 'asc' : 'desc';
 
-        $phaseFilterMap = [
-            'Proposal' => ['proposal'],
-            'Sidang Proposal' => ['sidang proposal', 'sidang_proposal'],
-            'Bimbingan Skripsi' => ['bimbingan skripsi', 'bimbingan_skripsi'],
-            'Sidang Skripsi' => ['sidang skripsi', 'sidang_skripsi'],
-            'Revisi Sidang Skripsi' => ['revisi sidang skripsi', 'revisi_sidang_skripsi'],
-            'Review Dokumen Final' => ['review dokumen final', 'review_dokumen_final'],
-            'Skripsi Selesai' => ['skripsi selesai', 'skripsi_selesai'],
-        ];
+        $phaseFilterMap = $this->skripsiPhaseFilterMap();
 
         $summaryBaseQuery = Skripsi::query()
+            ->where('type', 'skripsi')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('title', 'like', "%{$search}%")
@@ -84,6 +97,7 @@ class SkripsiController extends Controller
             });
 
         $baseQuery = Skripsi::query()
+            ->where('type', 'skripsi')
             ->with(['student.level', 'periode', 'assignments.lecturer'])
             ->when($status !== '', function ($query) use ($status, $phaseFilterMap) {
                 if (isset($phaseFilterMap[$status])) {
@@ -124,7 +138,6 @@ class SkripsiController extends Controller
 
         $chartData = [
             ['label' => 'Proposal', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Proposal'])->count()],
-            ['label' => 'Sidang Proposal', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Sidang Proposal'])->count()],
             ['label' => 'Bimbingan Skripsi', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Bimbingan Skripsi'])->count()],
             ['label' => 'Sidang Skripsi', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Sidang Skripsi'])->count()],
             ['label' => 'Skripsi Selesai', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Skripsi Selesai'])->count()],
@@ -228,17 +241,27 @@ class SkripsiController extends Controller
             ->sortByDesc('created_at')
             ->values();
 
+        $proposalVersions = $skripsi->documentVersions
+            ->filter(fn ($document) => $document->phase === 'proposal')
+            ->sortByDesc('version_number')
+            ->values();
+
         return view('kaprodi.skripsi.show', $this->page('Detail Skripsi', 'KAPRODI • DETAIL SKRIPSI', [
             'skripsi' => $skripsi,
             'latestBimbingans' => $latestBimbingans,
             'finalReviewDocuments' => $finalReviewDocuments,
+            'proposalVersions' => $proposalVersions,
 
             'reviewerTableHtml' => $this->renderReviewerTable($skripsi),
             'reviewerSearchUrl' => route('kaprodi.skripsi.reviewers.search', $skripsi),
             'reviewerStoreUrl' => route('kaprodi.skripsi.reviewers.store', $skripsi),
-            'sidangRequests' => $skripsi->sidangRequests->sortBy('role_type')->values(),
+            'sidangRequests' => $skripsi->sidangRequests
+                ->filter(fn ($request) => in_array($request->role_type, ['pembimbing_1', 'pembimbing_2'], true))
+                ->sortBy('role_type')
+                ->values(),
             'gradingProgress' => $gradingProgress,
             'journalArticleUrl' => $skripsi->journal_article_url,
+            'sidangProposalSchedule' => $skripsi->sidang_proposal_datetime,
             'sidangSkripsiSchedule' => $skripsi->sidang_skripsi_datetime,
         ]));
     }
@@ -263,65 +286,14 @@ class SkripsiController extends Controller
         return back()->with('success', 'Fase skripsi berhasil diperbarui.');
     }
 
+    public function updateSidangProposalSchedule(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse|JsonResponse
+    {
+        return $this->storeSidangSchedule($request, $skripsi, $notifications, 'proposal');
+    }
+
     public function updateSidangSchedule(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'sidang_skripsi_datetime' => ['required', 'date'],
-        ]);
-
-        $scheduledAt = Carbon::parse($validated['sidang_skripsi_datetime']);
-
-        $skripsi->update([
-            'sidang_skripsi_datetime' => $scheduledAt,
-            'sidang_skripsi_grade_notified_at' => null,
-        ]);
-
-        $skripsi->loadMissing(['student', 'assignments.lecturer']);
-
-        $formattedDate = $scheduledAt->translatedFormat('d M Y');
-        $formattedTime = $scheduledAt->format('H:i');
-        $student = $skripsi->student;
-        $lecturers = $skripsi->assignments
-            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
-            ->pluck('lecturer')
-            ->filter()
-            ->values();
-
-        if ($student) {
-            $notifications->send([$student], [
-                'type' => 'sidang_skripsi_scheduled',
-                'title' => 'Jadwal Sidang Skripsi Ditetapkan',
-                'message' => "Sidang skripsi untuk \"{$skripsi->title}\" dijadwalkan pada {$formattedDate} pukul {$formattedTime}.",
-                'url' => route('mahasiswa.skripsi.show', $skripsi, false),
-                'meta' => [
-                    'skripsi_id' => $skripsi->id,
-                    'scheduled_at' => $scheduledAt->toIso8601String(),
-                ],
-            ]);
-        }
-
-        if ($lecturers->isNotEmpty()) {
-            $notifications->send($lecturers, [
-                'type' => 'sidang_skripsi_scheduled',
-                'title' => 'Jadwal Sidang Skripsi Ditetapkan',
-                'message' => "Sidang skripsi {$student?->name} dijadwalkan pada {$formattedDate} pukul {$formattedTime}.",
-                'url' => route('dosen.skripsi.show', $skripsi, false),
-                'meta' => [
-                    'skripsi_id' => $skripsi->id,
-                    'scheduled_at' => $scheduledAt->toIso8601String(),
-                ],
-            ]);
-        }
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'message' => 'Jadwal sidang skripsi berhasil diperbarui.',
-                'scheduled_at' => $scheduledAt->toIso8601String(),
-                'scheduled_at_label' => $scheduledAt->translatedFormat('d M Y H:i'),
-            ]);
-        }
-
-        return back()->with('success', 'Jadwal sidang skripsi berhasil diperbarui.');
+        return $this->storeSidangSchedule($request, $skripsi, $notifications, 'skripsi');
     }
 
     public function showProposal(Skripsi $skripsi): View
@@ -497,6 +469,167 @@ class SkripsiController extends Controller
         return back()->with('success', 'Reviewer berhasil di-unassign.');
     }
 
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $search = $request->string('q')->toString();
+        $status = $request->string('status')->toString();
+        $periodeId = (int) $request->integer('periode_id');
+
+        $phaseFilterMap = $this->skripsiPhaseFilterMap();
+
+        $skripsis = Skripsi::query()
+            ->where('type', 'skripsi')
+            ->with([
+                'student:id,name,nim',
+                'periode:id,tahun_akademik_id,kode_periode,semester',
+                'periode.tahunAkademik:id,tahun_awal,tahun_akhir',
+            ])
+            ->when($periodeId > 0, fn ($query) => $query->where('periode_id', $periodeId))
+            ->when($status !== '', function ($query) use ($status, $phaseFilterMap) {
+                if (isset($phaseFilterMap[$status])) {
+                    $query->whereIn(DB::raw('LOWER(current_phase)'), $phaseFilterMap[$status]);
+                    return;
+                }
+
+                $normalizedStatus = strtolower(str_replace(['-', '_'], ' ', $status));
+                $query->whereRaw('LOWER(REPLACE(current_phase, "_", " ")) = ?', [$normalizedStatus]);
+            })
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('title', 'like', "%{$search}%")
+                        ->orWhereHas('student', function ($studentQuery) use ($search) {
+                            $studentQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('nim', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="rekap_skripsi_' . now()->format('Ymd_His') . '.csv"',
+        ];
+
+        $callback = function () use ($skripsis) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['NIM', 'Nama Mahasiswa', 'Judul Skripsi', 'Tipe', 'Fase Saat Ini', 'Periode']);
+
+            foreach ($skripsis as $skripsi) {
+                fputcsv($handle, [
+                    $skripsi->student?->nim,
+                    $skripsi->student?->name,
+                    $skripsi->title,
+                    $skripsi->type,
+                    str($skripsi->current_phase)->replace('_', ' ')->title(),
+                    $skripsi->periode?->name,
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return new StreamedResponse($callback, 200, $headers);
+    }
+
+    private function storeSidangSchedule(Request $request, Skripsi $skripsi, NotificationService $notifications, string $mode): RedirectResponse|JsonResponse
+    {
+        $isProposal = $mode === 'proposal';
+        $field = $isProposal ? 'sidang_proposal_datetime' : 'sidang_skripsi_datetime';
+        $notifiedField = $isProposal ? 'sidang_proposal_grade_notified_at' : 'sidang_skripsi_grade_notified_at';
+        $label = $isProposal ? 'Sidang Proposal' : 'Sidang Skripsi';
+        $notificationType = $isProposal ? 'sidang_proposal_scheduled' : 'sidang_skripsi_scheduled';
+        $allowedRoles = $isProposal ? ['pembimbing_1', 'pembimbing_2'] : ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'];
+
+        $validated = $request->validate([
+            $field => ['required', 'date', 'after_or_equal:now'],
+        ]);
+
+        $scheduledAt = Carbon::parse($validated[$field]);
+        $skripsi->loadMissing(['student', 'assignments.lecturer']);
+
+        $lecturerIds = $skripsi->assignments
+            ->whereIn('role_type', $allowedRoles)
+            ->pluck('lecturer_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $conflictingSchedule = Skripsi::query()
+            ->whereKeyNot($skripsi->id)
+            ->whereNotNull($field)
+            ->whereBetween($field, [
+                $scheduledAt->copy()->subHours(2),
+                $scheduledAt->copy()->addHours(2),
+            ])
+            ->whereHas('assignments', fn ($query) => $query->whereIn('lecturer_id', $lecturerIds))
+            ->with(['student:id,name,nim'])
+            ->first();
+
+        if ($conflictingSchedule) {
+            $message = 'Jadwal sidang bentrok dengan ' . ($conflictingSchedule->student?->name ?? 'mahasiswa lain') . ' pada ' . optional($conflictingSchedule->{$field})->format('d/m/Y H:i') . '.';
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withErrors([$field => $message])->withInput();
+        }
+
+        $skripsi->update([
+            $field => $scheduledAt,
+            $notifiedField => null,
+        ]);
+
+        $formattedDate = $scheduledAt->translatedFormat('d M Y');
+        $formattedTime = $scheduledAt->format('H:i');
+        $student = $skripsi->student;
+        $lecturers = $skripsi->assignments
+            ->whereIn('role_type', $allowedRoles)
+            ->pluck('lecturer')
+            ->filter()
+            ->values();
+
+        try {
+            if ($student) {
+                $notifications->send([$student], [
+                    'type' => $notificationType,
+                    'title' => 'Jadwal ' . $label . ' Ditetapkan',
+                    'message' => $label . ' untuk "' . $skripsi->title . '" dijadwalkan pada ' . $formattedDate . ' pukul ' . $formattedTime . '.',
+                    'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                    'meta' => [
+                        'skripsi_id' => $skripsi->id,
+                        'scheduled_at' => $scheduledAt->toIso8601String(),
+                    ],
+                ]);
+            }
+
+            if ($lecturers->isNotEmpty()) {
+                $notifications->send($lecturers, [
+                    'type' => $notificationType,
+                    'title' => 'Jadwal ' . $label . ' Ditetapkan',
+                    'message' => $label . ' ' . ($student?->name ?? 'mahasiswa') . ' dijadwalkan pada ' . $formattedDate . ' pukul ' . $formattedTime . '.',
+                    'url' => route('dosen.skripsi.show', $skripsi, false),
+                    'meta' => [
+                        'skripsi_id' => $skripsi->id,
+                        'scheduled_at' => $scheduledAt->toIso8601String(),
+                    ],
+                ]);
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'message' => 'Jadwal ' . strtolower($label) . ' berhasil disimpan.',
+                'scheduled_at' => $scheduledAt->toIso8601String(),
+                'formatted' => $scheduledAt->translatedFormat('d M Y H:i'),
+            ]);
+        }
+
+        return back()->with('success', 'Jadwal ' . strtolower($label) . ' berhasil disimpan.');
+    }
+
     private function renderReviewerTable(Skripsi $skripsi): string
     {
         $skripsi->loadMissing('assignments.lecturer');
@@ -504,6 +637,19 @@ class SkripsiController extends Controller
         return view('kaprodi.skripsi.partials.reviewer-table', [
             'skripsi' => $skripsi,
         ])->render();
+    }
+
+    private function skripsiPhaseFilterMap(): array
+    {
+        return [
+            'Proposal' => ['proposal', 'sidang proposal', 'sidang_proposal'],
+            'Sidang Proposal' => ['sidang proposal', 'sidang_proposal'],
+            'Bimbingan Skripsi' => ['bimbingan skripsi', 'bimbingan_skripsi'],
+            'Sidang Skripsi' => ['sidang skripsi', 'sidang_skripsi', 'revisi sidang skripsi', 'revisi_sidang_skripsi', 'review dokumen final', 'review_dokumen_final'],
+            'Revisi Sidang Skripsi' => ['revisi sidang skripsi', 'revisi_sidang_skripsi'],
+            'Review Dokumen Final' => ['review dokumen final', 'review_dokumen_final'],
+            'Skripsi Selesai' => ['skripsi selesai', 'skripsi_selesai'],
+        ];
     }
 
     public function downloadLogbook(Skripsi $skripsi): StreamedResponse

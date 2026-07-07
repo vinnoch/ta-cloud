@@ -33,6 +33,14 @@
                 <main class="page-content">
                     @yield('content')
                 </main>
+
+                <footer class="app-footer-note">
+                    <small>
+                        Developed by <a href="https://github.com/vinnoch" target="_blank" rel="noopener noreferrer">Vinno Christmantara</a>
+                        <span aria-hidden="true">|</span>
+                        QA by <a href="https://github.com/citraa22" target="_blank" rel="noopener noreferrer">Maria Citra Putri Asih</a>
+                    </small>
+                </footer>
             </div>
         </div>
         @stack('scripts')

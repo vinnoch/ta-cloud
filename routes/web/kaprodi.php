@@ -7,6 +7,7 @@ use App\Http\Controllers\Kaprodi\DocumentTemplateController;
 use App\Http\Controllers\Kaprodi\ImportUserController;
 use App\Http\Controllers\Kaprodi\MahasiswaController;
 use App\Http\Controllers\Kaprodi\NilaiController;
+use App\Http\Controllers\Kaprodi\NonSkripsiController;
 use App\Http\Controllers\Kaprodi\PeriodeController;
 use App\Http\Controllers\Kaprodi\ProposalSubmissionController;
 use App\Http\Controllers\Kaprodi\SkripsiController;
@@ -21,6 +22,7 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
         $selectedPeriodeId = (int) $request->query('periode_id', $defaultPeriodeId);
 
         $baseSkripsiQuery = \App\Models\Skripsi::query()
+            ->where('type', 'skripsi')
             ->when($selectedPeriodeId > 0, fn ($query) => $query->where('periode_id', $selectedPeriodeId));
 
         $allSkripsi = (clone $baseSkripsiQuery)->get(['id', 'current_phase']);
@@ -41,7 +43,11 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
 
         $pendingSidangRequests = \App\Models\SidangRequest::query()
             ->where('status', 'submitted')
-            ->when($selectedPeriodeId > 0, fn ($query) => $query->whereIn('skripsi_id', $skripsiIds))
+            ->where('role_type', '!=', 'mahasiswa')
+            ->whereHas('skripsi', function ($query) use ($selectedPeriodeId) {
+                $query->where('type', 'skripsi')
+                    ->when($selectedPeriodeId > 0, fn ($inner) => $inner->where('periode_id', $selectedPeriodeId));
+            })
             ->count();
 
         $proposalCount = (clone $baseSkripsiQuery)
@@ -50,7 +56,7 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
             ->count();
 
         $proposalSubmittedCount = (clone $baseSkripsiQuery)
-            ->where('current_phase', 'proposal')
+            ->whereIn('current_phase', ['proposal', 'sidang_proposal'])
             ->whereHas('documentVersions', fn ($query) => $query->where('phase', 'proposal'))
             ->count();
 
@@ -64,6 +70,19 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
 
         $reviewFinalCount = (clone $baseSkripsiQuery)
             ->where('current_phase', 'review_dokumen_final')
+            ->whereHas('assignments')
+            ->whereDoesntHave('assignments', function ($assignmentQuery) {
+                $assignmentQuery->whereNotExists(function ($gradeQuery) {
+                    $gradeQuery->selectRaw('1')
+                        ->from('grades')
+                        ->whereColumn('grades.skripsi_id', 'skripsis.id')
+                        ->whereColumn('grades.reviewer_id', 'reviewer_assignments.lecturer_id')
+                        ->whereColumn('grades.role_type', 'reviewer_assignments.role_type')
+                        ->where('grades.grade_event', 'sidang_skripsi')
+                        ->where('grades.status', 'published');
+                });
+            })
+            ->whereHas('documentVersions', fn ($query) => $query->where('phase', 'skripsi_final'))
             ->count();
 
         $finalCount = (clone $baseSkripsiQuery)
@@ -77,10 +96,10 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
             'periodes' => $periodes,
             'selectedPeriodeId' => $selectedPeriodeId,
             'stats' => [
-                ['label' => 'Proposal Diajukan', 'value' => (string) $proposalSubmittedCount, 'hint' => 'Menunggu approval Kaprodi', 'href' => route('kaprodi.proposal-submissions.index', array_merge($periodQuery, ['reviewer_status' => 'pending_approval']))],
+                ['label' => 'Proposal Diajukan', 'value' => (string) $proposalSubmittedCount, 'hint' => 'Menunggu approval Kaprodi', 'href' => route('kaprodi.proposal-submissions.index', $periodQuery)],
                 ['label' => 'Menunggu Assign', 'value' => (string) $menungguAssign, 'hint' => 'Reviewer belum ditetapkan', 'href' => route('kaprodi.proposal-submissions.index', array_merge($periodQuery, ['reviewer_status' => 'unassigned']))],
-                ['label' => 'Permohonan Sidang', 'value' => (string) $pendingSidangRequests, 'hint' => 'Menunggu persetujuan Kaprodi', 'href' => route('kaprodi.sidang-requests.index', $periodQuery)],
-                ['label' => 'Review Dokumen Final', 'value' => (string) $reviewFinalCount, 'hint' => 'Menunggu validasi dokumen akhir', 'href' => route('kaprodi.final-reviews.index', $periodQuery)],
+                ['label' => 'Permohonan Sidang', 'value' => (string) $pendingSidangRequests, 'hint' => 'Menunggu persetujuan Kaprodi', 'href' => route('kaprodi.sidang-requests.index', array_merge($periodQuery, ['approval_status' => 'pending_approval', 'sidang_type' => 'skripsi']))],
+                ['label' => 'Review Dokumen Final', 'value' => (string) $reviewFinalCount, 'hint' => 'Menunggu validasi dokumen akhir', 'href' => route('kaprodi.final-reviews.index', array_merge($periodQuery, ['approval_status' => 'pending_approval']))],
             ],
             'chartData' => [
                 ['label' => 'Proposal', 'value' => $proposalCount],
@@ -94,6 +113,8 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
 
 
     Route::match(['GET', 'POST'], '/skripsi', [SkripsiController::class, 'index'])->name('skripsi.index');
+    Route::get('/non-skripsi', [NonSkripsiController::class, 'index'])->name('non-skripsi.index');
+    Route::get('/non-skripsi/{skripsi}', [NonSkripsiController::class, 'show'])->name('non-skripsi.show');
     Route::get('/skripsi/{skripsi}/proposal', [SkripsiController::class, 'showProposal'])->name('skripsi.proposal');
     Route::get('/skripsi/{skripsi}/bimbingan', [SkripsiController::class, 'showBimbingan'])->name('skripsi.bimbingan');
     Route::get('/skripsi/{skripsi}/bimbingan/{bimbingan}', [SkripsiController::class, 'showBimbinganItem'])->name('skripsi.bimbingan.show');
@@ -109,7 +130,10 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
     Route::post('/skripsi/{skripsi}/proposal/reject', [ProposalSubmissionController::class, 'reject'])->name('skripsi.proposal.reject');
     Route::post('/skripsi/{skripsi}/final-review/approve', [FinalReviewController::class, 'approve'])->name('skripsi.final-review.approve');
     Route::delete('/skripsi/{skripsi}/reviewers/{assignment}', [SkripsiController::class, 'unassignReviewer'])->name('skripsi.reviewers.destroy');
+    Route::get('/export-skripsi', [SkripsiController::class, 'exportPage'])->name('skripsi.export.page');
+    Route::get('/skripsi/export/csv', [SkripsiController::class, 'exportCsv'])->name('skripsi.export.csv');
     Route::put('/skripsi/{skripsi}/status', [SkripsiController::class, 'updateStatus'])->name('skripsi.status.update');
+    Route::put('/skripsi/{skripsi}/sidang-proposal-schedule', [SkripsiController::class, 'updateSidangProposalSchedule'])->name('skripsi.sidang-proposal-schedule.update');
     Route::put('/skripsi/{skripsi}/sidang-schedule', [SkripsiController::class, 'updateSidangSchedule'])->name('skripsi.sidang-schedule.update');
     Route::get('/skripsi/{skripsi}', [SkripsiController::class, 'show'])->name('skripsi.show');
 

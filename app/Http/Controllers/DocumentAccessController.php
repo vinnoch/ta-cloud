@@ -39,6 +39,14 @@ class DocumentAccessController extends Controller
             abort(404);
         }
 
+        if (! $user && $document->phase === 'skripsi_final' && $skripsi->current_phase === 'skripsi_selesai') {
+            return;
+        }
+
+        if (! $user) {
+            abort(403);
+        }
+
         if ($user->role === 'kaprodi') {
             return;
         }

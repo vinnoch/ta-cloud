@@ -53,7 +53,7 @@ class SkripsiSubmissionController extends Controller
         ]);
 
         return redirect()
-            ->route('mahasiswa.skripsi.show', ['id' => $skripsi->id])
+            ->route('mahasiswa.skripsi.index')
             ->with('success', 'Proposal berhasil dikirim.');
     }
 }

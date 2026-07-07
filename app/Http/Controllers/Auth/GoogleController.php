@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\URL;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends AuthenticatedSessionController
@@ -31,7 +32,10 @@ class GoogleController extends AuthenticatedSessionController
             return redirect()->route('login')->with('status', 'Login Google hanya untuk email @' . $allowedDomain . '.');
         }
 
-        $user = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
+        $user = User::query()
+            ->withTrashed()
+            ->whereRaw('LOWER(email) = ?', [$email])
+            ->first();
 
         if (! $user) {
             return redirect()->route('login')->with('status', 'Akun belum terdaftar di TACLOUD. Hubungi admin.');
@@ -50,6 +54,18 @@ class GoogleController extends AuthenticatedSessionController
         Auth::login($user, true);
         $request->session()->regenerate();
 
-        return redirect()->intended(static::dashboardRouteForRole($user->role));
+        $fallback = static::dashboardRouteForRole($user->role);
+        $intended = (string) $request->session()->pull('url.intended', '');
+
+        if ($intended !== '' && URL::to($request->getBaseUrl()) !== '') {
+            $appHost = parse_url(URL::to('/'), PHP_URL_HOST);
+            $targetHost = parse_url($intended, PHP_URL_HOST);
+
+            if ($targetHost === null || $targetHost === $appHost) {
+                return redirect()->to($intended);
+            }
+        }
+
+        return redirect()->to($fallback);
     }
 }

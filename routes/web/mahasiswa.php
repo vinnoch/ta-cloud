@@ -15,6 +15,7 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth', 'role:mahasi
         Route::get('/buat', fn() => redirect()->route('mahasiswa.skripsi.create'));
         Route::post('/', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'store'])->name('store');
         Route::get('/{skripsi}', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'show'])->name('show');
+        Route::post('/{skripsi}/publish', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'publish'])->name('publish');
         Route::get('/{skripsi}/edit', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'edit'])->name('edit');
         Route::put('/{skripsi}', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'update'])->name('update');
         Route::delete('/{skripsi}', [\App\Http\Controllers\Mahasiswa\SkripsiController::class, 'destroy'])->name('destroy');

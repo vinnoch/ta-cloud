@@ -167,10 +167,19 @@ class DatabaseSeeder extends Seeder
         foreach ($activeStudents as $index => $student) {
             $phase = $phases[$index % count($phases)];
             $title = $titles[$index % count($titles)];
+            $proposalApproved = in_array($phase, ['sidang_proposal', 'bimbingan_skripsi', 'sidang_skripsi', 'revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'], true);
 
             $skripsi = Skripsi::query()->updateOrCreate(
                 ['student_id' => $student->id],
-                ['periode_id' => $periode->id, 'title' => $title, 'type' => 'skripsi', 'current_phase' => $phase]
+                [
+                    'periode_id' => $periode->id,
+                    'title' => $title,
+                    'type' => 'skripsi',
+                    'current_phase' => $phase,
+                    'proposal_review_status' => $proposalApproved ? 'approved' : 'pending',
+                    'proposal_reviewed_at' => $proposalApproved ? now()->subDays(21) : null,
+                    'proposal_review_note' => null,
+                ]
             );
 
             DB::table('document_versions')->updateOrInsert(

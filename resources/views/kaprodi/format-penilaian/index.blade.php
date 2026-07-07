@@ -5,8 +5,8 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="list-root" data-endpoint="{{ route('kaprodi.formats.index') }}">
-        <div class="acss-crud-head acss-crud-head--inline">
+    <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.formats.index') }}">
+        <div class="section-heading acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
                 <h1 class="acss-page-title">Format Penilaian</h1>
                 <p id="count-text" class="acss-muted ">{{ $formats->total() }} format ditemukan.</p>
@@ -16,8 +16,7 @@
             </div>
         </div>
 
-        <div class="acss-crud-body">
-            <form class="filter-bar" id="filter-form" method="GET" action="{{ route('kaprodi.formats.index') }}">
+                    <form class="filter-bar" id="filter-form" method="GET" action="{{ route('kaprodi.formats.index') }}">
                 <input type="hidden" name="sort" id="sort-input" value="{{ $sort }}">
                 <input type="hidden" name="direction" id="direction-input" value="{{ $direction }}">
                 <label class="form-field acss-search-field">
@@ -36,7 +35,6 @@
 
             <div id="table-wrapper">@include('kaprodi.format-penilaian.partials.table', ['formats' => $formats, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc'])</div>
             <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.format-penilaian.partials.pagination', ['formats' => $formats])</div>
-        </div>
     </section>
 
 @include('partials.ajax-list-script', [

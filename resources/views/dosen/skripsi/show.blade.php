@@ -19,6 +19,49 @@
         </div>
     @endif
 
+    @php
+        $mySidangRequest = $skripsi->sidangRequests
+            ->where('lecturer_id', auth()->id())
+            ->where('role_type', $myRoleType ?? null)
+            ->sortByDesc('created_at')
+            ->first();
+
+        $otherPendingPembimbings = $skripsi->assignments
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
+            ->filter(function ($assignment) use ($skripsi) {
+                if ((int) $assignment->lecturer_id === (int) auth()->id()) {
+                    return false;
+                }
+
+                $latestRequest = $skripsi->sidangRequests
+                    ->where('lecturer_id', $assignment->lecturer_id)
+                    ->where('role_type', $assignment->role_type)
+                    ->sortByDesc('created_at')
+                    ->first();
+
+                return ! $latestRequest || $latestRequest->status === 'rejected';
+            })
+            ->map(fn ($assignment) => $assignment->lecturer?->name)
+            ->filter()
+            ->values();
+    @endphp
+
+    @if(($myRoleType ?? null) === 'pembimbing_1' && $skripsi->current_phase === 'bimbingan_skripsi')
+        @if ($mySidangRequest && $mySidangRequest->status !== 'rejected')
+            <div class="notice notice--success">
+                @if ($mySidangRequest->status === 'approved')
+                    <strong>Permohonan sidang disetujui Kaprodi.</strong>
+                @else
+                    <strong>Permohonan sidang sedang diproses.</strong>
+                    <div>Anda telah mengajukan permohonan sidang untuk skripsi ini. Menunggu persetujuan Kaprodi.</div>
+                @endif
+                @if ($otherPendingPembimbings->isNotEmpty())
+                    <div class="text-xs" style="margin-top: .5rem; color: #b42318;">Menunggu dosen pembimbing {{ $otherPendingPembimbings->join(', ') }} untuk mengajukan permohonan sidang yang sama.</div>
+                @endif
+            </div>
+        @endif
+    @endif
+
     <section class="card card--profile">
         <div class="profile-card">
             <div class="profile-card__avatar">{{ mb_substr($skripsi->student?->name ?? 'M', 0, 1) }}</div>
@@ -28,6 +71,16 @@
                         <h2>{{ $skripsi->student?->name ?? '-' }}</h2>
                         <p>{{ $skripsi->student?->nim ?? '-' }} • {{ $skripsi->periode?->name ?? '-' }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
+                        @if (($sidangProposalSchedule ?? null) || ($sidangSkripsiSchedule ?? null))
+                            <div class="acss-muted" style="margin-top:.4rem; line-height:1.6;">
+                                @if ($sidangProposalSchedule ?? null)
+                                    <div><strong>Sidang Proposal:</strong> {{ $sidangProposalSchedule->translatedFormat('d M Y H:i') }}</div>
+                                @endif
+                                @if ($sidangSkripsiSchedule ?? null)
+                                    <div><strong>Sidang Skripsi:</strong> {{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                     <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
@@ -138,9 +191,11 @@
     </section>
 
     @if(($myRoleType ?? null) === 'pembimbing_1' && $skripsi->current_phase === 'bimbingan_skripsi')
-        <div class="form-actions form-actions--inline">
-            <button type="button" class="button button--inline button--success" data-sidang-create-modal-open><span class="dosen-btn-icon">@include("partials.icons.send")</span><span>Ajukan Permohonan Sidang</span></button>
-        </div>
+        @if (! $mySidangRequest || $mySidangRequest->status === 'rejected')
+            <div class="form-actions form-actions--inline">
+                <button type="button" class="button button--inline button--success" data-sidang-create-modal-open><span class="dosen-btn-icon">@include("partials.icons.send")</span><span>Ajukan Permohonan Sidang</span></button>
+            </div>
+        @endif
     @endif
 
     @if ($skripsi->current_phase === 'review_dokumen_final')

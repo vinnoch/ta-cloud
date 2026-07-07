@@ -38,7 +38,7 @@ class BimbinganController extends Controller
             'meta' => ['skripsi_id' => $skripsi->id],
         ]);
 
-        return redirect()->route('dosen.skripsi.show', $skripsi, false)->with('success', 'Catatan bimbingan berhasil disimpan.');
+        return redirect()->route('dosen.skripsi.show', $skripsi)->with('success', 'Catatan bimbingan berhasil disimpan.');
     }
 
     public function update(Request $request, Bimbingan $bimbingan): RedirectResponse

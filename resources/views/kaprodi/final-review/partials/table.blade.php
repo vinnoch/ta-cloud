@@ -11,6 +11,7 @@
             <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="periode" data-sort-direction="{{ $nextDirection('periode') }}">Periode akademik <span>{{ $indicator('periode') }}</span></button>
+            <span>Status</span>
         </div>
     @endif
     @forelse ($skripsis as $skripsi)
@@ -31,6 +32,13 @@
             </div>
             <div class="table-shell__cell table-shell__cell--title">{{ $skripsi->title ?: '-' }}</div>
             <div class="table-shell__cell">{{ $skripsi->periode?->name ?? '-' }}</div>
+            <div class="table-shell__cell">
+                @if ($skripsi->current_phase === 'skripsi_selesai')
+                    <span class="pill pill--green">Disetujui</span>
+                @else
+                    <span class="pill pill--yellow">Pending</span>
+                @endif
+            </div>
         </div>
     @empty
         <div class="empty-state">Belum ada dokumen final yang menunggu validasi.</div>

@@ -232,14 +232,33 @@ class DocumentTemplateController extends Controller
     {
         $documentTemplate->loadMissing(['items', 'periodes']);
 
-        DB::transaction(function () use ($documentTemplate): void {
+        $conflictingPeriodeIds = DocumentTemplate::query()
+            ->whereKeyNot($documentTemplate->id)
+            ->whereHas('periodes', fn ($query) => $query->whereIn('periodes.id', $documentTemplate->periodes->pluck('id')))
+            ->with(['periodes:id,tahun_akademik_id,kode_periode,semester', 'periodes.tahunAkademik:id,tahun_awal,tahun_akhir'])
+            ->get()
+            ->flatMap(fn ($template) => $template->periodes->pluck('id'))
+            ->unique()
+            ->values();
+
+        if ($conflictingPeriodeIds->count() === $documentTemplate->periodes->count()) {
+            return back()->with('error', 'Template ini tidak bisa diduplikasi dengan periode yang sama karena semua periodenya sudah dipakai template dokumen final lain.');
+        }
+
+        $attachedPeriodeIds = $documentTemplate->periodes
+            ->pluck('id')
+            ->reject(fn ($id) => $conflictingPeriodeIds->contains($id))
+            ->values()
+            ->all();
+
+        DB::transaction(function () use ($documentTemplate, $attachedPeriodeIds): void {
             $newTemplate = $documentTemplate->replicate();
             $newTemplate->nama = $this->duplicateName($documentTemplate->nama);
             $newTemplate->is_published = false;
             $newTemplate->is_locked = false;
             $newTemplate->save();
 
-            $newTemplate->periodes()->sync($documentTemplate->periodes->pluck('id')->all());
+            $newTemplate->periodes()->sync($attachedPeriodeIds);
 
             foreach ($documentTemplate->items as $item) {
                 $newItem = $item->replicate();
@@ -264,6 +283,15 @@ class DocumentTemplateController extends Controller
 
         if ($documentTemplate->periodes()->where('periodes.id', $validated['periode_id'])->exists()) {
             return back()->with('error', 'Periode ini sudah terhubung dengan template dokumen final.');
+        }
+
+        $hasConflict = DocumentTemplate::query()
+            ->whereKeyNot($documentTemplate->id)
+            ->whereHas('periodes', fn ($query) => $query->where('periodes.id', $validated['periode_id']))
+            ->exists();
+
+        if ($hasConflict) {
+            return back()->with('error', 'Periode ini sudah memakai template dokumen final lain.');
         }
 
         $documentTemplate->periodes()->attach($validated['periode_id']);
@@ -337,6 +365,26 @@ class DocumentTemplateController extends Controller
             ]);
         }
 
+        $periodeIds = collect($validated['periode_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
+        $documentTemplate = $request->route('documentTemplate');
+
+        $conflictingPeriods = DocumentTemplate::query()
+            ->when($documentTemplate instanceof DocumentTemplate, fn ($query) => $query->whereKeyNot($documentTemplate->id))
+            ->whereHas('periodes', fn ($query) => $query->whereIn('periodes.id', $periodeIds))
+            ->with(['periodes:id,tahun_akademik_id,kode_periode,semester', 'periodes.tahunAkademik:id,tahun_awal,tahun_akhir'])
+            ->get()
+            ->flatMap(fn ($existingTemplate) => $existingTemplate->periodes
+                ->whereIn('id', $periodeIds)
+                ->map(fn ($periode) => $periode->name))
+            ->unique()
+            ->values();
+
+        if ($conflictingPeriods->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'periode_ids' => 'Beberapa periode sudah memakai template dokumen final lain: ' . $conflictingPeriods->implode(', ') . '.',
+            ]);
+        }
+
         return $validated;
     }
 
@@ -373,7 +421,16 @@ class DocumentTemplateController extends Controller
             ->withCount('documentTemplates')
             ->orderByDesc('kode_periode')
             ->get()
-            ->reject(fn (Periode $periode) => $documentTemplate && in_array($periode->id, $selectedIds, true))
+            ->reject(function (Periode $periode) use ($documentTemplate, $selectedIds) {
+                if ($documentTemplate && in_array($periode->id, $selectedIds, true)) {
+                    return true;
+                }
+
+                return DocumentTemplate::query()
+                    ->when($documentTemplate, fn ($query) => $query->whereKeyNot($documentTemplate->id))
+                    ->whereHas('periodes', fn ($query) => $query->where('periodes.id', $periode->id))
+                    ->exists();
+            })
             ->values();
     }
 

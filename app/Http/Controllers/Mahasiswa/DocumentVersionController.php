@@ -56,6 +56,11 @@ class DocumentVersionController extends Controller
         ]);
 
         if ($validated['phase'] === 'proposal') {
+            $skripsi->update([
+                'proposal_review_status' => 'pending',
+                'proposal_rejected_at' => null,
+            ]);
+
             SidangRequest::query()->updateOrCreate(
                 [
                     'skripsi_id' => $skripsi->id,

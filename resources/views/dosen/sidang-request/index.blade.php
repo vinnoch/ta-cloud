@@ -5,16 +5,15 @@
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="acss-crud-card" id="dosen-sidang-list-root" data-endpoint="{{ route('dosen.sidang-request.index') }}">
-        <div class="acss-crud-head">
+    <section class="card" id="dosen-sidang-list-root" data-endpoint="{{ route('dosen.sidang-request.index') }}">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Pengajuan Sidang Skripsi</h1>
                 <p id="dosen-sidang-count-text" class="acss-muted ">{{ $requests->total() }} pengajuan sidang skripsi ditemukan.</p>
             </div>
         </div>
 
-        <div class="acss-crud-body">
-            <form class="filter-bar" id="dosen-sidang-filter-form" method="GET" action="{{ route('dosen.sidang-request.index') }}">
+                    <form class="filter-bar" id="dosen-sidang-filter-form" method="GET" action="{{ route('dosen.sidang-request.index') }}">
                 <input type="hidden" name="sort" value="{{ $sort ?? 'tanggal' }}">
                 <input type="hidden" name="direction" value="{{ $direction ?? 'desc' }}">
                 <label class="form-field acss-search-field">
@@ -33,7 +32,6 @@
 
             <div id="dosen-sidang-table-wrapper">@include('dosen.sidang-request.partials.table', ['requests' => $requests, 'sort' => $sort ?? 'tanggal', 'direction' => $direction ?? 'desc'])</div>
             <div id="dosen-sidang-pagination-wrapper">@include('dosen.sidang-request.partials.pagination', ['requests' => $requests])</div>
-        </div>
     </section>
 
 @include('partials.ajax-list-script', [

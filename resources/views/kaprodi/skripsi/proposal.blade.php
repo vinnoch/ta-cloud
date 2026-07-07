@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
+@if (session('success'))
+    <div class="notice notice--success">{{ session('success') }}</div>
+@endif
+
+@if (session('error'))
+    <div class="notice notice--danger">{{ session('error') }}</div>
+@endif
+
+@if ($errors->any())
+    <div class="notice notice--danger">{{ $errors->first() }}</div>
+@endif
+
     <section class="card card--profile">
         <div class="profile-card">
             <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>

@@ -23,25 +23,25 @@
             </div>
         </div>
         <div class="acss-section-card__body">
-            <style>
-                .history-table__row { border-bottom: none !important; }
-            </style>
-            <div class="history-table{{ $bimbingans->count() === 0 ? ' history-table--empty' : '' }}">
+            <div class="table-shell">
                 @if ($bimbingans->count() > 0)
-                    <div class="history-table__head history-table__head--four">
-                        <span>Tanggal</span><span>Fase</span><span>Dosen</span><span>Catatan</span>
+                    <div class="table-shell__head table-shell__grid acss-table-cols-kaprodi-bimbingan-history">
+                        <span>Tanggal</span>
+                        <span>Fase</span>
+                        <span>Dosen</span>
+                        <span>Catatan</span>
                     </div>
                 @endif
                 @forelse($bimbingans as $bimbingan)
-                    <div class="history-table__row history-table__row--four acss-hover-row-group">
-                        <div>
+                    <div class="table-shell__row table-shell__grid acss-table-cols-kaprodi-bimbingan-history acss-hover-row-group">
+                        <div class="table-shell__cell">
                             <strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong>
                             <div class="text-[10px] acss-muted">{{ $bimbingan->created_at?->format('H:i') ?? '' }}</div>
                             <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.bimbingan.show', [$skripsi, $bimbingan]) }}">@include('partials.icons.eye')<span>Detail</span></a></div>
                         </div>
-                        <div>{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
-                        <div>{{ $bimbingan->reviewer?->name ?? '-' }}</div>
-                        <div>{{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 100) }}</div>
+                        <div class="table-shell__cell">{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
+                        <div class="table-shell__cell">{{ $bimbingan->reviewer?->name ?? '-' }}</div>
+                        <div class="table-shell__cell">{{ \Illuminate\Support\Str::limit($bimbingan->lecturer_notes ?: '-', 100) }}</div>
                     </div>
                 @empty
                     <div class="empty-state">Belum ada histori bimbingan.</div>

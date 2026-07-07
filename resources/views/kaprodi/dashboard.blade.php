@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-page-card">
-        <div class="acss-page-card__body acss-dashboard-header">
+    <section class="acss-page-card acss-page-card--topflush acss-dashboard-hero-card">
+        <div class="profile-card acss-dashboard-header">
             <div>
                 <h1 class="acss-page-title">Dashboard Kaprodi</h1>
-                <p class="acss-muted ">Ringkasan monitoring dan fase skripsi mahasiswa.</p>
             </div>
             <form method="GET" action="{{ route('kaprodi.dashboard') }}" id="periode-switcher-form" class="acss-dashboard-header__form">
                 <label class="form-field acss-field-tight">

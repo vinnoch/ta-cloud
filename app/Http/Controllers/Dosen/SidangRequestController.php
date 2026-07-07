@@ -87,7 +87,7 @@ class SidangRequestController extends Controller
 
         if ($assignment === null || $skripsi->current_phase !== 'bimbingan_skripsi') {
             return redirect()
-                ->route('dosen.skripsi.show', $skripsi, false)
+                ->route('dosen.skripsi.show', $skripsi)
                 ->with('error', 'Permohonan sidang hanya bisa diajukan oleh dosen pembimbing saat fase bimbingan skripsi.');
         }
 
@@ -111,21 +111,26 @@ class SidangRequestController extends Controller
         );
 
         $kaprodiUsers = User::query()->forRole('kaprodi')->get();
-        $notifications->send($kaprodiUsers, [
-            'type' => 'sidang_request_submitted',
-            'title' => 'Permohonan sidang baru',
-            'message' => $request->user()->name . ' mengajukan permohonan sidang untuk ' . $skripsi->title,
-            'url' => route('kaprodi.skripsi.show', $skripsi, false),
-            'actor' => $request->user()->name,
-            'meta' => [
-                'skripsi_id' => $skripsi->id,
-                'sidang_request_id' => $sidangRequest->id,
-                'phase' => 'sidang_skripsi',
-            ],
-        ]);
+
+        try {
+            $notifications->send($kaprodiUsers, [
+                'type' => 'sidang_request_submitted',
+                'title' => 'Permohonan sidang baru',
+                'message' => $request->user()->name . ' mengajukan permohonan sidang untuk ' . $skripsi->title,
+                'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                'actor' => $request->user()->name,
+                'meta' => [
+                    'skripsi_id' => $skripsi->id,
+                    'sidang_request_id' => $sidangRequest->id,
+                    'phase' => 'sidang_skripsi',
+                ],
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
 
         return redirect()
-            ->route('dosen.skripsi.show', $skripsi, false)
+            ->route('dosen.sidang-request.index', ['status' => 'submitted'])
             ->with('success', 'Permohonan sidang berhasil dikirim ke Kaprodi.');
     }
 

@@ -27,6 +27,10 @@
                             @csrf
                             <button class="button button--small button--success" type="submit">Setujui</button>
                         </form>
+                        <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.reject', [$item->skripsi, $item]) }}">
+                            @csrf
+                            <button class="button button--small button--danger" type="submit">Tolak</button>
+                        </form>
                     @endif
                 </div>
                 @endif

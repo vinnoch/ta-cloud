@@ -76,7 +76,7 @@ class FinalReviewController extends Controller
             'nim' => 'students_sort.nim',
             'mahasiswa' => 'students_sort.name',
             'judul' => 'skripsis.title',
-            'periode' => 'periodes_sort.name',
+            'periode' => 'periodes_sort.kode_periode',
         ];
 
         $skripsis = $skripsis
@@ -100,7 +100,7 @@ class FinalReviewController extends Controller
             ]);
         }
 
-        return view('kaprodi.final-review.index', $this->kaprodiPage('Review Dokumen Final', 'KAPRODI • REVIEW DOKUMEN FINAL', [
+        return view('kaprodi.final-review.index', $this->kaprodiPage('Pengajuan Dokumen Final', 'KAPRODI • REVIEW DOKUMEN FINAL', [
             'skripsis' => $skripsis,
             'search' => $search,
             'approvalStatus' => $approvalStatus,
@@ -124,7 +124,7 @@ class FinalReviewController extends Controller
                 'meta' => ['skripsi_id' => $skripsi->id],
             ]);
 
-            return redirect()->route('kaprodi.skripsi.show', $skripsi, false)->with('success', 'Skripsi berhasil divalidasi dan dinyatakan selesai.');
+            return redirect()->route('kaprodi.skripsi.show', $skripsi)->with('success', 'Skripsi berhasil divalidasi dan dinyatakan selesai.');
         }
 
         return back()->with('error', 'Skripsi bukan dalam fase review dokumen final.');
