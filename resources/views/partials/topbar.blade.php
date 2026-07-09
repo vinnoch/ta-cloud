@@ -29,12 +29,39 @@
                 }
             }
 
-            $topbarEyebrow = $topbarRoleLabel && filled($topbarHeading)
-                ? $topbarRoleLabel . ' » ' . $topbarHeading
-                : ($crumbs ?? null);
+            $topbarEyebrow = $crumbs ?? ($topbarRoleLabel && filled($topbarHeading)
+                ? [$topbarRoleLabel, $topbarHeading]
+                : null);
+
+            if (is_string($topbarEyebrow) && filled($topbarEyebrow)) {
+                $topbarEyebrow = collect(preg_split('/\s*[•.]\s*/', $topbarEyebrow))
+                    ->filter(fn ($crumb) => filled($crumb))
+                    ->map(fn ($crumb) => \Illuminate\Support\Str::title(trim((string) $crumb)))
+                    ->values()
+                    ->all();
+            }
         @endphp
         @if (!empty($topbarEyebrow))
-            <p class="workspace-header__breadcrumb">{{ $topbarEyebrow }}</p>
+            <p class="workspace-header__breadcrumb">
+                @if (is_array($topbarEyebrow))
+                    @foreach ($topbarEyebrow as $crumb)
+                        @php
+                            $crumbLabel = is_array($crumb) ? ($crumb['label'] ?? '') : (string) $crumb;
+                            $crumbHref = is_array($crumb) ? ($crumb['href'] ?? null) : null;
+                        @endphp
+                        @if ($crumbHref)
+                            <a href="{{ $crumbHref }}">{{ $crumbLabel }}</a>
+                        @else
+                            <span>{{ $crumbLabel }}</span>
+                        @endif
+                        @if (! $loop->last)
+                            <span class="workspace-header__breadcrumb-sep">»</span>
+                        @endif
+                    @endforeach
+                @else
+                    {{ $topbarEyebrow }}
+                @endif
+            </p>
         @endif
     </div>
 
@@ -65,31 +92,31 @@
         </label>
         @auth
             @php
-                $unreadCount = auth()->user()->unreadNotifications()->count();
-                $initials = collect(explode(' ', auth()->user()->name))
+                $notificationCount = auth()->user()->unreadNotifications()->count();
+                $userInitials = collect(explode(' ', auth()->user()->name))
                     ->map(fn ($part) => mb_substr($part, 0, 1))
                     ->take(2)
                     ->implode('');
             @endphp
             <div class="notification-shell" data-notification-shell>
                 <button
-                    class="icon-button notification-button {{ $unreadCount > 0 ? 'has-unread' : '' }}"
+                    class="icon-button notification-button {{ $notificationCount > 0 ? 'has-unread' : '' }}"
                     type="button"
                     aria-label="Notifications" title="Notifikasi"
                     aria-expanded="false"
                     data-notification-button
-                    data-unread-count="{{ $unreadCount }}"
+                    data-unread-count="{{ $notificationCount }}"
                     data-index-url="{{ route('notifications.index') }}"
                     data-read-all-url="{{ route('notifications.read-all') }}"
                 >
                     @include('partials.icons.bell')
-                    <span class="notification-button__badge" data-notification-badge @hidden($unreadCount === 0)>{{ $unreadCount }}</span>
+                    <span class="notification-button__badge" data-notification-badge @hidden($notificationCount === 0)>{{ $notificationCount }}</span>
                 </button>
                 <div class="notification-dropdown" data-notification-dropdown hidden>
                     <div class="notification-dropdown__header">
                         <div>
                             <strong>Notifications</strong>
-                            <small data-notification-summary>{{ $unreadCount }} unread</small>
+                            <small data-notification-summary>{{ $notificationCount }} unread</small>
                         </div>
                         <button class="notification-dropdown__action" type="button" data-notification-read-all>Tandai semua dibaca</button>
                     </div>
@@ -101,7 +128,7 @@
             
             <div class="acss-relative" data-user-menu-shell>
                 <button class="user-chip acss-reset-button" type="button" aria-haspopup="true" aria-expanded="false" data-user-menu-trigger>
-                    <span class="avatar-chip" aria-hidden="true">{{ $initials }}</span>
+                    <span class="avatar-chip" aria-hidden="true">{{ $userInitials }}</span>
                     <span class="acss-text-left">
                         <strong>{{ collect(preg_split('/\s+/', trim(auth()->user()->name)))->take(2)->implode(' ') }}</strong>
                         <small>{{ strtoupper(auth()->user()->role) }}</small>
@@ -129,7 +156,4 @@
         @endauth
     </div>
 </div>
-
-
-
 

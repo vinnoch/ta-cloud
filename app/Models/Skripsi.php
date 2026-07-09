@@ -95,7 +95,7 @@ class Skripsi extends Model
 
     public function isProposalPhase(): bool
     {
-        return $this->current_phase === 'proposal';
+        return in_array($this->current_phase, ['proposal', 'sidang_proposal'], true);
     }
 
     public function isDraft(): bool

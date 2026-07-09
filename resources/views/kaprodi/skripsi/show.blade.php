@@ -23,56 +23,61 @@
             && $approvedAdvisorIds->count() >= $advisorAssignments->pluck('lecturer_id')->filter()->unique()->count();
     @endphp
 
-    <div id="reviewer-feedback">
-        @if (session('success'))
-            <div class="notice notice--success">{{ session('success') }}</div>
-        @endif
-        @if ($errors->any())
-            <div class="notice notice--danger">{{ $errors->first() }}</div>
-        @endif
-        @if ($skripsi->isProposalPhase() && $skripsi->isRejected())
-            <div class="notice notice--danger">
-                <strong>Proposal sudah dikembalikan untuk revisi.</strong>
-                <div class="">Menunggu mahasiswa mengunggah revisi proposal terbaru.</div>
-            </div>
-        @elseif ($skripsi->isProposalPhase() && ! $skripsi->isApproved())
-            <div class="notice notice--warning">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <strong>Approval Proposal</strong>
-                        <div class="">Proposal mahasiswa ini menunggu persetujuan Anda untuk lanjut ke fase Sidang Proposal.</div>
-                    </div>
-                    <div class="flex gap-2">
-                        <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}" onsubmit="return confirm('Setujui proposal ini?')">
-                            @csrf
-                            <button class="button button--small button--success acss-proposal-approve-button" type="submit"><span class="dosen-btn-icon">@include('partials.icons.check')</span><span>Setujui Proposal</span></button>
-                        </form>
-                        <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-proposal-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.edit')</span><span>Tolak / Revisi</span></button>
+    @php
+        $pendingSidangRequest = $skripsi->sidangRequests->where('status', 'submitted')->where('role_type', '!=', 'mahasiswa')->first();
+        $hasReviewerFeedback = session('success')
+            || $errors->any()
+            || ($skripsi->isProposalPhase() && $skripsi->isRejected())
+            || ($skripsi->isProposalPhase() && ! $skripsi->isApproved())
+            || ! empty($pendingSidangRequest);
+    @endphp
+
+    @if ($hasReviewerFeedback)
+        <div id="reviewer-feedback">
+            @if (session('success'))
+                <div class="notice notice--success">{{ session('success') }}</div>
+            @endif
+            @if ($errors->any())
+                <div class="notice notice--danger">{{ $errors->first() }}</div>
+            @endif
+            @if ($skripsi->isProposalPhase() && $skripsi->isRejected())
+                <div class="notice notice--danger">
+                    <strong>Proposal sudah dikembalikan untuk revisi.</strong>
+                    <div class="">Menunggu mahasiswa mengunggah revisi proposal terbaru.</div>
+                </div>
+            @elseif ($skripsi->isProposalPhase() && ! $skripsi->isApproved())
+                <div class="notice notice--warning">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <strong>Approval Proposal</strong>
+                            <div class="">Proposal mahasiswa ini menunggu persetujuan Anda untuk lanjut ke fase Sidang Proposal.</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}" onsubmit="return confirm('Setujui proposal ini?')">
+                                @csrf
+                                <button class="button button--small button--success acss-proposal-approve-button" type="submit"><span class="dosen-btn-icon">@include('partials.icons.check')</span><span>Setujui Proposal</span></button>
+                            </form>
+                            <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-proposal-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.edit')</span><span>Tolak / Revisi</span></button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endif
-
-        @php
-            $pendingSidangRequest = $skripsi->sidangRequests->where('status', 'submitted')->where('role_type', '!=', 'mahasiswa')->first();
-        @endphp
-
-        @if ($pendingSidangRequest)
-            <div class="notice notice--warning ">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <strong>{{ $pendingSidangRequest->lecturer?->name ?? '-' }} ({{ str($pendingSidangRequest->role_type)->replace('_', ' ')->title() }}) telah mengajukan permohonan sidang untuk skripsi ini.</strong>
-                    <div class="flex gap-2">
-                        <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
-                            @csrf
-                            <button class="button button--small button--success acss-sidang-approve-button" type="submit">Setujui Sidang</button>
-                        </form>
-                        <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-sidang-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.archive')</span><span>Tolak Sidang</span></button>
+            @endif
+            @if ($pendingSidangRequest)
+                <div class="notice notice--warning ">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <strong>{{ $pendingSidangRequest->lecturer?->name ?? '-' }} ({{ str($pendingSidangRequest->role_type)->replace('_', ' ')->title() }}) telah mengajukan permohonan sidang untuk skripsi ini.</strong>
+                        <div class="flex gap-2">
+                            <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
+                                @csrf
+                                <button class="button button--small button--success acss-sidang-approve-button" type="submit">Setujui Sidang</button>
+                            </form>
+                            <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-sidang-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.archive')</span><span>Tolak Sidang</span></button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endif
-
-    </div>
+            @endif
+        </div>
+    @endif
 
     @if (!empty($pendingSidangRequest))
         <div class="acss-modal" data-sidang-reject-modal hidden>
@@ -120,6 +125,14 @@
                         <p>{{ $skripsi->student->nim ?? '-' }} •
                             {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) $skripsi->title) }}</div>
+                        @if (($proposalVersions ?? collect())->isNotEmpty() || $skripsi->isProposalPhase())
+                            <div class="acss-link-gap-top">
+                                <a href="{{ route('kaprodi.skripsi.proposal', $skripsi) }}" class="acss-link-subtle acss-link-subtle--icon" target="_blank" rel="noopener noreferrer">
+                                    <span class="acss-link-subtle__icon">@include('partials.icons.file')</span>
+                                    <span>Lihat Proposal</span>
+                                </a>
+                            </div>
+                        @endif
                     </div>
                     <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
@@ -131,40 +144,51 @@
     @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Skripsi'])
 
     @if ($isProposalPhase)
-        <section class="card" id="riwayat-proposal">
-            <div class="section-heading acss-crud-head--inline">
-                <div>
-                    <h3 class="acss-card-title">Riwayat Proposal</h3>
-                </div>
-            </div>
-            <div class="table-shell table-shell--proposal-docs">
-                @forelse (($proposalVersions ?? []) as $document)
-                    @if ($loop->first)
-                        <div class="table-shell__head table-shell__grid acss-table-cols-proposal-docs-detail">
-                            <span>Tanggal</span>
-                            <span>Versi</span>
-                            <span>Catatan</span>
-                            <span>File PDF</span>
-                        </div>
-                    @endif
-                    <div class="table-shell__row table-shell__grid acss-table-cols-proposal-docs-detail acss-hover-row-group">
-                        <div class="table-shell__cell">
-                            <strong>{{ $document->created_at?->format('d/m/Y') ?? '-' }}</strong>
-                            <div class="text-[10px] acss-muted">{{ $document->created_at?->format('H:i') ?? '' }}</div>
-                        </div>
-                        <div class="table-shell__cell"><span class="pill">V{{ $document->version_number }}</span></div>
-                        <div class="table-shell__cell">{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
-                        <div class="table-shell__cell table-shell__cell--action">
-                            <button type="button" class="text-link acss-action-link" onclick="openPdfModal('{{ route('documents.preview', $document) }}', 'Proposal v{{ $document->version_number }}')">
-                                @include('partials.icons.eye')<span>File PDF</span>
-                            </button>
-                        </div>
+        <div class="acss-detail-pair-grid">
+            <section class="card" id="riwayat-proposal">
+                <div class="section-heading">
+                    <div>
+                        <h3 class="acss-card-title">Riwayat Proposal</h3>
                     </div>
-                @empty
-                    <div class="empty-state">Belum ada proposal yang diunggah.</div>
-                @endforelse
-            </div>
-        </section>
+                </div>
+                <div class="table-shell table-shell--proposal-docs">
+                    <div class="table-shell__head table-shell__grid acss-table-cols-kaprodi-proposal-history">
+                        <span>Tanggal</span>
+                        <span>Status Upload</span>
+                    </div>
+                    @forelse (($proposalVersions ?? [])->sortByDesc('version_number') as $document)
+                        <div class="table-shell__row table-shell__grid acss-table-cols-kaprodi-proposal-history acss-hover-row-group">
+                            <div class="table-shell__cell">
+                                <strong>{{ $document->created_at?->format('d/m/Y') ?? '-' }}</strong>
+                                <div class="text-[10px] acss-muted">{{ $document->created_at?->format('H:i') ?? '' }}</div>
+                            </div>
+                            <div class="table-shell__cell">
+                                <div>{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
+                                <div class="acss-row-actions acss-row-actions--always">
+                                    <button type="button" class="text-link acss-action-link" onclick="openPdfModal('{{ route('documents.preview', $document) }}', 'Proposal v{{ $document->version_number }}')">
+                                        @include('partials.icons.file')<span>Proposal</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="empty-state">Belum ada proposal yang diunggah.</div>
+                    @endforelse
+                </div>
+            </section>
+
+            @if ($skripsi->current_phase !== 'proposal' || $skripsi->proposal_review_status === 'approved')
+                <section class="card">
+                    <div class="section-heading acss-crud-head--inline">
+                        <div>
+                            <h3 class="acss-card-title">Reviewer</h3>
+                        </div>
+                        <button type="button" class="acss-link-subtle acss-link-subtle--icon" data-reviewer-modal-open><span class="acss-link-subtle__icon">@include('partials.icons.plus')</span><span>Tambahkan</span></button>
+                    </div>
+                    <div id="reviewer-list">{!! $reviewerTableHtml !!}</div>
+                </section>
+            @endif
+        </div>
     @endif
 
     @if (! $isProposalPhase)

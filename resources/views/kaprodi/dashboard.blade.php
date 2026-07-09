@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-page-card acss-page-card--topflush acss-dashboard-hero-card">
+    <section class="card card--profile acss-skripsi-detail-topcompact">
         <div class="profile-card acss-dashboard-header">
             <div>
                 <h1 class="acss-page-title">Dashboard Kaprodi</h1>

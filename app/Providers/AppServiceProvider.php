@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
                     'dosen' => $navigation->dosenNavItems(),
                     'kaprodi' => $navigation->kaprodiNavItems(),
                     default => [
-                        ['label' => 'Overview', 'href' => route('dashboard.index'), 'active' => 'dashboard.*', 'icon' => 'partials.icons.grid'],
+                        ['label' => 'Overview', 'href' => route('dashboard.index'), 'active' => 'dashboard.*', 'icon' => 'partials.icons.dashboard-monitor'],
                         ['label' => 'Library', 'href' => route('library.index'), 'active' => 'library.*', 'icon' => 'partials.icons.folder'],
                     ],
                 };

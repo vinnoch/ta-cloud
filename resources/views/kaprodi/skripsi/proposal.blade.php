@@ -13,15 +13,26 @@
     <div class="notice notice--danger">{{ $errors->first() }}</div>
 @endif
 
-    <section class="card card--profile">
+@php
+    $studentNameParts = preg_split('/\s+/', trim((string) ($skripsi->student->name ?? ''))) ?: [];
+    $avatarInitials = collect($studentNameParts)
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+        ->implode('');
+@endphp
+
+    <section class="card card--profile acss-skripsi-detail-topcompact">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ $avatarInitials !== '' ? $avatarInitials : 'P' }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
-                        <h2>Proposal Skripsi</h2>
-                        <p>{{ $skripsi->student->name ?? '-' }} • {{ $skripsi->student->nim ?? '-' }}</p>
+                        <h2>{{ \Illuminate\Support\Str::title((string) ($skripsi->student->name ?? '-')) }}</h2>
+                        <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
+                        <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) ($skripsi->title ?: 'Proposal Skripsi')) }}</div>
                     </div>
+                    <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
             </div>
         </div>
@@ -37,84 +48,57 @@
                 <div class="flex gap-2">
                     <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}">
                         @csrf
-                        <button class="button button--success button--inline" type="submit">Approve Proposal</button>
+                        <button class="button button--success button--inline" type="submit"><span class="dosen-btn-icon">@include('partials.icons.check')</span><span>Setujui Proposal</span></button>
                     </form>
-                    <button class="button button--danger button--inline" type="button" onclick="document.querySelector('[data-proposal-reject-modal]').hidden = false">Revisi / Tolak</button>
+                    <button class="button button--danger button--inline" type="button" onclick="document.querySelector('[data-proposal-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.edit')</span><span>Revisi / Tolak</span></button>
                 </div>
             </div>
         </div>
     @endif
 
-    <section class="acss-section-card">
-        <div class="acss-section-card__head">
-            <div>
-                <h3 class="acss-card-title">Detail Proposal</h3>
-            </div>
-        </div>
-        <div class="acss-section-card__body">
-            <div class="acss-info-grid">
-                <div class="acss-info-item">
-                    <span class="acss-muted">Judul Proposal</span>
-                    <strong class="text-xl block ">{{ $skripsi->title ?: '-' }}</strong>
-                </div>
-                <div class="acss-info-item ">
-                    <span class="acss-muted">Tanggal Pengajuan</span>
-                    <strong>{{ $skripsi->documentVersions->first()?->created_at?->format('d/m/Y') ?? '-' }}</strong>
+    <div class="acss-detail-pair-grid">
+        <section class="card">
+            <div class="section-heading">
+                <div>
+                    <h3 class="acss-card-title">Riwayat Proposal</h3>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section class="acss-section-card">
-        <div class="acss-section-card__head">
-            <div>
-                <h3 class="acss-card-title">Riwayat Dokumen Proposal</h3>
-            </div>
-        </div>
-        <div class="acss-section-card__body">
-            <div class="table-shell table-shell--format-assigned table-shell--proposal-docs">
-                <div class="table-shell__head table-shell__grid acss-table-cols-proposal-docs-detail">
-                    <span>Versi</span>
-                    <span>Keterangan</span>
+                <div class="table-shell table-shell--format-assigned table-shell--proposal-docs">
+                <div class="table-shell__head table-shell__grid acss-table-cols-kaprodi-proposal-history">
                     <span>Tanggal</span>
-                    <span>Aksi</span>
+                    <span>Status Upload</span>
                 </div>
                 @forelse ($skripsi->documentVersions->sortByDesc('version_number') as $document)
-                    <div class="table-shell__row table-shell__grid acss-table-cols-proposal-docs-detail acss-hover-row-group">
-                        <div class="table-shell__cell"><strong>v{{ $document->version_number }}</strong></div>
-                        <div class="table-shell__cell">{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
-                        <div class="table-shell__cell">
-                            <strong>{{ $document->created_at?->format('d/m/Y') ?? '-' }}</strong>
-                            <div class="text-[10px] acss-muted">{{ $document->created_at?->format('H:i') ?? '' }}</div>
-                        </div>
-                        <div class="table-shell__cell table-shell__cell--action">
-                            <div class="acss-row-actions">
-                                <a class="text-link acss-action-link" href="javascript:void(0)" onclick="openPdfModal('{{ route('documents.preview', $document) }}', 'Proposal v{{ $document->version_number }}')">@include('partials.icons.eye')<span>Preview</span></a>
+                    <div class="table-shell__row table-shell__grid acss-table-cols-kaprodi-proposal-history acss-hover-row-group">
+                            <div class="table-shell__cell">
+                                <strong>{{ $document->created_at?->format('d/m/Y') ?? '-' }}</strong>
+                                <div class="text-[10px] acss-muted">{{ $document->created_at?->format('H:i') ?? '' }}</div>
                             </div>
-                        </div>
+                            <div class="table-shell__cell">
+                                <div>{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
+                                <div class="acss-row-actions acss-row-actions--always">
+                                    <a class="text-link acss-action-link" href="javascript:void(0)" onclick="openPdfModal('{{ route('documents.preview', $document) }}', 'Proposal v{{ $document->version_number }}')">@include('partials.icons.file')<span>Proposal</span></a>
+                                </div>
+                            </div>
                     </div>
-                @empty
-                    <div class="empty-state">Belum ada dokumen proposal.</div>
-                @endforelse
-            </div>
-        </div>
-    </section>
-
-    @if ($skripsi->current_phase !== 'proposal' || $skripsi->proposal_review_status === 'approved')
-        <section class="acss-section-card">
-            <div class="acss-section-card__head">
-                <div>
-                    <h3 class="acss-card-title">Reviewer</h3>
+                    @empty
+                        <div class="empty-state">Belum ada dokumen proposal.</div>
+                    @endforelse
                 </div>
-            </div>
-            <div class="acss-section-card__body">
-                <div id="reviewer-list">{!! $reviewerTableHtml !!}</div>
-                <div class="acss-link-gap-top ">
-                    <button type="button" class="acss-link-subtle" data-reviewer-modal-open>Tambahkan Reviewer</button>
-                </div>
-            </div>
         </section>
-    @endif
+
+        @if ($skripsi->current_phase !== 'proposal' || $skripsi->proposal_review_status === 'approved')
+            <section class="card">
+                <div class="section-heading acss-crud-head--inline">
+                    <div>
+                        <h3 class="acss-card-title">Reviewer</h3>
+                    </div>
+                    <button type="button" class="acss-link-subtle acss-link-subtle--icon" data-reviewer-modal-open><span class="acss-link-subtle__icon">@include('partials.icons.plus')</span><span>Tambahkan</span></button>
+                </div>
+                <div id="reviewer-list">{!! $reviewerTableHtml !!}</div>
+            </section>
+        @endif
+    </div>
 
     <div class="acss-modal" data-proposal-reject-modal hidden>
         <div class="acss-modal__backdrop" onclick="this.parentElement.hidden = true"></div>

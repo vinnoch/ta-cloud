@@ -37,9 +37,7 @@
 body.ta-body {
     margin: 0;
     min-height: 100vh;
-    background:
-        radial-gradient(circle at top left, rgba(0, 40, 142, 0.06), transparent 28%),
-        linear-gradient(180deg, #fffef9 0%, var(--paper) 100%);
+    background: linear-gradient(180deg, #fffef9 0%, var(--paper) 100%);
     color: var(--ink);
     font-family: "Inter", sans-serif;
 }
@@ -157,6 +155,7 @@ body.ta-body {
     justify-content: space-between;
     gap: 1rem;
     padding: .82rem 2rem .08rem;
+    min-height: 4.25rem;
     background: transparent;
     border: 0;
 }
@@ -174,6 +173,10 @@ body.ta-body {
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
 }
 
 .workspace-header__actions {
@@ -673,7 +676,6 @@ textarea {
 .acss-form-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.5rem;align-items:start}
 .acss-stack-block{display:grid;gap:1rem;min-width:0}
 .acss-grid-full{grid-column:1 / -1}
-.acss-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;align-items:stretch}
 .acss-info-grid{display:grid;gap:1rem}
 .acss-info-item{display:grid;gap:.25rem}
 .acss-info-item>span{color:#64748b;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:none}
@@ -742,7 +744,7 @@ textarea {
 .acss-reviewer-results[hidden],.acss-topbar-results[hidden]{display:none!important}
 
 @media (max-width: 900px){
-  .acss-form-split,.acss-grid-2{grid-template-columns:1fr}
+  .acss-form-split,
   .acss-crud-head--inline{flex-direction:column;align-items:stretch}
 }
 
@@ -1266,7 +1268,7 @@ textarea {
 
 .acss-table-cols-skripsi,.acss-table-cols-skripsi-row{--table-cols:minmax(0,1.65fr) minmax(16rem,1.1fr) minmax(12rem,.85fr)}
 .acss-table-cols-non-skripsi,.acss-table-cols-non-skripsi-row{--table-cols:minmax(0,1.55fr) minmax(16rem,1.05fr) minmax(0,1.4fr)}
-.acss-table-cols-mahasiswa,.acss-table-cols-mahasiswa-row{--table-cols:minmax(0,1.2fr) minmax(18rem,1fr)}
+.acss-table-cols-mahasiswa{--table-cols:minmax(0,1.2fr) minmax(18rem,1fr)}
 .acss-table-cols-dosen-compact{--table-cols:minmax(10rem,.8fr) minmax(0,1.1fr) minmax(18rem,1fr)}
 .acss-table-cols-periode,.acss-table-cols-periode-row{--table-cols:minmax(10rem,.7fr) minmax(12rem,.95fr) minmax(12rem,.95fr) minmax(10rem,.7fr)}
 .acss-table-cols-ta,.acss-table-cols-ta-row{--table-cols:minmax(10rem,.75fr) minmax(0,1.15fr) minmax(10rem,.8fr)}
@@ -1287,8 +1289,9 @@ textarea {
 .acss-table-cols-dosen-skripsi-bimb,.acss-table-cols-mhs-bimbingan-log,.acss-table-cols-dosen-skripsi-docs{--table-cols:minmax(10rem,.8fr) minmax(0,1.1fr) minmax(0,1.5fr) minmax(9rem,.7fr)}
 .acss-table-cols-docs{--table-cols:minmax(10rem,.8fr) minmax(0,1.15fr) minmax(9rem,.7fr)}
 .acss-table-cols-proposal-docs-detail{--table-cols:minmax(10rem,.8fr) minmax(0,1.15fr) minmax(0,1.5fr) minmax(9rem,.7fr)}
+.acss-table-cols-kaprodi-proposal-history{--table-cols:minmax(10rem,.85fr) minmax(0,1.15fr)}
 .acss-table-cols-mhs-final-submission{--table-cols:minmax(10rem,.8fr) minmax(0,1.15fr) minmax(9rem,.7fr)}
-.acss-table-cols-dosen-dash-grading,.acss-table-cols-mhs-dashboard-history{--table-cols:minmax(10rem,.75fr) minmax(0,1.2fr) minmax(10rem,.75fr)}
+.acss-table-cols-dosen-dash-grading{--table-cols:minmax(10rem,.75fr) minmax(0,1.2fr) minmax(10rem,.75fr)}
 .acss-table-cols-mhs-skripsi-bimbingan{--table-cols:minmax(10rem,.8fr) minmax(0,1.1fr) minmax(0,1.5fr)}
 .acss-table-cols-mhs-reviewers{--table-cols:minmax(12rem,.8fr) minmax(0,1fr)}
 .acss-table-cols-mhs-skripsi-reviewers{--table-cols:minmax(12rem,.8fr) minmax(0,1fr) minmax(10rem,.7fr)}
@@ -1300,7 +1303,7 @@ textarea {
 @media (max-width:900px){
   .table-shell__grid,
   .acss-table-cols-skripsi,.acss-table-cols-skripsi-row,
-  .acss-table-cols-mahasiswa,.acss-table-cols-mahasiswa-row,
+  .acss-table-cols-mahasiswa,
   .acss-table-cols-dosen-compact,.acss-table-cols-periode,.acss-table-cols-periode-row,
   .acss-table-cols-ta,.acss-table-cols-ta-row,.acss-table-cols-ta-periode,
   .acss-table-cols-format-list,.acss-table-cols-nilai-list,.acss-table-cols-proposal-subs,
@@ -1308,9 +1311,9 @@ textarea {
   .acss-table-cols-grades,.acss-table-cols-grades-unlock,.acss-table-cols-kaprodi-dosen-bimb,.acss-table-cols-dosen-skripsi,
   .acss-table-cols-dosen-grade,.acss-table-cols-dosen-sidang-reqs,.acss-table-cols-dosen-skripsi-approval,
   .acss-table-cols-dosen-skripsi-bimb,.acss-table-cols-dosen-skripsi-docs,.acss-table-cols-mhs-bimbingan-log,
-  .acss-table-cols-mhs-dashboard-history,.acss-table-cols-mhs-skripsi-bimbingan,.acss-table-cols-mhs-reviewers,
+  .acss-table-cols-mhs-skripsi-bimbingan,.acss-table-cols-mhs-reviewers,
   .acss-table-cols-mhs-skripsi-reviewers,.acss-table-cols-mhs-nilai-summary,.acss-table-cols-docs,
-  .acss-table-cols-proposal-docs-detail,.acss-table-cols-mhs-final-submission{grid-template-columns:1fr}
+  .acss-table-cols-proposal-docs-detail,.acss-table-cols-kaprodi-proposal-history,.acss-table-cols-mhs-final-submission{grid-template-columns:1fr}
 }
 
 /* --- HOVER STATES RESTORE --- */
@@ -1430,7 +1433,6 @@ textarea {
 .pill--muted,.status-pill--draft{background:#f8fafc;border-color:#e2e8f0;color:#475467}
 .pill--score-circle{width:3.1rem;min-width:3.1rem;height:3.1rem;min-height:3.1rem;padding:0;border-radius:9999px;font-size:1rem;font-weight:800;line-height:1;letter-spacing:-.03em;text-align:center}
 .pill--score-circle-neutral{background:#fff;border:1px solid #d7deee;color:#111827}
-.pill--score-circle-green{background:#ecfdf3;border:1px solid #abefc6;color:#067647}
 .acss-score-stack-group{display:inline-flex;align-items:flex-start;justify-content:flex-end;gap:.9rem;flex-wrap:nowrap}
 .acss-score-stack{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.35rem;flex:0 0 auto}
 .acss-score-stack .pill{display:inline-flex;align-items:center;justify-content:center}
@@ -1444,7 +1446,6 @@ textarea {
 .acss-phase-chip{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.75rem;align-items:start;padding:.85rem .9rem;border:1px solid #e5e7eb;border-radius:14px;background:#f8fafc}
 .acss-phase-chip__icon{width:2rem;height:2rem;border-radius:9999px;display:grid;place-items:center;background:#fff;border:1px solid #d7deee;color:#475467;font-size:.82rem;font-weight:800;line-height:1;flex:0 0 auto}
 .acss-phase-chip__title{display:block;color:#111827;font-size:.92rem;font-weight:700;line-height:1.35}
-.acss-phase-chip__meta{display:block;margin-top:.15rem;color:#64748b;font-size:.79rem;line-height:1.35}
 .acss-phase-lane.is-current{border-color:#bfdbfe;background:#f8fbff}
 .acss-phase-lane.is-current .acss-phase-lane__status{color:#1d4ed8}
 .acss-phase-lane.is-complete{border-color:#ccebd8;background:#f3fbf6}
@@ -1661,13 +1662,6 @@ textarea {
     color: #fff;
     font-weight: 700;
 }
-.acss-phase-chip__meta {
-    display: block;
-    margin-top: .16rem;
-    color: #8a94a6;
-    font-size: .68rem;
-    line-height: 1.25;
-}
 
 .top-bar {
     min-height: 4rem;
@@ -1798,9 +1792,19 @@ textarea {
 }
 .search-box__icon {
     position: absolute;
+    top: 50%;
     left: 0.8rem;
     display: flex;
     align-items: center;
+    transform: translateY(-50%);
+    pointer-events: none;
+    width: 1rem;
+    height: 1rem;
+ }
+
+.search-box__icon svg {
+    width: 100%;
+    height: 100%;
 }
 .notification-button {
     display: inline-flex;
@@ -2221,28 +2225,11 @@ textarea {
     text-decoration: none;
     color: #111827;
 }
-.stat-card__body {
-    display: grid;
-    gap: 0.5rem;
-    align-items: center;
-}
-.stat-card__title {
-    font-size: 0.9rem;
-    font-weight: 700;
-    line-height: 1.3;
-    color: #64748b;
-}
 .stat-card__value {
     font-size: 3.2rem;
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.05em;
-}
-.stat-card__fase {
-    font-size: 0.88rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: #334155;
 }
 
 .acss-crud-head--inline .acss-crud-head__title-group {
@@ -2388,10 +2375,6 @@ textarea {
     border-color: #abefc6;
     background: #f3fbf6;
 }
-.acss-action-group {
-    display: grid;
-    gap: .9rem;
-}
 .acss-final-documents {
     display: grid;
     gap: .75rem;
@@ -2435,11 +2418,6 @@ textarea {
     background: transparent !important;
     box-shadow: none !important;
 }
-.history-table--empty {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-}
 .history-table__head,
 .history-table__row {
     display: grid;
@@ -2467,14 +2445,6 @@ textarea {
     display: block;
     font-size: .95rem;
     font-weight: 700;
-}
-.history-table__head--four,
-.history-table__row--four {
-    grid-template-columns: minmax(9rem,.8fr) minmax(10rem,.8fr) minmax(12rem,.9fr) minmax(0,1.4fr);
-}
-.history-table__head--three,
-.history-table__row--three {
-    grid-template-columns: minmax(9rem,.8fr) minmax(0,1.2fr) minmax(10rem,.7fr);
 }
 
 .acss-grading-progress-grid {
@@ -2546,12 +2516,6 @@ textarea {
 
 @media (max-width: 900px) {
   .acss-grading-progress-grid {
-    grid-template-columns: 1fr;
-  }
-  .history-table__head--four,
-  .history-table__row--four,
-  .history-table__head--three,
-  .history-table__row--three {
     grid-template-columns: 1fr;
   }
 }
@@ -2700,10 +2664,6 @@ textarea {
     gap: .75rem;
     flex-wrap: wrap;
     padding-top: .25rem;
-}
-.acss-modal .acss-form-actions--stack{
-    justify-content:flex-start;
-    margin-top:.15rem;
 }
 .acss-modal .form-actions .button,
 .acss-modal .modal-actions .button,
@@ -3128,19 +3088,19 @@ button[data-sidang-create-modal-open]:hover {
     box-shadow: none;
 }
 .profile-card {
-    padding: 1.35rem 1.5rem;
+    padding: 1.15rem 1.5rem;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     background: #fff;
     box-shadow: none;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 1.1rem;
+    gap: 1rem;
     align-items: center;
 }
 .profile-card__avatar {
-    width: 4rem;
-    height: 4rem;
+    width: 3.65rem;
+    height: 3.65rem;
     border-radius: 0;
     display: grid;
     place-items: center;
@@ -3703,25 +3663,18 @@ button[data-sidang-create-modal-open]:hover {
     padding-bottom: .9rem;
 }
 
-.page-content > .acss-page-card:first-child .acss-page-card__body,
-.page-content > .acss-crud-card:first-child .acss-crud-head,
-.page-content > .acss-section-card:first-child .acss-section-card__head {
-    padding-top: 1rem;
-}
-
 .acss-dashboard-header {
-    padding: 1.35rem 1.5rem;
+    padding: 1.15rem 1.5rem;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     background: #fff;
 }
 
 .acss-dashboard-hero-card {
-    margin-top: .28rem;
 }
 
 .acss-skripsi-detail-topcompact {
-    margin-top: -.85rem;
+    margin-top: 0;
 }
 .acss-reviewer-role-normal-weight .table-shell__cell > div > span {
     font-weight: 400;

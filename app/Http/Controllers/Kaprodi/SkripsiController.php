@@ -246,7 +246,7 @@ class SkripsiController extends Controller
             ->sortByDesc('version_number')
             ->values();
 
-        return view('kaprodi.skripsi.show', $this->page('Detail Skripsi', 'KAPRODI • DETAIL SKRIPSI', [
+        return view('kaprodi.skripsi.show', $this->page('Detail Skripsi', $this->skripsiBreadcrumbs($skripsi, 'Skripsi'), [
             'skripsi' => $skripsi,
             'latestBimbingans' => $latestBimbingans,
             'finalReviewDocuments' => $finalReviewDocuments,
@@ -305,7 +305,7 @@ class SkripsiController extends Controller
             'documentVersions' => fn ($query) => $query->where('phase', 'proposal')->orderByDesc('version_number'),
         ]);
 
-        return view('kaprodi.skripsi.proposal', $this->page('Proposal Skripsi', 'KAPRODI • PROPOSAL', [
+        return view('kaprodi.skripsi.proposal', $this->page('Proposal Skripsi', $this->skripsiBreadcrumbs($skripsi, 'Proposal'), [
             'skripsi' => $skripsi,
             'reviewerTableHtml' => $this->renderReviewerTable($skripsi),
             'reviewerSearchUrl' => route('kaprodi.skripsi.reviewers.search', $skripsi),
@@ -322,7 +322,7 @@ class SkripsiController extends Controller
             ->with(['reviewer'])
             ->get();
 
-        return view('kaprodi.skripsi.bimbingan', $this->page('Histori Bimbingan', 'KAPRODI • BIMBINGAN', [
+        return view('kaprodi.skripsi.bimbingan', $this->page('Histori Bimbingan', $this->skripsiBreadcrumbs($skripsi, 'Bimbingan'), [
             'skripsi' => $skripsi,
             'bimbingans' => $bimbingans,
         ]));
@@ -334,7 +334,7 @@ class SkripsiController extends Controller
         $bimbingan->load(['reviewer']);
         $skripsi->load('student.level');
 
-        return view('kaprodi.skripsi.bimbingan-show', $this->page('Detail Histori Bimbingan', 'KAPRODI • DETAIL BIMBINGAN', [
+        return view('kaprodi.skripsi.bimbingan-show', $this->page('Detail Histori Bimbingan', [['label' => 'Kaprodi', 'href' => route('kaprodi.dashboard')], ['label' => (string) ($skripsi->student->nim ?? 'Skripsi'), 'href' => route('kaprodi.skripsi.show', $skripsi)], ['label' => 'Bimbingan', 'href' => route('kaprodi.skripsi.bimbingan', $skripsi)], ['label' => 'Detail']], [
             'skripsi' => $skripsi,
             'bimbingan' => $bimbingan,
         ]));
@@ -696,7 +696,7 @@ class SkripsiController extends Controller
         return Storage::disk('local')->download($document->file_path, basename($document->file_path));
     }
 
-    private function page(string $heading, string $crumbs, array $extra = []): array
+    private function page(string $heading, string|array $crumbs, array $extra = []): array
     {
         return $this->kaprodiPage($heading, $crumbs, $extra);
     }

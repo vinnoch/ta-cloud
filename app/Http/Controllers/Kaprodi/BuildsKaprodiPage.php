@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Kaprodi;
 
+use App\Models\Skripsi;
 use App\Services\RoleNavigationService;
 
 trait BuildsKaprodiPage
 {
     /**
-     * @param  array<string, mixed>  $extra
-     * @return array<string, mixed>
+    * @param  array<string, mixed>  $extra
+    * @return array<string, mixed>
      */
-    protected function kaprodiPage(string $heading, string $crumbs, array $extra = []): array
+    protected function kaprodiPage(string $heading, string|array $crumbs, array $extra = []): array
     {
         $navigation = app(RoleNavigationService::class);
 
@@ -23,5 +24,16 @@ trait BuildsKaprodiPage
             'navFooterItems' => $navigation->footerItems(),
             'navRole' => 'kaprodi',
         ], $extra);
+    }
+
+    protected function skripsiBreadcrumbs(Skripsi $skripsi, string $contextLabel): array
+    {
+        $nim = (string) ($skripsi->student?->nim ?? '-');
+
+        return match ($contextLabel) {
+            'Proposal' => ['Kaprodi', 'Proposal', $nim],
+            'Bimbingan' => ['Kaprodi', 'Histori Bimbingan', $nim],
+            default => ['Kaprodi', 'Detail Skripsi', $nim],
+        };
     }
 }
