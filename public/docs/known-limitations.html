@@ -25,12 +25,13 @@
 
         <ul>
             <li><strong>Final Submission Mahasiswa:</strong> Route dan controller sudah aktif, tetapi visibilitas menu tetap bergantung pada fase dan status dokumen.</li>
-            <li><strong>Ekspor / Rekap Skripsi:</strong> Backend ekspor CSV/PDF belum tersedia penuh.</li>
-            <li><strong>Publish ke Library:</strong> Halaman library sudah ada, tetapi backend untuk memindahkan skripsi final ke library belum lengkap.</li>
-            <li><strong>Phase Board & Keputusan Akhir:</strong> Halaman tersedia sebagai tampilan, tetapi automation/workflow inti masih belum selesai.</li>
-            <li><strong>RBAC Lanjutan:</strong> Sistem masih berbasis role dasar; Program Admin dan Super Admin belum diterapkan penuh.</li>
+            <li><strong>Ekspor Skripsi:</strong> Kaprodi dapat mengekspor CSV. Rekap PDF global belum menjadi fitur tersendiri.</li>
+            <li><strong>Library:</strong> Skripsi yang berstatus selesai dan memiliki dokumen final muncul otomatis di library publik. Belum ada workflow kurasi/publish terpisah.</li>
+            <li><strong>Phase Board & Keputusan Akhir:</strong> Monitoring tersedia, tetapi automation lanjutan di luar lifecycle utama masih ditunda.</li>
+            <li><strong>Faculty Admin:</strong> Role <code>admin</code> masih reserved dan belum diberi kewenangan fakultas. Superadmin teknis sudah aktif dan terpisah dari kewenangan akademik.</li>
             <li><strong>Workflow per Program Studi:</strong> Konfigurasi fase berbeda antar prodi belum tersedia.</li>
             <li><strong>API / Token Auth:</strong> Google login sudah aktif, tetapi layer API/mobile token auth belum menjadi jalur aktif.</li>
+            <li><strong>Google re-auth dan upload logo:</strong> File logo tidak diputar ulang setelah sesi re-auth kedaluwarsa; pilih kembali file setelah kembali ke halaman pengaturan.</li>
         </ul>
 
         <footer class="page-footer">

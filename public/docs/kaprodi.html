@@ -57,6 +57,7 @@
                     <tr><td>Skripsi</td><td>List, detail, proposal, bimbingan, logbook, dokumen, assign reviewer, update status, jadwal sidang</td><td>Pusat kontrol skripsi per mahasiswa.</td></tr>
                     <tr><td>Permohonan Sidang</td><td>List, approve, reject</td><td>Memproses pengajuan sidang dari dosen.</td></tr>
                     <tr><td>Review Dokumen Final</td><td>List, approve final review</td><td>Meninjau dokumen akhir sebelum skripsi selesai.</td></tr>
+                    <tr><td>Export Skripsi</td><td>Filter dan unduh CSV</td><td>Mengunduh rekap skripsi sesuai periode, fase, atau pencarian.</td></tr>
                     <tr><td>Nilai</td><td>Rekap nilai final</td><td>Melihat hasil nilai yang sudah final.</td></tr>
                     <tr><td>Format Penilaian</td><td>CRUD, duplikasi, tambah periode, lihat nilai, buka kunci nilai</td><td>Mengelola template penilaian dan membuka nilai yang sudah dikunci.</td></tr>
                     <tr><td>Dokumen Final</td><td>CRUD, duplikasi, tambah periode</td><td>Mengelola template/format dokumen final per periode.</td></tr>
@@ -122,7 +123,8 @@
 
             <h2 id="final-reviews">Menu Review Dokumen Final</h2>
             <p>Menu ini menampilkan skripsi yang sudah masuk tahap pemeriksaan dokumen akhir. Kaprodi dapat meninjau apakah dokumen sudah siap dianggap selesai.</p>
-            <div class="callout callout--warning">Backend otomatisasi untuk publish ke library masih parsial. Gunakan menu ini sebagai kontrol administrasi internal.</div>
+            <p>Untuk periode aktif, penyelesaian memerlukan dokumen final serta nilai sidang yang sudah dipublikasikan oleh seluruh reviewer yang ditugaskan. Setelah disetujui, status menjadi <code>skripsi_selesai</code> dan dokumen tersedia otomatis di library publik.</p>
+            <div class="callout"><strong>Data historis:</strong> Untuk lulusan pada periode nonaktif yang selesai sebelum memakai TA Cloud, Kaprodi dapat mengunggah PDF/DOC/DOCX final (maksimum 20 MB) melalui aksi penyelesaian historis. Aksi ini tidak tersedia untuk periode aktif.</div>
 
             <h2 id="nilai-menu">Menu Nilai & Unlock Nilai</h2>
             <p>Ada dua area yang perlu dipahami:</p>
@@ -190,15 +192,16 @@
                 <li><strong>Keputusan</strong>: halaman ringkasan keputusan akhir sidang per skripsi.</li>
                 <li><strong>Library</strong>: halaman monitoring item yang siap masuk arsip publik/library.</li>
             </ul>
-            <div class="callout callout--warning">Ketiga halaman ini sudah tersedia, tetapi sebagian logika backend masih belum sepenuhnya otomatis.</div>
+            <div class="callout">Library publik membaca skripsi selesai yang memiliki dokumen final secara otomatis. Fase dan Keputusan tetap berfungsi sebagai halaman monitoring; automation lanjutan di luar lifecycle utama belum tersedia.</div>
 
             <h2 id="arsip">Unduh / Arsip Internal</h2>
-            <p>Pada sisi Kaprodi, fitur yang benar-benar tersedia saat ini adalah <strong>unduh logbook</strong> dan <strong>unduh dokumen</strong> dari halaman detail skripsi. Fitur ini berguna untuk arsip internal, rapat, audit akademik, atau pemeriksaan manual di luar sistem.</p>
+            <p>Kaprodi dapat mengunduh logbook, dokumen mahasiswa, dan rekap skripsi CSV. Fitur ini berguna untuk arsip internal, rapat, audit akademik, atau pemeriksaan manual di luar sistem.</p>
             <ul>
                 <li><strong>Logbook</strong>: mengunduh rangkuman catatan bimbingan mahasiswa.</li>
                 <li><strong>Document Download</strong>: mengunduh proposal, revisi, atau dokumen final yang diunggah mahasiswa.</li>
+                <li><strong>Export Skripsi</strong>: mengunduh CSV berisi NIM, mahasiswa, judul, tipe, fase, dan periode berdasarkan filter aktif.</li>
             </ul>
-            <div class="callout">Catatan: dokumentasi ini tidak lagi menyebut fitur cetak khusus Kaprodi karena yang tersedia saat ini adalah unduh dokumen/logbook, bukan menu print tersendiri.</div>
+            <div class="callout">Belum ada rekap PDF global khusus Kaprodi; gunakan CSV untuk pengolahan lanjutan.</div>
 
             <footer class="page-footer">TACLOUD Internal Documentation &bull; Kaprodi Guide</footer>
         </main>

@@ -25,7 +25,7 @@
 
     <main class="content content--wide">
         <h1>Diagram Alur & Struktur Data TA Cloud</h1>
-        <p>Halaman ini merangkum bagaimana data bergerak di dalam sistem dan bagaimana peran Kaprodi, Dosen, dan Mahasiswa saling terhubung dalam satu alur kerja tugas akhir.</p>
+        <p>Halaman ini merangkum bagaimana data bergerak di dalam sistem dan bagaimana Kaprodi, Dosen, dan Mahasiswa terhubung dalam workflow akademik. Superadmin berada pada jalur operasi teknis yang terpisah.</p>
 
         <div class="callout"><strong>Butuh versi yang lebih formal?</strong> Selain diagram ringkas di halaman ini, tersedia juga <a href="visual-check.html">UML Activity Diagram</a> sebagai visual terpisah untuk review proses, presentasi, dan pengecekan alur.</div>
 
@@ -52,7 +52,8 @@ flowchart TD
     K -->|Tidak| N[Mahasiswa lihat nilai]
     N --> O[Mahasiswa final submission / dokumen akhir]
     O --> P[Kaprodi review dokumen final]
-    P --> Q[Skripsi selesai / siap library]
+    P -->|Dokumen dan nilai lengkap| Q[Skripsi selesai]
+    Q --> R[Otomatis tampil di library publik]
         </div>
 
         <h2>2. DFD Ringkas (Arus Data Antar Peran)</h2>
@@ -62,6 +63,7 @@ flowchart LR
     MHS[Mahasiswa]
     DOS[Dosen]
     KAP[Kaprodi]
+    SUP[Superadmin]
 
     SK[(Skripsi)]
     DOC[(Document Versions)]
@@ -70,6 +72,8 @@ flowchart LR
     NIL[(Grades)]
     NST[(Non-Skripsi Records)]
     NOTIF[(Notifications)]
+    AUDIT[(Audit Logs)]
+    SETTINGS[(Application Settings)]
 
     MHS -->|buat skripsi| SK
     MHS -->|unggah proposal/revisi| DOC
@@ -91,6 +95,12 @@ flowchart LR
     BIM --> NOTIF
     SID --> NOTIF
     NIL --> NOTIF
+
+    SUP -->|kelola akun dan role| AUDIT
+    SUP -->|nama aplikasi dan logo| SETTINGS
+    MHS --> AUDIT
+    DOS --> AUDIT
+    KAP --> AUDIT
         </div>
 
         <h2>3. Relasi Data Inti (UML / Class Style)</h2>
@@ -228,6 +238,7 @@ classDiagram
             <li><strong>Dosen</strong> bekerja di level proses: bimbingan, sidang request, penilaian, unlock request.</li>
             <li><strong>Kaprodi</strong> bekerja di level kontrol: approval proposal, assignment reviewer, approval sidang, unlock nilai, final review.</li>
             <li><strong>Notifications</strong> dipicu oleh perubahan penting lintas proses.</li>
+            <li><strong>Superadmin</strong> mengelola operasi teknis, branding, dan audit; tidak mengambil keputusan akademik.</li>
         </ul>
 
         <div class="callout">

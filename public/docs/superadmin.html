@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Superadmin — TA Cloud</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="topnav">
+        <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
+        <div class="topnav__links">
+            <a href="index.html">Home</a>
+            <a href="superadmin.html" class="active">Superadmin</a>
+            <a href="kaprodi.html">Kaprodi</a>
+            <a href="dosen.html">Dosen</a>
+            <a href="mahasiswa.html">Mahasiswa</a>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="sidebar__title">Panduan Superadmin</div>
+            <a href="#scope">Batas Peran</a>
+            <a href="#bootstrap">Akun Pertama</a>
+            <a href="#users">Users</a>
+            <a href="#settings">Setting</a>
+            <a href="#audit">Log Sistem</a>
+            <a href="#system">Database &amp; Server</a>
+            <a href="#reauth">Google Re-auth</a>
+        </aside>
+
+        <main class="content">
+            <h1>Panduan Superadmin</h1>
+            <span class="badge">Superadmin</span>
+
+            <h2 id="scope">Batas Peran</h2>
+            <p>Superadmin mengelola operasi teknis sistem. Superadmin tidak otomatis memperoleh kewenangan akademik Kaprodi seperti menyetujui proposal, menentukan reviewer, menilai, atau menyelesaikan skripsi.</p>
+            <div class="callout callout--warning"><strong>Admin berbeda dari Superadmin.</strong> Role Admin disimpan untuk Faculty Admin pada pengembangan berikutnya dan belum memiliki workspace aktif.</div>
+
+            <h2 id="bootstrap">Membuat Superadmin Pertama</h2>
+            <p>Database produksi tidak memiliki akun atau password bawaan. Sysadmin menjalankan perintah berikut satu kali dengan email Google institusi yang telah disetujui:</p>
+            <pre><code>php artisan superadmin:bootstrap nama@widyakarya.ac.id</code></pre>
+            <p>Setelah itu, pengguna masuk melalui Google menggunakan email yang sama. Perintah menolak pembuatan Superadmin kedua jika masih ada Superadmin aktif.</p>
+
+            <h2 id="users">Users</h2>
+            <table>
+                <thead><tr><th>Aksi</th><th>Fungsi</th><th>Kontrol</th></tr></thead>
+                <tbody>
+                    <tr><td>Buat akun</td><td>Menyiapkan nama, email institusi, dan role sebelum login Google.</td><td>Email wajib memakai domain institusi.</td></tr>
+                    <tr><td>Ubah role</td><td>Mengganti role Superadmin, Admin, Kaprodi, Dosen, atau Mahasiswa.</td><td>Memerlukan Google re-auth.</td></tr>
+                    <tr><td>Nonaktifkan</td><td>Mengarsipkan akun dan mencabut sesi aktif.</td><td>Superadmin aktif terakhir tidak dapat dinonaktifkan.</td></tr>
+                    <tr><td>Aktifkan kembali</td><td>Memulihkan akun yang dinonaktifkan.</td><td>Memerlukan Google re-auth.</td></tr>
+                </tbody>
+            </table>
+            <div class="callout">Sistem tidak membuat atau menampilkan password default. Akun yang disiapkan menggunakan login Google institusi.</div>
+
+            <h2 id="settings">Setting</h2>
+            <p>Superadmin dapat mengubah nama aplikasi dan logo global. Logo yang diterima: PNG, JPG/JPEG, atau WebP, maksimum 2 MB dan 2000 × 2000 piksel. SVG tidak diterima.</p>
+
+            <h2 id="audit">Log Sistem</h2>
+            <p>Log Sistem menampilkan waktu, aktivitas, dan pengguna untuk perubahan yang berhasil. Data rahasia, token, password, payload, isi file, dan isi dokumen disaring. Sistem mempertahankan 500 aktivitas terbaru.</p>
+
+            <h2 id="system">Database &amp; Server</h2>
+            <p>Halaman ini menampilkan status koneksi database, driver, nama dan versi database, versi PHP/Laravel, environment, timezone, serta konfigurasi publik Google. Credential, client secret, token, port, dan path filesystem tidak ditampilkan.</p>
+
+            <h2 id="reauth">Google Re-authentication</h2>
+            <p>Jika verifikasi sensitif berumur lebih dari 10 menit, perubahan akun/role/status atau setting akan diarahkan ke Google. Pilih akun institusi yang sama; setelah berhasil, sistem melanjutkan aksi yang diizinkan.</p>
+            <div class="callout callout--warning">Google Cloud harus mendaftarkan callback login <code>/auth/google/callback</code> dan callback re-auth <code>/superadmin/reauth/google/callback</code> pada domain produksi. Upload logo perlu dipilih ulang jika re-auth terjadi.</div>
+
+            <footer class="page-footer">TACLOUD Internal Documentation &bull; Superadmin Guide &bull; 27 July 2026</footer>
+        </main>
+    </div>
+</body>
+</html>

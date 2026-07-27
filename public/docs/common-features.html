@@ -12,6 +12,7 @@
         <a href="index.html" class="topnav__brand">TA Cloud Docs</a>
         <div class="topnav__links">
             <a href="visual-check.html">UML Activity</a>
+            <a href="superadmin.html">Superadmin</a>
             <a href="kaprodi.html">Kaprodi</a>
             <a href="dosen.html">Dosen</a>
             <a href="mahasiswa.html">Mahasiswa</a>
@@ -47,9 +48,9 @@
             <div class="screenshot">Screenshot 2: Dropdown Notifikasi</div>
 
             <h2 id="auth">Autentikasi (Login)</h2>
-            <p>TA Cloud menggunakan autentikasi session sebagai jalur utama. Selain login email/password, sistem juga sudah mendukung <strong>Masuk dengan Google</strong> untuk akun yang memenuhi aturan domain/email organisasi.</p>
+            <p>TA Cloud menggunakan autentikasi session. Login email/password tetap tersedia, sedangkan login Google dibatasi ke domain institusi yang dikonfigurasi.</p>
             <div class="callout">
-                <strong>Catatan:</strong> Login Google tidak mengubah role. Hak akses tetap mengikuti role pengguna (Kaprodi / Dosen / Mahasiswa) yang sudah terdaftar.
+                <strong>Catatan:</strong> Login Google tidak menaikkan role. Hak akses mengikuti role akun: Superadmin, Admin, Kaprodi, Dosen, atau Mahasiswa. Akun institusi baru tetap masuk sebagai Mahasiswa kecuali sudah disiapkan oleh Superadmin.
             </div>
             <div class="screenshot">Screenshot: Tombol Masuk dengan Google di halaman login</div>
 
@@ -63,6 +64,9 @@
                 <strong>Catatan:</strong> Proses buka kunci nilai adalah alur resmi dan akan meninggalkan jejak aktivitas di sistem.
             </div>
             <div class="screenshot">Screenshot 4: Alur Request Unlock Nilai</div>
+
+            <h2>Audit Aktivitas</h2>
+            <p>Perubahan data yang berhasil dilakukan oleh pengguna dicatat pada Log Sistem. Tampilan Superadmin hanya memperlihatkan waktu, aktivitas, dan pengguna; password, token, payload, serta isi dokumen tidak ditampilkan.</p>
 
             <footer class="page-footer">
                 TACLOUD Internal Documentation &bull; Common Features
