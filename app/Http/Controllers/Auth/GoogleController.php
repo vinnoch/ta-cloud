@@ -12,14 +12,17 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends AuthenticatedSessionController
 {
-    public function redirect(): RedirectResponse
+    public function redirect(Request $request): RedirectResponse
     {
+        $this->configureCallback($request);
+
         return Socialite::driver('google')->redirect();
     }
 
     public function callback(Request $request): RedirectResponse
     {
         try {
+            $this->configureCallback($request);
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $throwable) {
             return redirect()->route('login')->with('status', 'Google login gagal. Silakan coba lagi.');
@@ -72,5 +75,13 @@ class GoogleController extends AuthenticatedSessionController
         }
 
         return redirect()->to($fallback);
+    }
+
+    private function configureCallback(Request $request): void
+    {
+        config()->set(
+            'services.google.redirect',
+            $request->getSchemeAndHttpHost().route('auth.google.callback', absolute: false),
+        );
     }
 }

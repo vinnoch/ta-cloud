@@ -12,10 +12,10 @@ use Laravel\Socialite\Facades\Socialite;
 
 class ReauthenticationController extends Controller
 {
-    public function redirect(): RedirectResponse
+    public function redirect(Request $request): RedirectResponse
     {
         return Socialite::driver('google')
-            ->redirectUrl(route('superadmin.reauth.callback'))
+            ->redirectUrl($this->callbackUrl($request))
             ->with(['prompt' => 'select_account'])
             ->redirect();
     }
@@ -24,7 +24,7 @@ class ReauthenticationController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')
-                ->redirectUrl(route('superadmin.reauth.callback'))
+                ->redirectUrl($this->callbackUrl($request))
                 ->user();
         } catch (\Throwable) {
             PrivilegedAudit::record('superadmin.reauth_failed', request: $request);
@@ -54,5 +54,10 @@ class ReauthenticationController extends Controller
         }
 
         return redirect()->to($target);
+    }
+
+    private function callbackUrl(Request $request): string
+    {
+        return $request->getSchemeAndHttpHost().route('superadmin.reauth.callback', absolute: false);
     }
 }
