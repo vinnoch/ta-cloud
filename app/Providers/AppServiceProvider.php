@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\ApplicationBranding;
 use App\Services\CardPresenter;
 use App\Services\RoleNavigationService;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,8 @@ class AppServiceProvider extends ServiceProvider
             $user?->loadMissing('studyProgram');
             $role = $user?->role ?? 'global';
             $navigation = app(RoleNavigationService::class);
-            $navSubtitle = $user?->studyProgram?->name ?? ($role === 'global' ? 'Sistem Manajemen Tugas Akhir' : strtoupper($role) . ' Workspace');
+            $branding = app(ApplicationBranding::class)->get();
+            $navSubtitle = $user?->studyProgram?->name ?? ($role === 'global' ? 'Sistem Manajemen Tugas Akhir' : strtoupper($role).' Workspace');
 
             if (empty($data['navItems'])) {
                 $footerItems = $navigation->footerItems();
@@ -53,6 +55,8 @@ class AppServiceProvider extends ServiceProvider
             if (empty($data['roleCards'])) {
                 $view->with('roleCards', app(CardPresenter::class)->forUser($user));
             }
+
+            $view->with('branding', $branding);
         });
     }
 }

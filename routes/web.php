@@ -181,6 +181,7 @@ $skripsiDetailPage = function (string $role, string $heading, string $crumbs, st
 
 require __DIR__.'/web/global.php';
 require __DIR__.'/web/admin.php';
+require __DIR__.'/web/superadmin.php';
 require __DIR__.'/web/mahasiswa.php';
 require __DIR__.'/web/dosen.php';
 require __DIR__.'/web/kaprodi.php';

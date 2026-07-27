@@ -1,6 +1,6 @@
 <aside class="side-nav">
     <div class="brand-lockup">
-        <a class="brand-mark" href="{{ route('home') }}">TA Cloud</a>
+        <a class="brand-mark" href="{{ route('home') }}">{{ $branding['name'] }}</a>
         <p class="brand-subtitle">{{ $navSubtitle ?? ($navRole === 'global' ? 'Sistem Manajemen Tugas Akhir' : strtoupper($navRole).' Workspace') }}</p>
     </div>
 

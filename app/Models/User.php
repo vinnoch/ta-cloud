@@ -16,6 +16,8 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    public const ROLES = ['superadmin', 'admin', 'kaprodi', 'dosen', 'mahasiswa'];
+
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $with = ['level'];
@@ -85,7 +87,7 @@ class User extends Authenticatable
     {
         static::saving(function (self $user): void {
             if (! empty($user->attributes['role'])) {
-                $level = in_array($user->attributes['role'], ['admin', 'kaprodi', 'dosen', 'mahasiswa'], true)
+                $level = in_array($user->attributes['role'], self::ROLES, true)
                     ? UserLevel::firstOrCreate(['users_level' => $user->attributes['role']])
                     : null;
 

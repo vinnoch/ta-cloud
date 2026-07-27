@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->intended(match (auth()->user()->role) {
+            'superadmin' => route('superadmin.dashboard'),
             'mahasiswa' => route('mahasiswa.skripsi.index'),
             'dosen' => route('dosen.dashboard'),
             'kaprodi' => route('kaprodi.dashboard'),

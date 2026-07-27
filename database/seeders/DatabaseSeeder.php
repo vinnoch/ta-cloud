@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['admin', 'kaprodi', 'dosen', 'mahasiswa'] as $role) {
+        foreach (['superadmin', 'admin', 'kaprodi', 'dosen', 'mahasiswa'] as $role) {
             UserLevel::query()->updateOrCreate(['users_level' => $role]);
         }
 

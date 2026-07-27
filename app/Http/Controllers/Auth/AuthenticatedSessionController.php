@@ -39,6 +39,7 @@ class AuthenticatedSessionController extends Controller
     public static function dashboardRouteForRole(string $role): string
     {
         return match ($role) {
+            'superadmin' => route('superadmin.dashboard'),
             'mahasiswa' => route('mahasiswa.skripsi.index'),
             'dosen' => route('dosen.dashboard'),
             'kaprodi' => route('kaprodi.dashboard'),

@@ -39,7 +39,7 @@ test('production seeding creates master data without user credentials', function
     $this->seed();
 
     $this->assertDatabaseCount('users', 0)
-        ->assertDatabaseCount('users_level', 4)
+        ->assertDatabaseCount('users_level', 5)
         ->assertDatabaseCount('departments', 1)
         ->assertDatabaseCount('study_programs', 2);
 });

@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Masuk TA Cloud' }}</title>
+    <title>{{ $title ?? 'Masuk' }} — {{ $branding['name'] }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|manrope:700,800|jetbrains-mono:700"
         rel="stylesheet" />
@@ -28,9 +28,9 @@
     <main class="auth-page auth-page--single">
         <section class="auth-card auth-card--login-single">
             <div class="auth-brand">
-                <img class="auth-brand__logo" src="{{ asset('images/ukwk-logo.png') }}" alt="Logo UKWK">
+                <img class="auth-brand__logo" src="{{ $branding['logo_url'] }}" alt="{{ $branding['name'] }} logo">
                 
-                <h1>TA Cloud UKWK</h1>
+                <h1>{{ $branding['name'] }}</h1>
             </div>
 
             @if (session('status'))
