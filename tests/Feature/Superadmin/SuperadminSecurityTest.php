@@ -115,7 +115,8 @@ it('validates and audits minimal branding settings', function () {
         ->put(route('superadmin.settings.update'), [
             'application_name' => 'TA Cloud UKWK',
             'logo' => UploadedFile::fake()->image('logo.png', 400, 400),
-        ])->assertRedirect();
+        ])->assertRedirect(route('superadmin.settings.edit'))
+        ->assertSessionHas('status', 'Pengaturan berhasil diperbarui.');
 
     $this->assertDatabaseHas('application_settings', ['application_name' => 'TA Cloud UKWK'])
         ->assertDatabaseHas('audit_logs', ['action' => 'settings.updated']);
@@ -235,7 +236,8 @@ it('resumes a role update after same-user google reauthentication and keeps lega
 
     $this->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
         ->put(route('superadmin.users.update', $target), ['role' => 'kaprodi'])
-        ->assertRedirect();
+        ->assertRedirect(route('superadmin.users.index'))
+        ->assertSessionHas('status', 'User berhasil diperbarui.');
 
     $target->refresh();
     expect($target->role)->toBe('kaprodi')

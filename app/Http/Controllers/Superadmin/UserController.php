@@ -47,7 +47,7 @@ class UserController extends Controller
         $user = User::query()->create($data + ['password' => Str::random(64)]);
         PrivilegedAudit::record('user.invited', $user, [], ['email' => $user->email, 'role' => $user->role], $request);
 
-        return back()->with('status', 'Akun dibuat dan siap digunakan untuk masuk melalui Google.');
+        return redirect()->route('superadmin.users.index')->with('status', 'Akun berhasil dibuat.');
     }
 
     public function update(Request $request, User $user, SuperadminAccounts $accounts): RedirectResponse
@@ -57,7 +57,7 @@ class UserController extends Controller
         $accounts->updateRole($user, $data['role']);
         PrivilegedAudit::record('user.role_changed', $user, $before, ['role' => $data['role']], $request);
 
-        return back()->with('status', 'Role updated.');
+        return redirect()->route('superadmin.users.index')->with('status', 'User berhasil diperbarui.');
     }
 
     public function destroy(Request $request, User $user, SuperadminAccounts $accounts): RedirectResponse
@@ -66,7 +66,7 @@ class UserController extends Controller
         $accounts->deactivate($user);
         PrivilegedAudit::record('user.deactivated', $user, $before, [], $request);
 
-        return back()->with('status', 'Account deactivated.');
+        return redirect()->route('superadmin.users.index')->with('status', 'Akun berhasil dinonaktifkan.');
     }
 
     public function restore(Request $request, int $user, SuperadminAccounts $accounts): RedirectResponse
@@ -74,6 +74,6 @@ class UserController extends Controller
         $restored = $accounts->reactivate($user);
         PrivilegedAudit::record('user.reactivated', $restored, [], ['email' => $restored->email, 'role' => $restored->role], $request);
 
-        return back()->with('status', 'Account reactivated.');
+        return redirect()->route('superadmin.users.index')->with('status', 'Akun berhasil diaktifkan kembali.');
     }
 }

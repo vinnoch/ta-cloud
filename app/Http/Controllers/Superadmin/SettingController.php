@@ -54,6 +54,6 @@ class SettingController extends Controller
         PrivilegedAudit::record('settings.updated', null, $before, $settings->only(['application_name', 'logo_path']), $request);
         $branding->forget();
 
-        return back()->with('status', 'Global settings updated.');
+        return redirect()->route('superadmin.settings.edit')->with('status', 'Pengaturan berhasil diperbarui.');
     }
 }
