@@ -10,7 +10,17 @@ class RoleNavigationService
     public function footerItems(): array
     {
         return [
-                        ['label' => 'Keluar', 'href' => '#', 'icon' => 'partials.icons.logout', 'danger' => true],
+            ['label' => 'Keluar', 'href' => '#', 'icon' => 'partials.icons.logout', 'danger' => true],
+        ];
+    }
+
+    public function superadminNavItems(): array
+    {
+        return [
+            ['label' => 'Dashboard', 'href' => route('superadmin.dashboard'), 'active' => 'superadmin.dashboard', 'icon' => 'partials.icons.dashboard-monitor'],
+            ['label' => 'Users', 'href' => route('superadmin.users.index'), 'active' => 'superadmin.users.*', 'icon' => 'partials.icons.grid'],
+            ['label' => 'Setting', 'href' => route('superadmin.settings.edit'), 'active' => 'superadmin.settings.*', 'icon' => 'partials.icons.edit'],
+            ['label' => 'Log Sistem', 'href' => route('superadmin.audit.index'), 'active' => 'superadmin.audit.*', 'icon' => 'partials.icons.phase-shield'],
         ];
     }
 

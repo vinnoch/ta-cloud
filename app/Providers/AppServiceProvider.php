@@ -2,10 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\AuditLog;
 use App\Services\ApplicationBranding;
 use App\Services\CardPresenter;
+use App\Services\PrivilegedAudit;
 use App\Services\RoleNavigationService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,6 +22,25 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        foreach (['created', 'updated', 'deleted', 'restored'] as $event) {
+            Event::listen("eloquent.{$event}: *", function (string $eventName, array $models) use ($event): void {
+                $model = $models[0] ?? null;
+
+                if (! Auth::check() || ! $model instanceof Model || $model instanceof AuditLog) {
+                    return;
+                }
+
+                PrivilegedAudit::record(
+                    "model.{$event}",
+                    $model,
+                    before: $event === 'deleted' ? $model->getOriginal() : [],
+                    after: in_array($event, ['created', 'updated', 'restored'], true) ? $model->getChanges() : [],
+                    request: request(),
+                    markRequest: false,
+                );
+            });
+        }
+
         View::composer('*', function ($view): void {
             $data = $view->getData();
             $user = Auth::user();

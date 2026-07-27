@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\AuditMutations;
 use App\Http\Middleware\RequireFreshSuperadminAuthentication;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AddSecurityHeaders::class);
+        $middleware->append(AuditMutations::class);
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

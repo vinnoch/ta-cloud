@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApplicationSetting;
 use App\Services\ApplicationBranding;
 use App\Services\PrivilegedAudit;
+use App\Services\RoleNavigationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,8 +16,16 @@ class SettingController extends Controller
 {
     public function edit(): View
     {
+        $navigation = app(RoleNavigationService::class);
+
         return view('superadmin.settings', [
-            'title' => 'Global Settings',
+            'title' => 'Setting',
+            'heading' => 'Setting',
+            'crumbs' => 'SUPERADMIN • SETTING',
+            'navItems' => $navigation->superadminNavItems(),
+            'navFooterItems' => $navigation->footerItems(),
+            'navRole' => 'superadmin',
+            'primaryCta' => null,
             'settings' => ApplicationSetting::current(),
         ]);
     }

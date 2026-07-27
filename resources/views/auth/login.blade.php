@@ -16,6 +16,7 @@
 @php
     $translateAuthError = function (string $message): string {
         return match ($message) {
+            'auth.failed' => 'Email atau password tidak sesuai.',
             'These credentials do not match our records.' => 'Email atau password tidak sesuai.',
             'The email field is required.' => 'Email wajib diisi.',
             'The password field is required.' => 'Password wajib diisi.',
@@ -40,19 +41,23 @@
             <form method="POST" action="{{ route('login') }}" class="auth-form" id="login-form">
                 @csrf
 
-                <label>
-                    <span>Email</span>
-                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                        autocomplete="username">
-                </label>
-                @error('email')
-                    <p class="auth-error">{{ $translateAuthError($message) }}</p>
-                @enderror
+                <div class="auth-field-group">
+                    <label>
+                        <span>Email</span>
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                            autocomplete="username" @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
+                    </label>
+                    @error('email')
+                        <p class="auth-error" id="email-error" role="alert">{{ $translateAuthError($message) }}</p>
+                    @enderror
+                </div>
 
-                <label>
-                    <span>Password</span>
-                    <div class="password-field">
-                        <input id="password" type="password" name="password" required autocomplete="current-password">
+                <div class="auth-field-group">
+                    <label>
+                        <span>Password</span>
+                        <div class="password-field">
+                            <input id="password" type="password" name="password" required autocomplete="current-password"
+                                @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
                         <button class="password-toggle" type="button" data-password-toggle
                             data-password-target="password" aria-label="Tampilkan password" aria-pressed="false">
                             <span class="sr-only password-toggle__show">Tampilkan password</span>
@@ -72,11 +77,12 @@
                                 <path d="M6.6 6.7A18.4 18.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.5" />
                             </svg>
                         </button>
-                    </div>
-                </label>
-                @error('password')
-                    <p class="auth-error">{{ $translateAuthError($message) }}</p>
-                @enderror
+                        </div>
+                    </label>
+                    @error('password')
+                        <p class="auth-error" id="password-error" role="alert">{{ $translateAuthError($message) }}</p>
+                    @enderror
+                </div>
 
                 <label class="auth-check">
                     <input type="checkbox" name="remember">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Superadmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\PrivilegedAudit;
+use App\Services\RoleNavigationService;
 use App\Services\SuperadminAccounts;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,8 +17,16 @@ class UserController extends Controller
 {
     public function index(): View
     {
+        $navigation = app(RoleNavigationService::class);
+
         return view('superadmin.users.index', [
-            'title' => 'Account Administration',
+            'title' => 'Users',
+            'heading' => 'Users',
+            'crumbs' => 'SUPERADMIN • USERS',
+            'navItems' => $navigation->superadminNavItems(),
+            'navFooterItems' => $navigation->footerItems(),
+            'navRole' => 'superadmin',
+            'primaryCta' => null,
             'users' => User::query()->withTrashed()->orderBy('name')->paginate(25),
             'roles' => User::ROLES,
         ]);
@@ -38,7 +47,7 @@ class UserController extends Controller
         $user = User::query()->create($data + ['password' => Str::random(64)]);
         PrivilegedAudit::record('user.invited', $user, [], ['email' => $user->email, 'role' => $user->role], $request);
 
-        return back()->with('status', 'Account ready for Google sign-in.');
+        return back()->with('status', 'Akun dibuat dan siap digunakan untuk masuk melalui Google.');
     }
 
     public function update(Request $request, User $user, SuperadminAccounts $accounts): RedirectResponse

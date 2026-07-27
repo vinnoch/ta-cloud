@@ -117,6 +117,23 @@ body.ta-body {
     font-weight: 600;
 }
 
+.auth-field-group {
+    display: grid;
+    gap: .55rem;
+}
+
+.auth-error {
+    margin: 0;
+    color: #b42318;
+    font-size: .84rem;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.auth-form input[aria-invalid="true"] {
+    border-color: #d92d20;
+}
+
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
     border: 1px solid var(--border);
@@ -2982,6 +2999,7 @@ button[data-sidang-create-modal-open]:hover {
     transition: opacity .18s ease, visibility .18s ease;
 }
 .acss-hover-row-group:hover .acss-row-actions,
+.acss-hover-row-group:focus-within .acss-row-actions,
 .table-shell__row:hover .acss-row-actions {
     opacity: 1;
     visibility: visible;
@@ -3736,6 +3754,95 @@ a.button.button--danger:hover {
 .acss-cancel-request-link:hover {
     text-decoration: underline;
     text-underline-offset: .18rem;
+}
+
+.acss-table-cols-superadmin-users {
+    --table-cols: minmax(16rem, 1.35fr) minmax(8rem, .65fr) minmax(7rem, .55fr) minmax(10rem, .8fr);
+}
+
+.acss-table-cols-superadmin-audit {
+    --table-cols: minmax(9rem, .65fr) minmax(16rem, 1.35fr) minmax(12rem, 1fr);
+}
+
+.acss-dashboard-metric__status-icon {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    color: #067647;
+}
+
+.acss-system-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.acss-system-url {
+    overflow-wrap: anywhere;
+    color: #334155;
+}
+
+.u-text-success { color: #067647; }
+.u-text-danger { color: #b42318; }
+
+@media (max-width: 720px) {
+    .acss-system-info-grid { grid-template-columns: 1fr; }
+}
+
+.acss-superadmin-actions,
+.acss-superadmin-role-form {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+}
+
+.acss-superadmin-actions form {
+    margin: 0;
+}
+
+.acss-superadmin-role-form select {
+    min-height: 2.25rem;
+    padding: .45rem .65rem;
+    border: 1px solid #d7deee;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.acss-superadmin-settings-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, .45fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.acss-brand-preview {
+    display: grid;
+    justify-items: center;
+    gap: .75rem;
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+    text-align: center;
+}
+
+.acss-brand-preview img {
+    width: 7rem;
+    height: 7rem;
+    object-fit: contain;
+}
+
+.form-error {
+    color: #b42318;
+    font-size: .8rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+    .acss-superadmin-settings-grid {
+        grid-template-columns: 1fr;
+    }
 }
 .button--google,
 .auth-submit,

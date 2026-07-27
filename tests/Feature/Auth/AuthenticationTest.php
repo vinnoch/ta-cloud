@@ -24,6 +24,7 @@ test('login redirects users to their role dashboard', function () {
 
     $response->assertRedirect(route('mahasiswa.skripsi.index'));
     $this->assertAuthenticatedAs($user);
+    expect($user->fresh()->last_login_at)->not->toBeNull();
 });
 
 test('login page does not expose shortcut credentials', function () {
@@ -143,6 +144,16 @@ test('invalid password keeps user logged out', function () {
         ->assertSessionHasErrors('email');
 
     $this->assertGuest();
+});
+
+test('login error is translated and associated with the email field', function () {
+    $this->withViewErrors([
+        'email' => 'These credentials do not match our records.',
+    ])->view('auth.login')
+        ->assertSee('Email atau password tidak sesuai.')
+        ->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="email-error"', false)
+        ->assertSee('id="email-error" role="alert"', false);
 });
 
 test('logout invalidates authentication and rotates the session', function () {

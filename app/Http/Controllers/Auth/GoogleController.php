@@ -54,6 +54,7 @@ class GoogleController extends AuthenticatedSessionController
             'google_id' => $user->google_id ?: $googleUser->getId(),
             'google_avatar' => $googleUser->getAvatar(),
             'email_verified_at' => $user->email_verified_at ?: now(),
+            'last_login_at' => now(),
         ])->save();
 
         Auth::login($user, true);
