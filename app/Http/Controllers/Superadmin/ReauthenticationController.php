@@ -15,7 +15,7 @@ class ReauthenticationController extends Controller
     public function redirect(Request $request): RedirectResponse
     {
         return Socialite::driver('google')
-            ->redirectUrl($this->callbackUrl($request))
+            ->redirectUrl($this->callbackUrl())
             ->with(['prompt' => 'select_account'])
             ->redirect();
     }
@@ -24,7 +24,7 @@ class ReauthenticationController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')
-                ->redirectUrl($this->callbackUrl($request))
+                ->redirectUrl($this->callbackUrl())
                 ->user();
         } catch (\Throwable) {
             PrivilegedAudit::record('superadmin.reauth_failed', request: $request);
@@ -56,8 +56,11 @@ class ReauthenticationController extends Controller
         return redirect()->to($target);
     }
 
-    private function callbackUrl(Request $request): string
+    private function callbackUrl(): string
     {
-        return $request->getSchemeAndHttpHost().route('superadmin.reauth.callback', absolute: false);
+        $configuredCallback = (string) config('services.google.redirect');
+        $origin = parse_url($configuredCallback, PHP_URL_SCHEME).'://'.parse_url($configuredCallback, PHP_URL_HOST);
+
+        return $origin.route('superadmin.reauth.callback', absolute: false);
     }
 }
