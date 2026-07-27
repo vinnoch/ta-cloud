@@ -21,8 +21,9 @@
     @foreach ($rows as $row)
         <div class="table-shell__row table-shell__grid {{ $colsClass }}">
             @foreach ($row as $cell)
-                <div class="table-shell__cell">{!! $cell !!}</div>
+                <div class="table-shell__cell">{{ $cell }}</div>
             @endforeach
         </div>
     @endforeach
+    @endif
 </div>

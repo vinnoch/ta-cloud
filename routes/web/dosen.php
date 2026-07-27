@@ -39,16 +39,15 @@ Route::prefix('dosen')->name('dosen.')->middleware(['auth', 'role:dosen'])->grou
             ->distinct('skripsi_id')
             ->count('skripsi_id');
 
-        $pendingSidangRequestCount = \App\Models\SidangRequest::query()
+        $sidangRequestCount = \App\Models\SidangRequest::query()
             ->where('lecturer_id', $lecturerId)
-            ->where('status', 'submitted')
             ->count();
 
         $stats = [
             ['label' => 'Skripsi Aktif', 'value' => (string) $activeSkripsiCount, 'hint' => 'Tugas aktif Anda', 'href' => route('dosen.skripsi.index'), 'featured' => true],
             ['label' => 'Total Bimbingan', 'value' => (string) $bimbinganCount, 'hint' => 'Sebagai pembimbing', 'href' => route('dosen.skripsi.index')],
             ['label' => 'Menunggu Nilai', 'value' => (string) $gradingAssignments->count(), 'hint' => 'Sidang perlu dinilai', 'href' => route('dosen.penilaian.index')],
-            ['label' => 'Pengajuan Sidang', 'value' => (string) $pendingSidangRequestCount, 'hint' => 'Menunggu approval Kaprodi', 'href' => route('dosen.sidang-request.index')],
+            ['label' => 'Pengajuan Sidang', 'value' => (string) $sidangRequestCount, 'hint' => 'Total pengajuan Anda', 'href' => route('dosen.sidang-request.index')],
         ];
 
         $navigation = app(\App\Services\RoleNavigationService::class);
@@ -66,6 +65,7 @@ Route::prefix('dosen')->name('dosen.')->middleware(['auth', 'role:dosen'])->grou
         ]);
     })->name('dashboard');
 
+    Route::get('/proposal', [SkripsiViewController::class, 'proposals'])->name('proposal.index');
     Route::get('/skripsi/search', [SkripsiViewController::class, 'search'])->name('skripsi.search');
     Route::get('/skripsi', [SkripsiViewController::class, 'index'])->name('skripsi.index');
     Route::get('/skripsi/{skripsi}', [SkripsiViewController::class, 'show'])->name('skripsi.show');
@@ -82,4 +82,5 @@ Route::prefix('dosen')->name('dosen.')->middleware(['auth', 'role:dosen'])->grou
     Route::get('/pengajuan-sidang-skripsi', [SidangRequestController::class, 'index'])->name('sidang-request.index');
 
     Route::post('/skripsi/{skripsi}/permohonan-sidang', [SidangRequestController::class, 'store'])->name('sidang-request.store');
+    Route::delete('/skripsi/{skripsi}/permohonan-sidang/{sidangRequest}', [SidangRequestController::class, 'destroy'])->name('sidang-request.destroy');
 });

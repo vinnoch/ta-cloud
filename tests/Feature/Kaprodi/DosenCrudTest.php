@@ -29,7 +29,7 @@ test('kaprodi can view paginated dosen list', function () {
         ->get(route('kaprodi.dosen.index'))
         ->assertOk()
         ->assertSee('Dr. Sarah Wijaya')
-        ->assertSee('Daftar Dosen')
+        ->assertSee('Master Dosen')
         ->assertSee('Hapus')
         ->assertSee('class="stack-list"', false)
         ->assertDontSee('<aside class="stack-list">', false);
@@ -66,7 +66,7 @@ test('kaprodi create dosen form shows password toggle controls', function () {
     $kaprodi = kaprodiUser();
 
     $this->actingAs($kaprodi)
-        ->get(route('kaprodi.dosen.create'))
+        ->get(route('kaprodi.dosen.index'))
         ->assertOk()
         ->assertSee('data-password-toggle', false)
         ->assertSee('dosen-password', false)
@@ -88,6 +88,25 @@ test('kaprodi can create dosen account', function () {
     $this->assertDatabaseHas('users', [
         'name' => 'Dr. Bima Prakoso',
         'email' => 'bima.crud@example.test',
+        'role' => 'dosen',
+    ]);
+});
+
+test('dosen creation ignores a forged privileged role', function () {
+    $kaprodi = kaprodiUser();
+
+    $this->actingAs($kaprodi)
+        ->post(route('kaprodi.dosen.store'), [
+            'name' => 'Forged Role',
+            'email' => 'forged-role@example.test',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'kaprodi',
+        ])
+        ->assertRedirect(route('kaprodi.dosen.index'));
+
+    $this->assertDatabaseHas('users', [
+        'email' => 'forged-role@example.test',
         'role' => 'dosen',
     ]);
 });

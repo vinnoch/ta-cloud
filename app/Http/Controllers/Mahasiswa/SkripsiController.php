@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Mahasiswa\FinalSubmissionController;
 use App\Models\DocumentSubmission;
 use App\Models\DocumentVersion;
-use App\Models\FinalDocumentApproval;
+use App\Models\Periode;
 use App\Models\Skripsi;
 use App\Models\User;
 use App\Services\MahasiswaSkripsiDataService;
 use App\Services\NotificationService;
 use App\Services\StudentDocumentPathService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 use Illuminate\View\View;
 
 class SkripsiController extends Controller
@@ -82,7 +81,6 @@ class SkripsiController extends Controller
         ]);
     }
 
-
     public function search(Request $request, MahasiswaSkripsiDataService $skripsiData): JsonResponse
     {
         $query = trim((string) $request->query('q', ''));
@@ -119,7 +117,7 @@ class SkripsiController extends Controller
 
     public function create(Request $request): View
     {
-        $periodes = \App\Models\Periode::query()->orderByDesc('id')->get();
+        $periodes = Periode::query()->orderByDesc('id')->get();
         $selectedType = $request->query('type') === 'non_skripsi' ? 'non_skripsi' : 'skripsi';
         $heading = $selectedType === 'non_skripsi' ? 'Buat Non-Skripsi Baru' : 'Buat Skripsi Baru';
 
@@ -208,7 +206,7 @@ class SkripsiController extends Controller
             $notifications->send($kaprodiUsers, [
                 'type' => 'proposal_submitted',
                 'title' => 'Pengajuan proposal baru',
-                'message' => $request->user()->name . ' mengajukan proposal skripsi: ' . $skripsi->title,
+                'message' => $request->user()->name.' mengajukan proposal skripsi: '.$skripsi->title,
                 'url' => route('kaprodi.skripsi.show', $skripsi, false),
                 'actor' => $request->user()->name,
                 'meta' => [
@@ -236,7 +234,7 @@ class SkripsiController extends Controller
                 $notifications->send($kaprodiUsers, [
                     'type' => 'proposal_submitted',
                     'title' => 'Pengajuan proposal baru',
-                    'message' => $skripsi->student->name . ' mengajukan proposal skripsi: ' . $skripsi->title,
+                    'message' => $skripsi->student->name.' mengajukan proposal skripsi: '.$skripsi->title,
                     'url' => route('kaprodi.skripsi.show', $skripsi, false),
                     'actor' => $skripsi->student->name,
                     'meta' => [
@@ -271,22 +269,16 @@ class SkripsiController extends Controller
         $dokumenFinalStatus = null;
 
         if ($dokumenFinalVisible) {
-            $finalApprovals = FinalDocumentApproval::query()
-                ->where('skripsi_id', $skripsi->id)
-                ->get();
-
             $hasDocumentSubmissions = DocumentSubmission::query()
                 ->where('skripsi_id', $skripsi->id)
                 ->exists();
 
-            $allApproved = $finalApprovals->isNotEmpty() && $finalApprovals->every(fn ($approval) => $approval->status === 'approved');
-
             $dokumenFinalStatus = [
-                'label' => $allApproved || $skripsi->current_phase === 'skripsi_selesai' ? 'Approved' : 'Sedang Dicek',
+                'label' => $skripsi->current_phase === 'skripsi_selesai' ? 'Approved' : 'Sedang Dicek',
                 'description' => $hasDocumentSubmissions
-                    ? ($allApproved || $skripsi->current_phase === 'skripsi_selesai'
-                        ? 'Semua dokumen final sudah disetujui.'
-                        : 'Dokumen final masih diperiksa dosen dan kaprodi.')
+                    ? ($skripsi->current_phase === 'skripsi_selesai'
+                        ? 'Dokumen final sudah divalidasi Kaprodi.'
+                        : 'Dokumen final sedang divalidasi Kaprodi.')
                     : 'Belum ada dokumen final yang dikirim.',
                 'href' => route('mahasiswa.skripsi.final.skripsi.index', $skripsi),
             ];
@@ -377,7 +369,7 @@ class SkripsiController extends Controller
                 $notifications->send($kaprodiUsers, [
                     'type' => 'proposal_submitted',
                     'title' => 'Pengajuan proposal baru',
-                    'message' => $skripsi->student->name . ' mengajukan proposal skripsi: ' . $skripsi->title,
+                    'message' => $skripsi->student->name.' mengajukan proposal skripsi: '.$skripsi->title,
                     'url' => route('kaprodi.skripsi.show', $skripsi, false),
                     'actor' => $skripsi->student->name,
                     'meta' => [

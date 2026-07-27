@@ -21,11 +21,11 @@
 
     <section class="card card--profile">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($skripsi->student->name ?? 'M', 0, 1)) }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
-                        <h2>{{ $skripsi->student->name ?? '-' }}</h2>
+                        <h2>{{ str($skripsi->student->name ?? '-')->title() }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
                         @if (($sidangProposalSchedule ?? null) || ($sidangSkripsiSchedule ?? null))
@@ -63,13 +63,14 @@
     @endif
 
     @if (($proposalFinalSubmission['allowed'] ?? false) || ($skripsiFinalSubmission['allowed'] ?? false))
-        <section class="acss-section-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
-            <div class="acss-section-card__head">
+        <section class="acss-crud-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
+            <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Final Submission</h3>
                     <p class="acss-muted ">Aktif setelah semua nilai tahap sidang tersedia.</p>
                 </div>
             </div>
+            <div class="acss-crud-body">
             <div class="table-shell">
                 <div class="table-shell__head table-shell__grid acss-table-cols-mhs-final-submission">
                     <span>Tahap</span>
@@ -88,6 +89,7 @@
                     @endif
                 @endforeach
             </div>
+            </div>
         </section>
     @endif
 
@@ -105,8 +107,8 @@
         </section>
     @endif
 
-    <section class="card" id="riwayat-proposal">
-        <div class="section-heading acss-crud-head--inline">
+    <section class="acss-crud-card" id="riwayat-proposal">
+        <div class="acss-crud-head acss-crud-head--inline">
             <div>
                 <h3 class="acss-card-title">Proposal Skripsi</h3>
             </div>
@@ -116,6 +118,7 @@
                 </div>
             @endif
         </div>
+        <div class="acss-crud-body">
         <div class="table-shell table-shell--proposal-docs">
             @forelse (($proposalVersions ?? []) as $document)
                 @if ($loop->first)
@@ -146,10 +149,12 @@
                 <div class="empty-state">Belum ada proposal yang diunggah.</div>
             @endforelse
         </div>
+        </div>
     </section>
 
-    <section class="card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
-        <div class="section-heading"><div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div></div>
+    <section class="acss-crud-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
+        <div class="acss-crud-head"><div><h3 class="acss-card-title">Histori Bimbingan Terakhir</h3></div></div>
+        <div class="acss-crud-body">
         <div class="table-shell">
             @if (count($latestBimbingans ?? []) > 0)
                 <div class="table-shell__head table-shell__grid" style="--table-cols:repeat(5,minmax(0,1fr));">
@@ -187,10 +192,12 @@
         <div class="acss-link-gap-top">
             <a class="acss-link-subtle" href="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) }}">Lihat Semua Histori Bimbingan</a>
         </div>
+        </div>
     </section>
 
-    <section class="card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
-        <div class="section-heading"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
+    <section class="acss-crud-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
+        <div class="acss-crud-head"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
+        <div class="acss-crud-body">
         <div class="table-shell">
             @if (count($reviewers ?? []) > 0)
                 <div class="table-shell__head table-shell__grid acss-table-cols-mhs-reviewers">
@@ -206,6 +213,7 @@
             @empty
                 <div class="empty-state">Belum ada dosen terhubung.</div>
             @endforelse
+        </div>
         </div>
     </section>
 @push('scripts')
@@ -330,12 +338,12 @@
 @endpush
 
 @if ($canProposalUpload ?? false)
-    <div class="acss-modal" data-proposal-upload-modal hidden>
+    <div class="acss-modal" data-proposal-upload-modal role="dialog" aria-modal="true" aria-labelledby="proposal-upload-modal-title" hidden>
         <div class="acss-modal__backdrop" data-proposal-modal-close></div>
         <div class="acss-modal__dialog">
             <div class="acss-modal__head">
                 <div>
-                    <h3>{{ $needsProposalRevision ? 'Upload Revisi Proposal' : 'Upload Proposal' }}</h3>
+                    <h3 id="proposal-upload-modal-title">{{ $needsProposalRevision ? 'Upload Revisi Proposal' : 'Upload Proposal' }}</h3>
                     <p class="acss-muted ">{{ $needsProposalRevision ? 'Upload revisi proposal terbaru sesuai catatan Kaprodi.' : 'Upload proposal awal untuk memulai proses review.' }}</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-proposal-modal-close aria-label="Tutup">×</button>
@@ -362,12 +370,12 @@
     </div>
 @endif
 
-<div class="acss-modal" data-pdf-preview-modal hidden>
+<div class="acss-modal" data-pdf-preview-modal role="dialog" aria-modal="true" aria-labelledby="skripsi-pdf-preview-title" hidden>
     <div class="acss-modal__backdrop" data-pdf-preview-close></div>
     <div class="acss-modal__dialog acss-modal__dialog--pdf">
         <div class="acss-modal__head">
             <div>
-                <h3>Preview Dokumen</h3>
+                <h3 id="skripsi-pdf-preview-title">Preview Dokumen</h3>
                 <p class="acss-muted " data-pdf-preview-name>-</p>
             </div>
             <button type="button" class="acss-modal__close" data-pdf-preview-close aria-label="Tutup">×</button>

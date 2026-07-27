@@ -1,7 +1,7 @@
 <?php
 
 use App\Services\RoleNavigationService;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\HtmlString;
 
 $sampleId = 101;
 $sampleMeetingId = 12;
@@ -12,15 +12,14 @@ $footerItems = [
     ['label' => 'Keluar', 'href' => '#', 'icon' => 'partials.icons.logout', 'danger' => true],
 ];
 
-$tableAction = fn(string $label, string $href) => '<a class="text-link" href="' . $href . '">' . $label . '</a>';
-$tableActionPair = fn(string $firstLabel, string $firstHref, string $secondLabel, string $secondHref) => '<a class="text-link" href="' . $firstHref . '">' . $firstLabel . '</a> | <a class="text-link" href="' . $secondHref . '">' . $secondLabel . '</a>';
+$tableActionPair = fn (string $firstLabel, string $firstHref, string $secondLabel, string $secondHref) => new HtmlString('<a class="text-link" href="'.$firstHref.'">'.$firstLabel.'</a> | <a class="text-link" href="'.$secondHref.'">'.$secondLabel.'</a>');
 
-$crudSideCards = fn(string $context, string $note) => [
+$crudSideCards = fn (string $context, string $note) => [
     ['eyebrow' => 'Frontend Only', 'title' => $context, 'description' => $note],
     ['eyebrow' => 'Delete State', 'title' => 'Representasi hapus tersedia', 'description' => 'Delete saat ini berupa state aksi/konfirmasi frontend, belum persistence backend.'],
 ];
 
-$adminFields = fn(string $entity) => match ($entity) {
+$adminFields = fn (string $entity) => match ($entity) {
     'program-studi' => [
         ['label' => 'Nama Program Studi', 'placeholder' => 'Contoh: Sistem Informasi'],
         ['label' => 'Kode Program Studi', 'placeholder' => 'SI'],
@@ -131,7 +130,7 @@ $page = function (string $role, string $heading, string $crumbs, array $extra = 
     ], $navFactory($role), $extra);
 };
 
-$dashboardForRole = fn(string $role): string => match ($role) {
+$dashboardForRole = fn (string $role): string => match ($role) {
     'mahasiswa' => route('mahasiswa.skripsi.index'),
     'dosen' => route('dosen.dashboard'),
     'kaprodi' => route('kaprodi.dashboard'),
@@ -180,10 +179,10 @@ $skripsiDetailPage = function (string $role, string $heading, string $crumbs, st
     return $page($role, $heading, $crumbs, array_merge($base, $overrides));
 };
 
-require __DIR__ . '/web/global.php';
-require __DIR__ . '/web/admin.php';
-require __DIR__ . '/web/mahasiswa.php';
-require __DIR__ . '/web/dosen.php';
-require __DIR__ . '/web/kaprodi.php';
-require __DIR__ . '/web/notifications.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/web/global.php';
+require __DIR__.'/web/admin.php';
+require __DIR__.'/web/mahasiswa.php';
+require __DIR__.'/web/dosen.php';
+require __DIR__.'/web/kaprodi.php';
+require __DIR__.'/web/notifications.php';
+require __DIR__.'/auth.php';

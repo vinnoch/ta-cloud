@@ -14,14 +14,15 @@ use Illuminate\View\View;
 class ImportUserController extends Controller
 {
     use BuildsKaprodiPage;
+
     public function showDosen(): View
     {
         return view('kaprodi.import.dosen', $this->page('Import Dosen', 'KAPRODI • IMPORT DOSEN', [
             'templateName' => 'template_dosen.csv',
-            'requiredColumns' => ['name', 'email'],
-            'optionalColumns' => ['nidn_nip', 'password'],
+            'requiredColumns' => ['name', 'email', 'password'],
+            'optionalColumns' => ['nidn_nip'],
             'sampleRows' => [
-                ['name' => 'Dr. Sarah Wijaya', 'nidn_nip' => '0412345678', 'email' => 'sarah.wijaya@kampus.ac.id', 'password' => 'password123'],
+                ['name' => 'Dr. Sarah Wijaya', 'nidn_nip' => '0412345678', 'email' => 'sarah.wijaya@kampus.ac.id', 'password' => ''],
             ],
         ]));
     }
@@ -35,10 +36,10 @@ class ImportUserController extends Controller
     {
         return view('kaprodi.import.mahasiswa', $this->page('Import Mahasiswa', 'KAPRODI • IMPORT MAHASISWA', [
             'templateName' => 'template_mahasiswa.csv',
-            'requiredColumns' => ['name', 'email', 'nim'],
-            'optionalColumns' => ['password'],
+            'requiredColumns' => ['name', 'email', 'nim', 'password'],
+            'optionalColumns' => [],
             'sampleRows' => [
-                ['name' => 'Adrian Sterling', 'email' => 'adrian@kampus.ac.id', 'nim' => '2021004592', 'password' => 'password123'],
+                ['name' => 'Adrian Sterling', 'email' => 'adrian@kampus.ac.id', 'nim' => '2021004592', 'password' => ''],
             ],
         ]));
     }
@@ -66,18 +67,20 @@ class ImportUserController extends Controller
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'File CSV kosong atau tidak memiliki data.'], 422);
             }
+
             return back()->withErrors(['file' => 'File CSV kosong atau tidak memiliki data.'])->withInput();
         }
 
         $headers = array_map([$this, 'normalizeHeader'], array_shift($rows));
-        $required = $role === 'mahasiswa' ? ['name', 'email', 'nim'] : ['name', 'email'];
+        $required = $role === 'mahasiswa' ? ['name', 'email', 'nim', 'password'] : ['name', 'email', 'password'];
         $missingHeaders = array_values(array_diff($required, $headers));
 
         if ($missingHeaders !== []) {
-            $message = 'Header wajib tidak lengkap: ' . implode(', ', $missingHeaders);
+            $message = 'Header wajib tidak lengkap: '.implode(', ', $missingHeaders);
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $message], 422);
             }
+
             return back()->withErrors([
                 'file' => $message,
             ])->withInput();
@@ -101,33 +104,36 @@ class ImportUserController extends Controller
                 'email' => ['required', 'email', 'max:255'],
                 'nim' => $role === 'mahasiswa' ? ['required', 'string', 'max:50'] : ['nullable', 'string', 'max:50'],
                 'nidn_nip' => $role === 'dosen' ? ['nullable', 'string', 'max:255'] : ['nullable', 'string', 'max:255'],
-                'password' => ['nullable', 'string', 'min:8'],
+                'password' => ['required', 'string', 'min:8'],
             ]);
 
             if ($validator->fails()) {
                 $skipped++;
-                $errors[] = 'Baris ' . $rowNumber . ': ' . $validator->errors()->first();
+                $errors[] = 'Baris '.$rowNumber.': '.$validator->errors()->first();
+
                 continue;
             }
 
             $data = $validator->validated();
             $emailOwner = User::query()->where('email', $data['email'])->first();
-            $nimOwner = $role === 'mahasiswa' && !empty($data['nim'])
+            $nimOwner = $role === 'mahasiswa' && ! empty($data['nim'])
                 ? User::query()->where('nim', $data['nim'])->when($emailOwner, fn ($q) => $q->whereKeyNot($emailOwner->id))->first()
                 : null;
-            $nidnOwner = $role === 'dosen' && !empty($data['nidn_nip'])
+            $nidnOwner = $role === 'dosen' && ! empty($data['nidn_nip'])
                 ? User::query()->where('nidn_nip', $data['nidn_nip'])->when($emailOwner, fn ($q) => $q->whereKeyNot($emailOwner->id))->first()
                 : null;
 
             if ($nimOwner) {
                 $skipped++;
-                $errors[] = 'Baris ' . $rowNumber . ': NIM sudah dipakai user lain (' . $data['nim'] . ').';
+                $errors[] = 'Baris '.$rowNumber.': NIM sudah dipakai user lain ('.$data['nim'].').';
+
                 continue;
             }
 
             if ($nidnOwner) {
                 $skipped++;
-                $errors[] = 'Baris ' . $rowNumber . ': NIDN/NIP sudah dipakai user lain (' . $data['nidn_nip'] . ').';
+                $errors[] = 'Baris '.$rowNumber.': NIDN/NIP sudah dipakai user lain ('.$data['nidn_nip'].').';
+
                 continue;
             }
 
@@ -145,11 +151,7 @@ class ImportUserController extends Controller
                 $attributes['nidn_nip'] = $data['nidn_nip'] ?? null;
             }
 
-            if (!empty($data['password'])) {
-                $attributes['password'] = Hash::make($data['password']);
-            } elseif (!$emailOwner) {
-                $attributes['password'] = Hash::make('password123');
-            }
+            $attributes['password'] = Hash::make($data['password']);
 
             if ($emailOwner) {
                 $emailOwner->fill($attributes);
@@ -171,12 +173,12 @@ class ImportUserController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => ucfirst($role) . ' import selesai.',
+                'message' => ucfirst($role).' import selesai.',
                 'summary' => $summary,
             ]);
         }
 
-        return back()->with('success', ucfirst($role) . ' import selesai.')
+        return back()->with('success', ucfirst($role).' import selesai.')
             ->with('importSummary', $summary);
     }
 

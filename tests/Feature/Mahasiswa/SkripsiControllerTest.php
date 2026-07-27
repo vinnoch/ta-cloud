@@ -1,8 +1,9 @@
 <?php
 
-use App\Models\Skripsi;
-use App\Models\User;
 use App\Models\Periode;
+use App\Models\Skripsi;
+use App\Models\TahunAkademik;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -10,7 +11,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->mahasiswa = User::factory()->mahasiswa()->create();
     $this->otherMahasiswa = User::factory()->mahasiswa()->create();
-    $tahun = \App\Models\TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
+    $tahun = TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
     $this->periode = Periode::query()->create([
         'id' => 1, 'tahun_akademik_id' => $tahun->id, 'kode_periode' => '20251',
         'semester' => 1, 'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01',
@@ -46,6 +47,26 @@ it('stores new skripsi', function () {
     ]);
 });
 
+it('ignores forged ownership and workflow fields', function () {
+    $this->actingAs($this->mahasiswa)
+        ->post(route('mahasiswa.skripsi.store'), [
+            'periode_id' => 1,
+            'title' => 'Protected Skripsi',
+            'type' => 'skripsi',
+            'student_id' => $this->otherMahasiswa->id,
+            'current_phase' => 'skripsi_selesai',
+            'proposal_review_status' => 'approved',
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('skripsis', [
+        'title' => 'Protected Skripsi',
+        'student_id' => $this->mahasiswa->id,
+        'current_phase' => 'proposal',
+        'proposal_review_status' => 'draft',
+    ]);
+});
+
 it('shows edit updates softdeletes own skripsi', function () {
     $skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Old', 'type' => 'skripsi', 'current_phase' => 'proposal']);
 
@@ -59,7 +80,7 @@ it('shows edit updates softdeletes own skripsi', function () {
 
     $this->actingAs($this->mahasiswa)
         ->put(route('mahasiswa.skripsi.update', $skripsi), [
-            'title' => 'Updated', 'type' => 'non_skripsi'
+            'title' => 'Updated', 'type' => 'non_skripsi',
         ])
         ->assertRedirect();
     $this->assertDatabaseHas('skripsis', ['id' => $skripsi->id, 'title' => 'Updated', 'type' => 'non_skripsi']);
@@ -74,6 +95,6 @@ it('blocks other mahasiswa', function () {
     $skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Mine', 'type' => 'skripsi', 'current_phase' => 'proposal']);
     $this->actingAs($this->otherMahasiswa)->get(route('mahasiswa.skripsi.show', $skripsi))->assertForbidden();
     $this->actingAs($this->otherMahasiswa)->get(route('mahasiswa.skripsi.edit', $skripsi))->assertForbidden();
-    $this->actingAs($this->otherMahasiswa)->put(route('mahasiswa.skripsi.update', $skripsi), ['title'=>'A','type'=>'skripsi'])->assertForbidden();
+    $this->actingAs($this->otherMahasiswa)->put(route('mahasiswa.skripsi.update', $skripsi), ['title' => 'A', 'type' => 'skripsi'])->assertForbidden();
     $this->actingAs($this->otherMahasiswa)->delete(route('mahasiswa.skripsi.destroy', $skripsi))->assertForbidden();
 });

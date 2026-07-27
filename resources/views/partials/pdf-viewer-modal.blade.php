@@ -25,12 +25,12 @@
 </script>
 @endpush
 
-<div class="acss-modal" data-pdf-preview-modal hidden>
+<div class="acss-modal" data-pdf-preview-modal role="dialog" aria-modal="true" aria-labelledby="pdf-preview-modal-title" hidden>
     <div class="acss-modal__backdrop" data-pdf-preview-close></div>
     <div class="acss-modal__dialog acss-modal__dialog--pdf">
         <div class="acss-modal__head">
             <div>
-                <h3 class="acss-card-title">Preview Dokumen</h3>
+                <h3 class="acss-card-title" id="pdf-preview-modal-title">Preview Dokumen</h3>
                 <p class="acss-muted " data-pdf-preview-name>-</p>
             </div>
             <button type="button" class="acss-modal__close" data-pdf-preview-close aria-label="Tutup">×</button>

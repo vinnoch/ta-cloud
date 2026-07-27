@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kaprodi;
 use App\Http\Controllers\Controller;
 use App\Models\Skripsi;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,8 @@ use Illuminate\View\View;
 class MahasiswaController extends Controller
 {
     use BuildsKaprodiPage;
-    public function index(Request $request): View|\Illuminate\Http\JsonResponse
+
+    public function index(Request $request): View|JsonResponse
     {
         $search = $request->string('q')->toString();
         $sort = $request->string('sort')->toString();
@@ -33,7 +35,7 @@ class MahasiswaController extends Controller
                         ->orWhere('nim', 'like', "%{$search}%");
                 });
             })
-            ->when(in_array($sort, ['name','email','nim'], true), fn ($query) => $query->orderBy($sort, $direction), fn ($query) => $query->latest())
+            ->when(in_array($sort, ['name', 'email', 'nim'], true), fn ($query) => $query->orderBy($sort, $direction), fn ($query) => $query->latest())
             ->paginate(10)
             ->withQueryString();
 
@@ -41,11 +43,11 @@ class MahasiswaController extends Controller
             return response()->json([
                 'table_html' => view('kaprodi.mahasiswa.partials.table', ['mahasiswa' => $mahasiswa, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('kaprodi.mahasiswa.partials.pagination', ['mahasiswa' => $mahasiswa])->render(),
-                'count_text' => $mahasiswa->total() . ' akun mahasiswa ditemukan.',
+                'count_text' => $mahasiswa->total().' akun mahasiswa ditemukan.',
             ]);
         }
 
-                $archivedCount = User::onlyTrashed()->forRole('mahasiswa')->count();
+        $archivedCount = User::onlyTrashed()->forRole('mahasiswa')->count();
 
         return view('kaprodi.mahasiswa.index', $this->page('Master Mahasiswa', 'KAPRODI • MAHASISWA', [
             'mahasiswa' => $mahasiswa,
@@ -111,9 +113,9 @@ class MahasiswaController extends Controller
         return view('kaprodi.mahasiswa.show', $this->page('Detail Mahasiswa', 'KAPRODI • MAHASISWA', [
             'mahasiswa' => $mahasiswa,
             'identity' => [
-                'avatar' => collect(explode(' ', $mahasiswa->name))->map(fn(string $part): string => mb_substr($part, 0, 1))->take(2)->implode(''),
-                'name' => $mahasiswa->name,
-                'nim' => 'NIM: ' . ($mahasiswa->nim ?? '-'),
+                'avatar' => mb_strtoupper(collect(explode(' ', $mahasiswa->name))->map(fn (string $part): string => mb_substr($part, 0, 1))->take(2)->implode('')),
+                'name' => str($mahasiswa->name)->title()->toString(),
+                'nim' => 'NIM: '.($mahasiswa->nim ?? '-'),
                 'program' => 'Sistem Informasi',
                 'status' => $mahasiswa->trashed() ? 'ARCHIVED' : strtoupper($mahasiswa->role),
             ],

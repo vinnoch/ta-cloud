@@ -24,7 +24,7 @@ class FormatPenilaianController extends Controller
         $search = $request->query('q');
         $jenis = $request->query('jenis', '');
         $sort = $request->query('sort', 'nama');
-        $direction = $request->query('direction', 'asc');
+        $direction = strtolower((string) $request->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
         $formats = FormatPenilaian::query()
             ->with(['periodes', 'studyProgram', 'items'])
@@ -127,7 +127,7 @@ class FormatPenilaianController extends Controller
 
         $assignedSearch = $request->query('assigned_q', $request->query('q'));
         $assignedSort = $request->query('assigned_sort', $request->query('sort', 'mahasiswa'));
-        $assignedDirection = $request->query('assigned_direction', $request->query('direction', 'asc'));
+        $assignedDirection = strtolower((string) $request->query('assigned_direction', $request->query('direction', 'asc'))) === 'desc' ? 'desc' : 'asc';
         $assignedPeriodeId = $request->query('assigned_periode_id');
 
         $assignedSkripsis = Skripsi::query()

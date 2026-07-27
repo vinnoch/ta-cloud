@@ -91,3 +91,30 @@ it('allows kaprodi on kaprodi route', function () {
         ->get(route('kaprodi.dashboard'))
         ->assertOk();
 });
+
+it('blocks forged write requests across role boundaries', function (string $role, string $route) {
+    $user = User::factory()->{$role}()->create();
+
+    $response = $this->actingAs($user)
+        ->post(route($route, ['skripsi' => 999999]));
+
+    expect($response->getStatusCode())->toBeIn([403, 404]);
+})->with([
+    'mahasiswa to dosen action' => ['mahasiswa', 'dosen.penilaian.store'],
+    'dosen to kaprodi action' => ['dosen', 'kaprodi.dosen.store'],
+    'kaprodi to mahasiswa action' => ['kaprodi', 'mahasiswa.skripsi.store'],
+]);
+
+it('rechecks the current database role for an existing authenticated session', function () {
+    $user = User::factory()->mahasiswa()->create();
+
+    $this->actingAs($user);
+
+    $user->update(['role' => 'dosen']);
+
+    $this->get(route('mahasiswa.skripsi.index'))
+        ->assertForbidden();
+
+    $this->get(route('dosen.dashboard'))
+        ->assertOk();
+});

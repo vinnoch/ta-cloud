@@ -48,14 +48,15 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    \Mockery::close();
+    Mockery::close();
 });
 
-function makeGoogleUser(string $email, string $id = 'google-123', ?string $avatar = 'https://avatar.example.test/me.png'): SocialiteUser
+function makeGoogleUser(string $email, string $id = 'google-123', ?string $avatar = 'https://avatar.example.test/me.png', ?string $name = 'Google User'): SocialiteUser
 {
-    $user = new SocialiteUser();
+    $user = new SocialiteUser;
     $user->map([
         'id' => $id,
+        'name' => $name,
         'email' => $email,
         'avatar' => $avatar,
     ]);
@@ -151,14 +152,36 @@ test('google callback accepts uppercase valid domain and links existing user by 
     $this->assertAuthenticatedAs($user);
 });
 
-test('google callback rejects unknown allowed-domain email', function () {
-    stubGoogleUser(makeGoogleUser('unknown@widyakarya.ac.id'));
+test('google callback creates first-time allowed-domain user with least-privileged role', function () {
+    stubGoogleUser(makeGoogleUser('new.student@widyakarya.ac.id', 'google-new', null, 'New Student'));
 
     $this->get(route('auth.google.callback'))
-        ->assertRedirect(route('login'))
-        ->assertSessionHas('status', 'Akun belum terdaftar di TACLOUD. Hubungi admin.');
+        ->assertRedirect(AuthenticatedSessionController::dashboardRouteForRole('mahasiswa'));
 
-    $this->assertGuest();
+    $user = User::query()->where('email', 'new.student@widyakarya.ac.id')->firstOrFail();
+
+    expect($user->name)->toBe('New Student')
+        ->and($user->role)->toBe('mahasiswa')
+        ->and($user->users_id)->toBe(3)
+        ->and($user->google_id)->toBe('google-new')
+        ->and($user->email_verified_at)->not->toBeNull();
+
+    $this->assertAuthenticatedAs($user);
+});
+
+test('google callback normalizes first-time email and does not create a duplicate on later login', function () {
+    stubGoogleUser(makeGoogleUser('REPEAT@WIDYAKARYA.AC.ID', 'google-repeat'));
+
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(AuthenticatedSessionController::dashboardRouteForRole('mahasiswa'));
+
+    auth()->logout();
+    stubGoogleUser(makeGoogleUser('repeat@widyakarya.ac.id', 'google-repeat'));
+
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(AuthenticatedSessionController::dashboardRouteForRole('mahasiswa'));
+
+    expect(User::query()->whereRaw('LOWER(email) = ?', ['repeat@widyakarya.ac.id'])->count())->toBe(1);
 });
 
 test('google callback rejects soft deleted user', function () {

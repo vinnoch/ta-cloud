@@ -1,19 +1,20 @@
 <?php
 
-use App\Models\DocumentVersion;
+use App\Models\Periode;
 use App\Models\Skripsi;
+use App\Models\TahunAkademik;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->mahasiswa = User::factory()->mahasiswa()->create();
     $this->otherMahasiswa = User::factory()->mahasiswa()->create();
-    $tahun = \App\Models\TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
-    \App\Models\Periode::query()->create([
+    $tahun = TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
+    Periode::query()->create([
         'id' => 1, 'tahun_akademik_id' => $tahun->id, 'kode_periode' => '20251',
         'semester' => 1, 'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01',
         'tgl_selesai' => '2026-01-31', 'is_aktif' => true, 'status' => 'active',
@@ -54,7 +55,20 @@ it('blocks other mahasiswa upload', function () {
     $file = UploadedFile::fake()->create('doc.pdf', 1000, 'application/pdf');
     $this->actingAs($this->otherMahasiswa)
         ->post(route('mahasiswa.skripsi.documents.store', $this->skripsi), [
-            'file' => $file, 'phase' => 'proposal'
+            'file' => $file, 'phase' => 'proposal',
         ])
         ->assertForbidden();
+});
+
+it('rejects a forged document phase', function () {
+    $file = UploadedFile::fake()->create('doc.pdf', 1000, 'application/pdf');
+
+    $this->actingAs($this->mahasiswa)
+        ->post(route('mahasiswa.skripsi.documents.store', $this->skripsi), [
+            'file' => $file,
+            'phase' => '../../skripsi_final',
+        ])
+        ->assertSessionHasErrors('phase');
+
+    $this->assertDatabaseCount('document_versions', 0);
 });

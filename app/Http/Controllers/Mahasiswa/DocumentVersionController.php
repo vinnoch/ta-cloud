@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\DocumentVersion;
-use App\Models\Skripsi;
 use App\Models\SidangRequest;
+use App\Models\Skripsi;
 use App\Services\StudentDocumentPathService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -32,7 +32,7 @@ class DocumentVersionController extends Controller
 
         $validated = $request->validate([
             'file' => ['required', 'file', 'mimes:pdf', 'max:20480'],
-            'phase' => ['required', 'string', 'max:50'],
+            'phase' => ['required', 'in:proposal'],
         ]);
 
         $nextVersion = DocumentVersion::query()
@@ -87,7 +87,6 @@ class DocumentVersionController extends Controller
 
         return redirect()->route('mahasiswa.skripsi.show', $skripsi)->with('success', 'Dokumen berhasil diupload.');
     }
-
 
     public function showProposalFile(Request $request, Skripsi $skripsi, DocumentVersion $document): StreamedResponse
     {

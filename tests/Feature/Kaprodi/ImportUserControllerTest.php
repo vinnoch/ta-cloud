@@ -64,6 +64,19 @@ it('imports mahasiswa csv with nim', function () {
     ]);
 });
 
+it('rejects imported users without an explicit password', function () {
+    $kaprodi = kaprodiImportUser();
+    $csv = "name,email,nim,password\nNo Password,no-password@example.test,2021004999,\n";
+
+    $this->actingAs($kaprodi)
+        ->post(route('kaprodi.import.mahasiswa.store'), [
+            'file' => UploadedFile::fake()->createWithContent('mahasiswa.csv', $csv),
+        ])
+        ->assertSessionHas('importSummary');
+
+    $this->assertDatabaseMissing('users', ['email' => 'no-password@example.test']);
+});
+
 it('updates existing user by email during import', function () {
     $kaprodi = kaprodiImportUser();
 

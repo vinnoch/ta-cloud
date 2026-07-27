@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
+use App\Models\DocumentVersion;
 use App\Models\Skripsi;
 use App\Services\NotificationService;
+use App\Services\StudentDocumentPathService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -53,7 +55,6 @@ class FinalReviewController extends Controller
             ->with([
                 'student',
                 'periode',
-                'finalDocumentApprovals.reviewer',
                 'documentVersions' => function ($query) {
                     $query->where('phase', 'skripsi_final')->oldest('created_at');
                 },
@@ -66,7 +67,7 @@ class FinalReviewController extends Controller
             })
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($inner) use ($search): void {
-                    $inner->whereHas('student', fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('nim', 'like', "%{$search}%"))
+                    $inner->whereHas('student', fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('nim', 'like', "%{$search}%"))
                         ->orWhere('title', 'like', "%{$search}%");
                 });
             });
@@ -96,7 +97,7 @@ class FinalReviewController extends Controller
                 'pagination_html' => view('kaprodi.final-review.partials.pagination', [
                     'skripsis' => $skripsis,
                 ])->render(),
-                'count_text' => $skripsis->total() . ' dokumen final ditemukan.',
+                'count_text' => $skripsis->total().' dokumen final ditemukan.',
             ]);
         }
 
@@ -112,9 +113,9 @@ class FinalReviewController extends Controller
 
     public function approve(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse
     {
-        if ($skripsi->current_phase === 'review_dokumen_final') {
+        if ($skripsi->current_phase === 'review_dokumen_final' && $this->eligibleForCompletion($skripsi)) {
             $skripsi->update(['current_phase' => 'skripsi_selesai']);
-            
+
             $notifications->send([$skripsi->student], [
                 'type' => 'skripsi_finished',
                 'title' => 'Skripsi Selesai',
@@ -127,6 +128,46 @@ class FinalReviewController extends Controller
             return redirect()->route('kaprodi.skripsi.show', $skripsi)->with('success', 'Skripsi berhasil divalidasi dan dinyatakan selesai.');
         }
 
-        return back()->with('error', 'Skripsi bukan dalam fase review dokumen final.');
+        return back()->with('error', 'Dokumen final atau nilai reviewer belum lengkap.');
+    }
+
+    public function completeLegacy(Request $request, Skripsi $skripsi, StudentDocumentPathService $documentPathService): RedirectResponse
+    {
+        $skripsi->loadMissing(['periode', 'student']);
+
+        if (! $skripsi->periode || $skripsi->periode->is_aktif || $skripsi->periode->status === 'active') {
+            return back()->with('error', 'Penyelesaian historis hanya tersedia untuk periode lama yang tidak aktif.');
+        }
+
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:20480'],
+        ]);
+
+        $nextVersion = ((int) $skripsi->documentVersions()->where('phase', 'skripsi_final')->max('version_number')) + 1;
+        $file = $validated['file'];
+        $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi, 'skripsi_final', $nextVersion, $file), 'local');
+
+        DocumentVersion::query()->create([
+            'skripsi_id' => $skripsi->id,
+            'phase' => 'skripsi_final',
+            'version_number' => $nextVersion,
+            'file_path' => $path,
+            'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+            'size' => $file->getSize() ?: 0,
+            'uploaded_by' => $request->user()->id,
+        ]);
+
+        $skripsi->update(['current_phase' => 'skripsi_selesai']);
+
+        return redirect()->route('kaprodi.skripsi.show', $skripsi)
+            ->with('success', 'Dokumen final historis tersimpan dan skripsi dinyatakan selesai.');
+    }
+
+    private function eligibleForCompletion(Skripsi $skripsi): bool
+    {
+        $document = $skripsi->documentVersions()->where('phase', 'skripsi_final')->latest('version_number')->first();
+        $assignments = $skripsi->assignments()->get();
+
+        return $document !== null && $assignments->isNotEmpty() && $assignments->every(fn ($assignment) => $skripsi->grades()->where('reviewer_id', $assignment->lecturer_id)->where('role_type', $assignment->role_type)->where('grade_event', 'sidang_skripsi')->where('status', 'published')->exists());
     }
 }

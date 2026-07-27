@@ -34,12 +34,12 @@
         data-status-current-phase="{{ $currentPhaseValue }}"
     >@if (str_contains($triggerClass, 'acss-action-link')) @include('partials.icons.edit') @endif<span>{{ $triggerLabel }}</span></button>
 
-    <div class="acss-modal" data-status-modal="{{ $modalId }}" hidden>
+    <div class="acss-modal" data-status-modal="{{ $modalId }}" role="dialog" aria-modal="true" aria-labelledby="{{ $modalId }}-title" hidden>
         <div class="acss-modal__backdrop" data-status-modal-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Edit Fase Skripsi</h3>
+                    <h3 class="acss-card-title" id="{{ $modalId }}-title">Edit Fase Skripsi</h3>
                     <p class="acss-muted">Perbarui fase skripsi mahasiswa.</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-status-modal-close aria-label="Tutup">×</button>

@@ -7,8 +7,8 @@ use App\Models\ReviewerAssignment;
 use App\Models\SidangRequest;
 use App\Models\Skripsi;
 use App\Models\User;
-use App\Services\RoleNavigationService;
 use App\Services\NotificationService;
+use App\Services\RoleNavigationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +36,7 @@ class SidangRequestController extends Controller
             ->when($status !== '', function ($query) use ($status): void {
                 if ($status === 'submitted') {
                     $query->where('sidang_requests.status', 'submitted');
+
                     return;
                 }
                 if ($status === 'approved') {
@@ -67,7 +68,7 @@ class SidangRequestController extends Controller
             return response()->json([
                 'table_html' => view('dosen.sidang-request.partials.table', ['requests' => $requests, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('dosen.sidang-request.partials.pagination', ['requests' => $requests])->render(),
-                'count_text' => $requests->total() . ' pengajuan sidang skripsi ditemukan.',
+                'count_text' => $requests->total().' pengajuan sidang skripsi ditemukan.',
             ]);
         }
 
@@ -79,7 +80,6 @@ class SidangRequestController extends Controller
             'direction' => $direction,
         ]));
     }
-
 
     public function store(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse
     {
@@ -116,7 +116,7 @@ class SidangRequestController extends Controller
             $notifications->send($kaprodiUsers, [
                 'type' => 'sidang_request_submitted',
                 'title' => 'Permohonan sidang baru',
-                'message' => $request->user()->name . ' mengajukan permohonan sidang untuk ' . $skripsi->title,
+                'message' => $request->user()->name.' mengajukan permohonan sidang untuk '.$skripsi->title,
                 'url' => route('kaprodi.skripsi.show', $skripsi, false),
                 'actor' => $request->user()->name,
                 'meta' => [
@@ -132,6 +132,31 @@ class SidangRequestController extends Controller
         return redirect()
             ->route('dosen.sidang-request.index', ['status' => 'submitted'])
             ->with('success', 'Permohonan sidang berhasil dikirim ke Kaprodi.');
+    }
+
+    public function destroy(Request $request, Skripsi $skripsi, SidangRequest $sidangRequest): RedirectResponse
+    {
+        abort_unless(
+            $sidangRequest->skripsi_id === $skripsi->id
+            && $sidangRequest->lecturer_id === $request->user()->id,
+            404
+        );
+
+        if ($sidangRequest->status !== 'submitted' || $skripsi->current_phase !== 'bimbingan_skripsi') {
+            return redirect()
+                ->route('dosen.skripsi.show', $skripsi)
+                ->with('error', 'Permohonan sidang yang sudah diproses tidak dapat dibatalkan.');
+        }
+
+        $request->validate([
+            'reason' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $sidangRequest->delete();
+
+        return redirect()
+            ->route('dosen.skripsi.show', $skripsi)
+            ->with('success', 'Pengajuan sidang berhasil dibatalkan.');
     }
 
     private function page(string $heading, string $crumbs, array $extra = []): array
@@ -154,7 +179,7 @@ class SidangRequestController extends Controller
         return ReviewerAssignment::query()
             ->where('skripsi_id', $skripsi->id)
             ->where('lecturer_id', $lecturerId)
-            ->where('role_type', 'pembimbing_1')
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
             ->first();
     }
 }

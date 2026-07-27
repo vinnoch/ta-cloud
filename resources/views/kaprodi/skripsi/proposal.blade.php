@@ -100,12 +100,12 @@
         @endif
     </div>
 
-    <div class="acss-modal" data-proposal-reject-modal hidden>
+    <div class="acss-modal" data-proposal-reject-modal role="dialog" aria-modal="true" aria-labelledby="proposal-reject-modal-title" hidden>
         <div class="acss-modal__backdrop" onclick="this.parentElement.hidden = true"></div>
         <div class="acss-modal__dialog">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Catatan Penolakan / Revisi</h3>
+                    <h3 class="acss-card-title" id="proposal-reject-modal-title">Catatan Penolakan / Revisi</h3>
                 </div>
                 <button type="button" class="acss-modal__close" onclick="this.closest('[data-proposal-reject-modal]').hidden = true">×</button>
             </div>
@@ -127,12 +127,12 @@
 
     @include('partials.pdf-viewer-modal')
 
-    <div class="acss-modal" data-reviewer-modal hidden>
+    <div class="acss-modal" data-reviewer-modal role="dialog" aria-modal="true" aria-labelledby="proposal-reviewer-modal-title" hidden>
         <div class="acss-modal__backdrop" data-reviewer-modal-close></div>
         <div class="acss-modal__dialog">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tambahkan Reviewer</h3>
+                    <h3 class="acss-card-title" id="proposal-reviewer-modal-title">Tambahkan Reviewer</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-reviewer-modal-close aria-label="Tutup">×</button>
             </div>
@@ -202,7 +202,15 @@
                 timeout = setTimeout(async () => {
                     const res = await fetch(`${form.dataset.searchUrl}?q=${encodeURIComponent(query)}`);
                     const data = await res.json();
-                    resultsList.innerHTML = data.map(d => `<li data-id="${d.id}" data-name="${d.name}">${d.name} <small>${d.nidn_nip}</small></li>`).join('');
+                    resultsList.replaceChildren(...data.map(d => {
+                        const item = document.createElement('li');
+                        const identifier = document.createElement('small');
+                        item.dataset.id = d.id;
+                        item.dataset.name = d.name;
+                        item.append(document.createTextNode(`${d.name} `), identifier);
+                        identifier.textContent = d.nidn_nip ?? '';
+                        return item;
+                    }));
                 }, 300);
             });
 

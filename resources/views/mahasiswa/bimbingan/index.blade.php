@@ -3,12 +3,12 @@
 @section('content')
     <section class="card card--profile">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($skripsi->student->name ?? 'M', 0, 1)) }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
                         <h2>Histori Bimbingan</h2>
-                        <p>{{ $skripsi->student->name ?? '-' }}</p>
+                        <p>{{ str($skripsi->student->name ?? '-')->title() }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
                     </div>
                     <span class="status-pill">LOGBOOK</span>
@@ -17,8 +17,8 @@
         </div>
     </section>
 
-    <section class="card">
-        <div class="section-heading acss-crud-head--inline">
+    <section class="acss-crud-card">
+        <div class="acss-crud-head acss-crud-head--inline">
             <div><h3 class="acss-card-title">Riwayat Pertemuan</h3></div>
             <div class="acss-crud-head__actions">
                 <form method="GET" action="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) }}" class="acss-inline-filter-form">
@@ -49,6 +49,7 @@
                 </div>
             </div>
         </div>
+        <div class="acss-crud-body">
         <div class="table-shell">
                 <div class="table-shell__head table-shell__grid acss-table-cols-mhs-bimbingan-log">
                     <span>Tanggal</span>
@@ -98,15 +99,16 @@
                     <div class="empty-state">Belum ada histori bimbingan.</div>
                 @endforelse
         </div>
+        </div>
     </section>
 
 
-    <div class="acss-modal" data-pdf-preview-modal hidden>
+    <div class="acss-modal" data-pdf-preview-modal role="dialog" aria-modal="true" aria-labelledby="bimbingan-pdf-preview-title" hidden>
         <div class="acss-modal__backdrop" data-pdf-preview-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--pdf">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Preview Dokumen</h3>
+                    <h3 class="acss-card-title" id="bimbingan-pdf-preview-title">Preview Dokumen</h3>
                     <p class="acss-muted " data-pdf-preview-name>-</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-pdf-preview-close aria-label="Tutup">×</button>

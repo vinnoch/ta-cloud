@@ -8,7 +8,11 @@
     ])
 
     <section class="panel-grid">
-        <article class="card">
+        <article class="acss-crud-card acss-crud-body">
+            @if (!($canUpload ?? false))
+                <div class="notice notice--warning" style="margin-bottom:1rem;">{{ $submission['message'] ?? 'Final submission belum bisa dikirim saat ini.' }}</div>
+            @endif
+
             <div class="card-list">
                 @foreach ($checklist as $item)
                     <article class="list-card">
@@ -34,21 +38,21 @@
                 <div class="form-grid">
                     <label class="form-field">
                         <span>Dokumen Final</span>
-                        <input type="file" name="file" accept=".pdf,.doc,.docx" required>
+                        <input type="file" name="file" accept=".pdf,.doc,.docx" @if($canUpload ?? false) required @else disabled @endif>
                         <small class="acss-muted">Format PDF, DOC, atau DOCX. Maksimum 20 MB.</small>
                         @error('file') <small class="field-error">{{ $message }}</small> @enderror
                     </label>
 
                     <label class="form-field">
                         <span>Catatan Tambahan (opsional)</span>
-                        <textarea name="notes" rows="4" placeholder="Tambahkan keterangan revisi atau catatan singkat...">{{ old('notes') }}</textarea>
+                        <textarea name="notes" rows="4" placeholder="Tambahkan keterangan revisi atau catatan singkat..." @if(!($canUpload ?? false)) disabled @endif>{{ old('notes') }}</textarea>
                         @error('notes') <small class="field-error">{{ $message }}</small> @enderror
                     </label>
 
                     @if ($submission['show_journal_field'])
                         <label class="form-field">
                             <span>Link Artikel Jurnal (opsional)</span>
-                            <input type="url" name="journal_article_url" value="{{ old('journal_article_url', $skripsi->journal_article_url) }}" placeholder="https://...">
+                            <input type="url" name="journal_article_url" value="{{ old('journal_article_url', $skripsi->journal_article_url) }}" placeholder="https://..." @if(!($canUpload ?? false)) disabled @endif>
                             @error('journal_article_url') <small class="field-error">{{ $message }}</small> @enderror
                         </label>
                     @endif
@@ -56,7 +60,7 @@
 
                 <div class="acss-form-actions " style="justify-content:flex-end;">
                     
-                    <button class="button button--inline" type="submit">Kirim Final Submission</button>
+                    <button class="button button--inline" type="submit" @if(!($canUpload ?? false)) disabled @endif>Kirim Final Submission</button>
                 </div>
             </form>
         </article>

@@ -32,7 +32,7 @@ class BimbinganController extends Controller
         $notifications->send([$skripsi->student], [
             'type' => 'bimbingan_note_added',
             'title' => 'Catatan bimbingan baru',
-            'message' => $request->user()->name . ' menambahkan catatan bimbingan untuk ' . $skripsi->title,
+            'message' => $request->user()->name.' menambahkan catatan bimbingan untuk '.$skripsi->title,
             'url' => route('mahasiswa.skripsi.bimbingan.index', $skripsi, false),
             'actor' => $request->user()->name,
             'meta' => ['skripsi_id' => $skripsi->id],
@@ -44,18 +44,22 @@ class BimbinganController extends Controller
     public function update(Request $request, Bimbingan $bimbingan): RedirectResponse
     {
         $this->ensureAssigned($request, $bimbingan->skripsi);
+        abort_unless($bimbingan->reviewer_id === $request->user()->id, 403);
         $validated = $request->validate([
             'meeting_date' => ['required', 'date'],
             'lecturer_notes' => ['nullable', 'string'],
         ]);
         $bimbingan->update($validated);
+
         return redirect()->route('dosen.skripsi.show', $bimbingan->skripsi)->with('success', 'Catatan bimbingan berhasil diperbarui.');
     }
 
     public function destroy(Request $request, Bimbingan $bimbingan): RedirectResponse
     {
         $this->ensureAssigned($request, $bimbingan->skripsi);
+        abort_unless($bimbingan->reviewer_id === $request->user()->id, 403);
         $bimbingan->delete();
+
         return redirect()->route('dosen.skripsi.show', $bimbingan->skripsi)->with('success', 'Catatan bimbingan berhasil dihapus.');
     }
 

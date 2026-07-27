@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
+use App\Models\DocumentSubmission;
 use App\Models\DocumentTemplate;
 use App\Models\Periode;
 use App\Models\Skripsi;
@@ -40,6 +41,7 @@ class DocumentTemplateController extends Controller
 
         $templates->getCollection()->transform(function (DocumentTemplate $template): DocumentTemplate {
             $template->is_locked = $this->isTemplateLocked($template);
+
             return $template;
         });
 
@@ -53,7 +55,7 @@ class DocumentTemplateController extends Controller
                 'pagination_html' => view('kaprodi.document-templates.partials.pagination', [
                     'templates' => $templates,
                 ])->render(),
-                'count_text' => $templates->total() . ' template ditemukan.',
+                'count_text' => $templates->total().' template ditemukan.',
             ]);
         }
 
@@ -68,26 +70,37 @@ class DocumentTemplateController extends Controller
     public function create(): View
     {
         $periodes = $this->availablePeriodes();
-        $activePeriodeId = $periodes->first(fn ($periode) => (bool) $periode->is_aktif || $periode->status === 'active')?->id;
+        $activePeriode = Periode::query()
+            ->where(function ($query) {
+                $query->where('is_aktif', true)
+                    ->orWhere('status', 'active');
+            })
+            ->orderByDesc('is_aktif')
+            ->orderByDesc('id')
+            ->first();
 
         return view('kaprodi.document-templates.create', $this->kaprodiPage('Tambah Dokumen Final', 'KAPRODI • DOKUMEN FINAL', [
-            'template' => new DocumentTemplate(),
+            'template' => new DocumentTemplate,
             'periodes' => $periodes,
-            'activePeriodeId' => $activePeriodeId,
+            'activePeriodeId' => $activePeriode?->id,
+            'activePeriode' => $activePeriode,
         ]));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateTemplate($request);
+        $isPublished = ($validated['status'] ?? 'draft') === 'published';
 
-        DB::transaction(function () use ($validated): void {
-            $template = DocumentTemplate::query()->create([
+        DB::transaction(function () use ($validated, $isPublished): void {
+            $template = new DocumentTemplate([
                 'study_program_id' => Auth::user()->study_program_id,
                 'nama' => $validated['name'],
-                'is_published' => $validated['status'] === 'published',
+                'is_published' => $isPublished,
                 'is_locked' => false,
             ]);
+
+            $template->save();
 
             $template->periodes()->sync($validated['periode_ids']);
 
@@ -118,7 +131,7 @@ class DocumentTemplateController extends Controller
 
         $assignedSkripsis = Skripsi::query()
             ->with(['student', 'periode.tahunAkademik'])
-            ->whereIn('skripsis.id', \App\Models\DocumentSubmission::query()
+            ->whereIn('skripsis.id', DocumentSubmission::query()
                 ->whereIn('document_template_item_id', $documentTemplate->items->pluck('id'))
                 ->select('skripsi_id'))
             ->when($assignedPeriodeId > 0, fn ($query) => $query->where('periode_id', $assignedPeriodeId))
@@ -154,11 +167,11 @@ class DocumentTemplateController extends Controller
                 'pagination_html' => view('kaprodi.document-templates.partials.assigned-pagination', [
                     'assignedSkripsis' => $assignedSkripsis,
                 ])->render(),
-                'count_text' => $assignedSkripsis->total() . ' skripsi terhubung.',
+                'count_text' => $assignedSkripsis->total().' skripsi terhubung.',
             ]);
         }
 
-        $periodeIdsWithSubmissions = \App\Models\DocumentSubmission::query()
+        $periodeIdsWithSubmissions = DocumentSubmission::query()
             ->join('skripsis', 'skripsis.id', '=', 'document_submissions.skripsi_id')
             ->whereIn('document_submissions.document_template_item_id', $documentTemplate->items->pluck('id'))
             ->distinct()
@@ -189,7 +202,18 @@ class DocumentTemplateController extends Controller
         return view('kaprodi.document-templates.edit', $this->kaprodiPage('Edit Dokumen Final', 'KAPRODI • DOKUMEN FINAL', [
             'template' => $documentTemplate,
             'periodes' => $this->availablePeriodes(),
-            'activePeriodeId' => $documentTemplate->periodes->first()?->id,
+            'activePeriodeId' => Periode::query()
+                ->where(function ($query) {
+                    $query->where('is_aktif', true)
+                        ->orWhere('status', 'active');
+                })
+                ->value('id'),
+            'activePeriode' => Periode::query()
+                ->where(function ($query) {
+                    $query->where('is_aktif', true)
+                        ->orWhere('status', 'active');
+                })
+                ->first(),
         ]));
     }
 
@@ -201,18 +225,22 @@ class DocumentTemplateController extends Controller
         }
 
         $validated = $this->validateTemplate($request, true);
+        $isPublished = ($validated['status'] ?? 'draft') === 'published';
 
-        DB::transaction(function () use ($documentTemplate, $validated): void {
-            $documentTemplate->update([
+        DB::transaction(function () use ($documentTemplate, $validated, $isPublished): void {
+            $documentTemplate->fill([
                 'nama' => $validated['name'],
-                'is_published' => $validated['status'] === 'published',
+                'is_published' => $isPublished,
+                'is_locked' => (bool) $documentTemplate->is_locked,
             ]);
+
+            $documentTemplate->save();
 
             $documentTemplate->periodes()->sync($validated['periode_ids']);
             $this->syncItems($documentTemplate, $validated['items']);
         });
 
-        return redirect()->route('kaprodi.document-templates.show', $documentTemplate)
+        return redirect()->to(route('kaprodi.document-templates.edit', $documentTemplate->fresh(), false).'?saved=1')
             ->with('success', 'Template dokumen final berhasil diperbarui.');
     }
 
@@ -351,7 +379,7 @@ class DocumentTemplateController extends Controller
                 ->replaceMatches('/[^a-z0-9_]/', '')
                 ->toString();
 
-            $generatedCode = $generatedCode !== '' ? $generatedCode : 'dokumen_final_' . ($index + 1);
+            $generatedCode = $generatedCode !== '' ? $generatedCode : 'dokumen_final_'.($index + 1);
 
             $validated['items'][$index]['code'] = $generatedCode;
             $validated['items'][$index]['type'] = $item['type'] ?? 'file';
@@ -381,7 +409,7 @@ class DocumentTemplateController extends Controller
 
         if ($conflictingPeriods->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'periode_ids' => 'Beberapa periode sudah memakai template dokumen final lain: ' . $conflictingPeriods->implode(', ') . '.',
+                'periode_ids' => 'Beberapa periode sudah memakai template dokumen final lain: '.$conflictingPeriods->implode(', ').'.',
             ]);
         }
 
@@ -437,11 +465,11 @@ class DocumentTemplateController extends Controller
     private function duplicateName(string $name): string
     {
         $baseName = trim($name) !== '' ? trim($name) : 'Template Baru';
-        $candidate = $baseName . ' (Copy)';
+        $candidate = $baseName.' (Copy)';
         $counter = 2;
 
         while (DocumentTemplate::query()->where('nama', $candidate)->exists()) {
-            $candidate = $baseName . ' (Copy ' . $counter . ')';
+            $candidate = $baseName.' (Copy '.$counter.')';
             $counter++;
         }
 
@@ -454,9 +482,8 @@ class DocumentTemplateController extends Controller
             return true;
         }
 
-        return Skripsi::query()
-            ->whereIn('periode_id', $documentTemplate->periodes()->pluck('periodes.id'))
-            ->whereHas('documentVersions', fn ($query) => $query->where('phase', 'skripsi_final'))
+        return DocumentSubmission::query()
+            ->whereIn('document_template_item_id', $documentTemplate->items->pluck('id'))
             ->exists();
     }
 }

@@ -29,19 +29,18 @@
 
             <div id="table-wrapper">@include('kaprodi.dosen.partials.table', ['dosen' => $dosen, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc'])</div>
             <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.dosen.partials.pagination', ['dosen' => $dosen])</div>
-        </div>
         <div class="stack-list" style="display:none"></div>
     </section>
 
 
 
     
-    <div class="acss-modal" data-dosen-create-modal hidden>
+    <div class="acss-modal" data-dosen-create-modal role="dialog" aria-modal="true" aria-labelledby="dosen-create-modal-title" hidden>
         <div class="acss-modal__backdrop" data-dosen-create-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tambah Dosen</h3>
+                    <h3 class="acss-card-title" id="dosen-create-modal-title">Tambah Dosen</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-dosen-create-close aria-label="Tutup">×</button>
             </div>
@@ -64,12 +63,12 @@
             </form>
         </div>
     </div>
-    <div class="acss-modal" data-dosen-edit-modal hidden>
+    <div class="acss-modal" data-dosen-edit-modal role="dialog" aria-modal="true" aria-labelledby="dosen-edit-modal-title" hidden>
         <div class="acss-modal__backdrop" data-dosen-edit-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Edit Dosen</h3>
+                    <h3 class="acss-card-title" id="dosen-edit-modal-title">Edit Dosen</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-dosen-edit-close aria-label="Tutup">×</button>
             </div>

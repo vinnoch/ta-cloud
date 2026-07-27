@@ -7,6 +7,7 @@ use App\Models\ReviewerAssignment;
 use App\Models\SidangRequest;
 use App\Models\Skripsi;
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,7 +17,7 @@ class SidangRequestController extends Controller
 {
     use BuildsKaprodiPage;
 
-    public function index(Request $request): View|\Illuminate\Http\JsonResponse
+    public function index(Request $request): View|JsonResponse
     {
         $search = trim((string) $request->query('q', ''));
         $approvalStatus = (string) $request->query('approval_status', 'all');
@@ -41,7 +42,7 @@ class SidangRequestController extends Controller
             ->select('sidang_requests.*')
             ->leftJoin('skripsis', 'skripsis.id', '=', 'sidang_requests.skripsi_id')
             ->leftJoin('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')
-            ->with(['skripsi.student', 'lecturer'])
+            ->with(['skripsi.student', 'skripsi.assignments', 'skripsi.sidangRequests', 'lecturer'])
             ->when($periodeId > 0, fn ($query) => $query->where('skripsis.periode_id', $periodeId))
             ->when($approvalStatus === 'pending_approval', function ($query) {
                 $query->where('sidang_requests.status', 'submitted');
@@ -95,7 +96,7 @@ class SidangRequestController extends Controller
                 'pagination_html' => view('kaprodi.sidang-request.partials.pagination', [
                     'requests' => $requests,
                 ])->render(),
-                'count_text' => $requests->total() . ' permohonan sidang ditemukan.',
+                'count_text' => $requests->total().' permohonan sidang ditemukan.',
             ]);
         }
 
@@ -109,9 +110,14 @@ class SidangRequestController extends Controller
             'direction' => $direction,
         ]));
     }
+
     public function approve(Skripsi $skripsi, SidangRequest $sidangRequest, NotificationService $notifications): RedirectResponse
     {
         abort_unless($sidangRequest->skripsi_id === $skripsi->id, 404);
+
+        if ($sidangRequest->role_type !== 'mahasiswa' && ! $this->allAdvisorRequestsSubmitted($skripsi)) {
+            return back()->with('error', 'Sidang skripsi baru dapat disetujui setelah semua dosen pembimbing mengajukan permohonan.');
+        }
 
         $sidangRequest->update([
             'status' => 'approved',
@@ -151,7 +157,7 @@ class SidangRequestController extends Controller
                 $notifications->send($recipients, [
                     'type' => 'sidang_request_approved',
                     'title' => 'Permohonan Sidang Disetujui',
-                    'message' => 'Kaprodi telah menyetujui permohonan sidang untuk skripsi: ' . $skripsi->title,
+                    'message' => 'Kaprodi telah menyetujui permohonan sidang untuk skripsi: '.$skripsi->title,
                     'url' => route('dosen.skripsi.show', $skripsi, false),
                     'actor' => auth()->user()->name,
                     'meta' => ['skripsi_id' => $skripsi->id],
@@ -161,7 +167,7 @@ class SidangRequestController extends Controller
                     $notifications->send([$skripsi->student], [
                         'type' => 'sidang_request_approved',
                         'title' => 'Permohonan Sidang Disetujui',
-                        'message' => 'Kaprodi telah menyetujui permohonan sidang untuk skripsi Anda: ' . $skripsi->title,
+                        'message' => 'Kaprodi telah menyetujui permohonan sidang untuk skripsi Anda: '.$skripsi->title,
                         'url' => route('mahasiswa.skripsi.show', $skripsi, false),
                         'actor' => auth()->user()->name,
                         'meta' => ['skripsi_id' => $skripsi->id],
@@ -176,8 +182,8 @@ class SidangRequestController extends Controller
             return redirect()
                 ->route('kaprodi.skripsi.show', $skripsi)
                 ->with('success', 'Permohonan sidang berhasil disetujui.');
-        } catch (\Throwable $e) {
-            \Log::error('Approve Sidang Redirect Failed: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            \Log::error('Approve Sidang Redirect Failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -201,7 +207,7 @@ class SidangRequestController extends Controller
             $notifications->send([$skripsi->student], [
                 'type' => 'sidang_request_rejected',
                 'title' => 'Permohonan Sidang Ditolak',
-                'message' => 'Permohonan sidang Anda ditolak Kaprodi.' . (! empty($validated['note']) ? ' Catatan: ' . $validated['note'] : ''),
+                'message' => 'Permohonan sidang Anda ditolak Kaprodi.'.(! empty($validated['note']) ? ' Catatan: '.$validated['note'] : ''),
                 'url' => route('mahasiswa.skripsi.show', $skripsi, false),
                 'actor' => auth()->user()->name,
                 'meta' => ['skripsi_id' => $skripsi->id, 'note' => $validated['note'] ?? null],
@@ -214,7 +220,6 @@ class SidangRequestController extends Controller
             ->route('kaprodi.skripsi.show', $skripsi)
             ->with('success', 'Permohonan sidang berhasil ditolak.');
     }
-
 
     private function page(string $heading, string $crumbs, array $extra = []): array
     {
@@ -245,9 +250,25 @@ class SidangRequestController extends Controller
             $skripsi->update([
                 'current_phase' => 'sidang_skripsi',
             ]);
-            \Log::debug('Skripsi phase updated to sidang_skripsi for ID ' . $skripsi->id);
+            \Log::debug('Skripsi phase updated to sidang_skripsi for ID '.$skripsi->id);
         } else {
-            \Log::debug('Skripsi phase not yet updated. Approved: ' . $approvedCount . ' / Expected: ' . $advisorIds->count() . ' for Skripsi ID ' . $skripsi->id);
+            \Log::debug('Skripsi phase not yet updated. Approved: '.$approvedCount.' / Expected: '.$advisorIds->count().' for Skripsi ID '.$skripsi->id);
         }
+    }
+
+    private function allAdvisorRequestsSubmitted(Skripsi $skripsi): bool
+    {
+        $advisorIds = $skripsi->assignments()
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
+            ->pluck('lecturer_id')
+            ->unique();
+
+        return $advisorIds->isNotEmpty()
+            && $skripsi->sidangRequests()
+                ->whereIn('lecturer_id', $advisorIds)
+                ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
+                ->whereIn('status', ['submitted', 'approved'])
+                ->distinct('lecturer_id')
+                ->count('lecturer_id') === $advisorIds->count();
     }
 }

@@ -8,8 +8,8 @@
     ])
 
     <section class="panel-grid">
-        <article class="card">
-            <form class="form-grid" method="POST" action="{{ route('mahasiswa.skripsi.update', $skripsi) }}">
+        <article class="acss-crud-card">
+            <form class="acss-crud-body form-grid" method="POST" action="{{ route('mahasiswa.skripsi.update', $skripsi) }}">
                 @csrf
                 @method('PUT')
                 <label class="form-field">

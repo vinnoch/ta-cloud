@@ -29,15 +29,47 @@
                 </div>
             </div>
         </div>
-        <div class="acss-inline-actions form-actions form-actions--inline mt-4">
-            <form class="inline-form" method="POST" action="{{ route('kaprodi.document-templates.duplicate', $template) }}">
-                @csrf
-                <button class="button button--primary button--inline" type="submit">Duplikat</button>
-            </form>
-            @if ($template->can_modify)
-                <a class="button button--primary button--inline" href="{{ route('kaprodi.document-templates.edit', $template) }}">Edit Template</a>
-            @endif
+    </section>
+
+    <div class="acss-inline-actions form-actions form-actions--inline" style="display:flex; width:100%; justify-content:flex-end; margin:1.15rem 0;">
+        @if ($template->can_modify)
+            <a class="button button--primary button--inline" href="{{ route('kaprodi.document-templates.edit', $template) }}">Edit Template</a>
+        @endif
+        <form class="inline-form" method="POST" action="{{ route('kaprodi.document-templates.duplicate', $template) }}">
+            @csrf
+            <button class="button button--primary button--inline" type="submit">Duplikat</button>
+        </form>
+    </div>
+
+    <section class="acss-crud-card">
+        <div class="acss-crud-head">
+            <div>
+                <h3 class="acss-card-title">Informasi Dokumen Final</h3>
+            </div>
         </div>
+        <div class="acss-crud-body">
+            <div class="acss-info-grid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 0;">
+                <div class="acss-info-item">
+                    <span style="font-size: 1rem; font-weight: 600;">Jumlah Item</span>
+                    <strong>{{ $template->items->count() }} item</strong>
+                </div>
+                <div class="acss-info-item">
+                    <span style="font-size: 1rem; font-weight: 600;">Dokumen Wajib</span>
+                    <strong>{{ $template->items->where('is_required', true)->count() }} item</strong>
+                </div>
+                <div class="acss-info-item">
+                    <span style="font-size: 1rem; font-weight: 600;">Periode Terhubung</span>
+                    <strong>
+                        @forelse ($template->periodes as $periode)
+                            {{ $periode->name }}@if (!empty($periode->kode_periode)) ({{ $periode->kode_periode }})@endif{{ ! $loop->last ? ', ' : '' }}
+                        @empty
+                            -
+                        @endforelse
+                    </strong>
+                </div>
+            </div>
+        </div>
+
     </section>
 
     <div class="acss-stack-sections">
@@ -45,6 +77,7 @@
             <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Daftar Item Dokumen</h3>
+                    <p class="acss-muted">{{ $template->items->count() }} item dokumen terdaftar.</p>
                 </div>
             </div>
             <div class="acss-crud-body">
@@ -73,15 +106,16 @@
         </section>
 
         @if (! $template->can_modify)
-            <section class="card">
-                <div class="section-heading">
+            <section class="acss-crud-card">
+                <div class="acss-crud-head">
                     <div>
-                        <h3>Hubungkan Periode</h3>
+                        <h3 class="acss-card-title">Hubungkan Periode</h3>
                     </div>
                 </div>
-                <div class="acss-form-split">
-                    <div class="acss-page-card">
-                        <div class="acss-page-card__body">
+                <div class="acss-crud-body">
+                    <div class="acss-form-split" style="align-items: stretch;">
+                        <div class="acss-page-card" style="height: 100%;">
+                            <div class="acss-page-card__body" style="height: 100%;">
                             <div class="section-heading"><div><h3 class="acss-card-title">Periode Tersedia</h3></div></div>
                             <div class="table-shell">
                                 @forelse ($availableAddPeriodes as $period)
@@ -96,7 +130,7 @@
                                             <form method="POST" action="{{ route('kaprodi.document-templates.add-periode', $template) }}">
                                                 @csrf
                                                 <input type="hidden" name="periode_id" value="{{ $period->id }}">
-                                                <button class="button button--inline" type="submit">Hubungkan</button>
+                                                <button class="button button--muted button--inline" type="submit" aria-label="Hubungkan periode" title="Hubungkan periode" style="width:2.35rem; min-width:2.35rem; height:2.35rem; padding:0; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; color:#111827;"><span style="display:inline-flex; width:1.05rem; height:1.05rem;">@include('partials.icons.plus')</span></button>
                                             </form>
                                         </div>
                                     </div>
@@ -104,28 +138,38 @@
                                     <div class="empty-state">Belum ada periode tersedia.</div>
                                 @endforelse
                             </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="acss-page-card">
-                        <div class="acss-page-card__body">
+                        <div class="acss-page-card" style="height: 100%;">
+                            <div class="acss-page-card__body" style="height: 100%;">
                             <div class="section-heading"><div><h3 class="acss-card-title">Periode Terhubung</h3></div></div>
-                            <div class="flex flex-wrap gap-2 mt-2">
+                            <div class="table-shell">
                                 @forelse ($template->periodes as $period)
                                     @php $hasSubmissions = in_array($period->id, $periodeIdsWithSubmissions ?? [], true); @endphp
-                                    <span class="pill pill--blue flex items-center gap-2" style="padding: 0.4rem 0.8rem; border-radius: 9999px;">
-                                        <span>{{ $period->name }}@if (!empty($period->kode_periode)) ({{ $period->kode_periode }})@endif</span>
-                                        @if (!$hasSubmissions)
+                                    <div class="table-shell__row table-shell__grid" style="--table-cols:minmax(0,1fr) auto;">
+                                        <div class="table-shell__cell">
+                                            <strong>{{ $period->name }}</strong>
+                                            @if (!empty($period->kode_periode))
+                                                <small>{{ $period->kode_periode }}</small>
+                                            @endif
+                                        </div>
+                                        <div class="table-shell__cell">
+                                            @if ($hasSubmissions)
+                                                <button class="button button--muted button--inline" type="button" disabled aria-label="Periode memiliki dokumen terhubung" title="Dokumen final sudah terhubung" style="width:2.35rem; min-width:2.35rem; height:2.35rem; padding:0; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; opacity:.45; cursor:not-allowed; color:#111827;"><span style="display:inline-flex; width:1rem; height:1rem;">@include('partials.icons.x')</span></button>
+                                            @else
                                             <form method="POST" action="{{ route('kaprodi.document-templates.remove-periode', [$template, $period]) }}" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:text-red-700 font-bold focus:outline-none" style="background:none; border:none; padding:0; font-size:1.1rem; line-height:1; cursor:pointer;" title="Lepas periode">×</button>
+                                                <button class="button button--muted button--inline" type="submit" aria-label="Lepas periode" title="Lepas periode" style="width:2.35rem; min-width:2.35rem; height:2.35rem; padding:0; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; color:#111827;"><span style="display:inline-flex; width:1rem; height:1rem;">@include('partials.icons.x')</span></button>
                                             </form>
-                                        @endif
-                                    </span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 @empty
-                                    <div class="empty-state w-full text-center py-4">Belum ada periode terhubung.</div>
+                                    <div class="empty-state">Belum ada periode terhubung.</div>
                                 @endforelse
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -164,6 +208,16 @@
                 <div id="assigned-pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.document-templates.partials.assigned-pagination', ['assignedSkripsis' => $assignedSkripsis])</div>
             </div>
         </section>
+    </div>
+
+    <div class="acss-inline-actions form-actions form-actions--inline" style="display:flex; width:100%; justify-content:flex-end; margin:1.15rem 0;">
+        @if ($template->can_modify)
+            <a class="button button--primary button--inline" href="{{ route('kaprodi.document-templates.edit', $template) }}">Edit Template</a>
+        @endif
+        <form class="inline-form" method="POST" action="{{ route('kaprodi.document-templates.duplicate', $template) }}">
+            @csrf
+            <button class="button button--primary button--inline" type="submit">Duplikat</button>
+        </form>
     </div>
 
     @include('partials.ajax-list-script', [

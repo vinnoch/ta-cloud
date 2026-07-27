@@ -23,13 +23,36 @@
         </div>
     </section>
 
-    <section class="card">
-        <div class="section-heading">
+    <div class="acss-inline-actions form-actions form-actions--inline" style="display:flex; width:100%; justify-content:flex-end; margin:1.15rem 0;">
+        @if (! $mahasiswa->trashed())
+            <button type="button" class="button button--primary button--inline" data-mahasiswa-edit-modal-open>Edit Mahasiswa</button>
+            @if ($hasRunningSkripsi)
+                <form method="POST" action="{{ route('kaprodi.mahasiswa.archive', $mahasiswa) }}" onsubmit="return confirm('Arsipkan mahasiswa ini?')">
+                    @csrf
+                    <button class="button button--danger button--inline" type="submit">Arsipkan Mahasiswa</button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('kaprodi.mahasiswa.destroy', $mahasiswa->id) }}" onsubmit="return confirm('Hapus permanen mahasiswa ini?')">
+                    @csrf
+                    @method('DELETE')
+                    <button class="button button--danger button--inline" type="submit">Hapus Mahasiswa</button>
+                </form>
+            @endif
+        @else
+            <form method="POST" action="{{ route('kaprodi.mahasiswa.restore', $mahasiswa->id) }}">
+                @csrf
+                <button class="button button--primary button--inline" type="submit">Pulihkan Mahasiswa</button>
+            </form>
+        @endif
+    </div>
+
+    <section class="acss-crud-card">
+        <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Informasi Mahasiswa</h3>
             </div>
         </div>
-        <div class="acss-crud-body" style="padding-left:0; padding-right:0;">
+        <div class="acss-crud-body">
             <div class="acss-info-grid acss-info-grid--mahasiswa" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 0;">
                 <div class="acss-info-item">
                     <span style="font-size: 1rem; font-weight: 600;"><span class="u-upper">NIM</span></span>
@@ -44,28 +67,6 @@
                     <strong>{{ $mahasiswa->email ?? '-' }}</strong>
                 </div>
             </div>
-        </div>
-        <div class="form-actions form-actions--inline mt-4">
-            @if (! $mahasiswa->trashed())
-                <button type="button" class="button button--muted button--inline" data-mahasiswa-edit-modal-open>Edit Mahasiswa</button>
-                @if ($hasRunningSkripsi)
-                    <form method="POST" action="{{ route('kaprodi.mahasiswa.archive', $mahasiswa) }}" onsubmit="return confirm('Arsipkan mahasiswa ini?')">
-                        @csrf
-                        <button class="button button--danger button--inline" type="submit">Arsipkan Mahasiswa</button>
-                    </form>
-                @else
-                    <form method="POST" action="{{ route('kaprodi.mahasiswa.destroy', $mahasiswa->id) }}" onsubmit="return confirm('Hapus permanen mahasiswa ini?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="button button--danger button--inline" type="submit">Hapus Mahasiswa</button>
-                    </form>
-                @endif
-            @else
-                <form method="POST" action="{{ route('kaprodi.mahasiswa.restore', $mahasiswa->id) }}">
-                    @csrf
-                    <button class="button button--muted button--inline" type="submit">Pulihkan Mahasiswa</button>
-                </form>
-            @endif
         </div>
     </section>
 
@@ -118,13 +119,36 @@
         </div>
     </section>
 
+    <div class="acss-inline-actions form-actions form-actions--inline" style="display:flex; width:100%; justify-content:flex-end; margin:1.15rem 0;">
+        @if (! $mahasiswa->trashed())
+            <button type="button" class="button button--primary button--inline" data-mahasiswa-edit-modal-open>Edit Mahasiswa</button>
+            @if ($hasRunningSkripsi)
+                <form method="POST" action="{{ route('kaprodi.mahasiswa.archive', $mahasiswa) }}" onsubmit="return confirm('Arsipkan mahasiswa ini?')">
+                    @csrf
+                    <button class="button button--danger button--inline" type="submit">Arsipkan Mahasiswa</button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('kaprodi.mahasiswa.destroy', $mahasiswa->id) }}" onsubmit="return confirm('Hapus permanen mahasiswa ini?')">
+                    @csrf
+                    @method('DELETE')
+                    <button class="button button--danger button--inline" type="submit">Hapus Mahasiswa</button>
+                </form>
+            @endif
+        @else
+            <form method="POST" action="{{ route('kaprodi.mahasiswa.restore', $mahasiswa->id) }}">
+                @csrf
+                <button class="button button--primary button--inline" type="submit">Pulihkan Mahasiswa</button>
+            </form>
+        @endif
+    </div>
 
-    <div class="acss-modal" data-mahasiswa-edit-modal hidden>
+
+    <div class="acss-modal" data-mahasiswa-edit-modal role="dialog" aria-modal="true" aria-labelledby="mahasiswa-show-edit-modal-title" hidden>
         <div class="acss-modal__backdrop" data-mahasiswa-edit-modal-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Edit Mahasiswa</h3>
+                    <h3 class="acss-card-title" id="mahasiswa-show-edit-modal-title">Edit Mahasiswa</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-mahasiswa-edit-modal-close aria-label="Tutup">×</button>
             </div>

@@ -72,8 +72,8 @@
             </section>
         @endif
 
-        <section class="card" id="proposal-skripsi">
-            <div class="section-heading acss-crud-head--inline">
+        <section class="acss-crud-card" id="proposal-skripsi">
+            <div class="acss-crud-head acss-crud-head--inline">
                 <div>
                     <h3 class="acss-card-title">Proposal Skripsi</h3>
                 </div>
@@ -84,6 +84,7 @@
                 @endif
             </div>
 
+            <div class="acss-crud-body">
             <div class="table-shell table-shell--proposal-docs">
                 @forelse (($proposalVersions ?? []) as $document)
                     @if ($loop->first)
@@ -128,13 +129,15 @@
                     </form>
                 </div>
             @endif
+            </div>
         </section>
 
         @if (! $isProposalPhase)
         <div class="acss-stack-sections ">
             <div class="acss-detail-pair-grid">
-            <section class="card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
-                <div class="section-heading"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
+            <section class="acss-crud-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
+                <div class="acss-crud-head"><div><h3 class="acss-card-title">Dosen Pembimbing</h3></div></div>
+                <div class="acss-crud-body">
                     <div class="table-shell">
                         @forelse($activeSkripsi->assignments()->with('lecturer')->get() as $assignment)
                             @if ($loop->first)
@@ -162,13 +165,15 @@
                             <div class="empty-state">Belum ada reviewer ditetapkan.</div>
                         @endforelse
                     </div>
+                </div>
             </section>
 
-            <section class="card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
-                <div class="section-heading acss-crud-head--inline">
+            <section class="acss-crud-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
+                <div class="acss-crud-head acss-crud-head--inline">
                     <div><h3 class="acss-card-title">Histori Bimbingan</h3></div>
                     <a href="{{ route('mahasiswa.skripsi.bimbingan.index', $activeSkripsi) }}" class="acss-link-subtle">Lihat Histori</a>
                 </div>
+                <div class="acss-crud-body">
                     <div class="table-shell">
                         @forelse($activeSkripsi->bimbingans()->with(['reviewer', 'reviewedVersion'])->latest('meeting_date')->limit(5)->get() as $bimbingan)
                             @if ($loop->first)
@@ -190,6 +195,7 @@
                             <div class="empty-state">Belum ada histori bimbingan.</div>
                         @endforelse
                     </div>
+                </div>
             </section>
             </div>
         @endif
@@ -199,11 +205,11 @@
 
             <section class="card card--profile">
                 <div class="profile-card">
-                    <div class="profile-card__avatar">{{ mb_substr($completedSkripsi->student->name ?? 'M', 0, 1) }}</div>
+                    <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($completedSkripsi->student->name ?? 'M', 0, 1)) }}</div>
                     <div class="profile-card__main">
                         <div class="profile-card__meta">
                             <div>
-                                <h2>{{ $completedSkripsi->student->name ?? '-' }}</h2>
+                                <h2>{{ str($completedSkripsi->student->name ?? '-')->title() }}</h2>
                                 <p>{{ $completedSkripsi->student->nim ?? '-' }} • {{ $completedSkripsi->periode?->name ?? ($completedSkripsi->periode?->kode_periode ?? '-') }}</p>
                                 <div class="acss-quote-title">{{ $completedSkripsi->title }}</div>
                             </div>
@@ -239,13 +245,13 @@
     @include('mahasiswa.bimbingan.partials.revision-upload-script', ['readOnly' => true])
 
     @if (($activeSkripsi ?? null) && ($activeSkripsi->current_phase === 'proposal') && (($activeSkripsi->proposal_review_status ?? null) === 'draft'))
-        <div class="acss-modal" data-draft-edit-modal hidden>
+        <div class="acss-modal" data-draft-edit-modal role="dialog" aria-modal="true" aria-labelledby="draft-edit-modal-title" hidden>
             <div class="acss-modal__backdrop" data-draft-edit-modal-close></div>
             <div class="acss-modal__dialog acss-modal__dialog--master" style="min-height: 480px; display: flex; flex-direction: column;">
                 <div style="flex: 1 1 auto;">
                 <div class="acss-modal__head">
                     <div>
-                        <h3 class="acss-card-title">Edit Proposal Draft</h3>
+                        <h3 class="acss-card-title" id="draft-edit-modal-title">Edit Proposal Draft</h3>
                     </div>
                     <button type="button" class="acss-modal__close" data-draft-edit-modal-close aria-label="Tutup">×</button>
                 </div>

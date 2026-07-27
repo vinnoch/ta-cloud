@@ -88,12 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-    <div class="acss-modal" data-periode-edit-modal hidden>
+    <div class="acss-modal" data-periode-edit-modal role="dialog" aria-modal="true" aria-labelledby="periode-edit-modal-title" hidden>
         <div class="acss-modal__backdrop" data-periode-edit-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--large acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Edit Periode</h3>
+                    <h3 class="acss-card-title" id="periode-edit-modal-title">Edit Periode</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-periode-edit-close aria-label="Tutup">×</button>
             </div>
@@ -175,12 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 
-    <div class="acss-modal" data-periode-create-modal hidden>
+    <div class="acss-modal" data-periode-create-modal role="dialog" aria-modal="true" aria-labelledby="periode-create-modal-title" hidden>
         <div class="acss-modal__backdrop" data-periode-create-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--large acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tambah Periode</h3>
+                    <h3 class="acss-card-title" id="periode-create-modal-title">Tambah Periode</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-periode-create-close aria-label="Tutup">×</button>
             </div>

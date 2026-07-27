@@ -18,15 +18,11 @@
             <div class="table-shell__cell">
                 <div class="acss-stack-block">
                     <strong>{{ $item->name }}</strong>
-                    <div>
-                        @if (! $item->can_modify)
+                    @if (! $item->can_modify)
+                        <div>
                             <span class="status-pill status-pill--locked">LOCKED</span>
-                        @elseif ($item->is_published)
-                            <span class="status-pill status-pill--published">PUBLISHED</span>
-                        @else
-                            <span class="status-pill status-pill--draft">DRAFT</span>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                 </div>
                 <div class="acss-row-actions">
                     <a class="text-link acss-action-link" href="{{ route('kaprodi.document-templates.show', $item) }}">@include('partials.icons.eye')<span>Detail</span></a>

@@ -7,6 +7,7 @@
         $advisorAssignments = $skripsi->assignments
             ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
             ->values();
+        $advisorIds = $advisorAssignments->pluck('lecturer_id')->filter()->unique();
         $approvedAdvisorIds = $skripsi->sidangRequests
             ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
             ->where('status', 'approved')
@@ -14,13 +15,22 @@
             ->filter()
             ->unique()
             ->values();
+        $submittedAdvisorIds = $skripsi->sidangRequests
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
+            ->whereIn('status', ['submitted', 'approved'])
+            ->pluck('lecturer_id')
+            ->filter()
+            ->unique()
+            ->values();
+        $hasAllAdvisorSidangRequests = $advisorAssignments->isNotEmpty()
+            && $submittedAdvisorIds->intersect($advisorIds)->count() === $advisorIds->count();
         $pendingAdvisorNames = $advisorAssignments
             ->filter(fn ($assignment) => ! $approvedAdvisorIds->contains($assignment->lecturer_id))
             ->map(fn ($assignment) => \Illuminate\Support\Str::title((string) ($assignment->lecturer?->name ?? '-')))
             ->filter()
             ->values();
         $hasAllAdvisorSidangApprovals = $advisorAssignments->isNotEmpty()
-            && $approvedAdvisorIds->count() >= $advisorAssignments->pluck('lecturer_id')->filter()->unique()->count();
+            && $approvedAdvisorIds->intersect($advisorIds)->count() === $advisorIds->count();
     @endphp
 
     @php
@@ -67,10 +77,14 @@
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <strong>{{ $pendingSidangRequest->lecturer?->name ?? '-' }} ({{ str($pendingSidangRequest->role_type)->replace('_', ' ')->title() }}) telah mengajukan permohonan sidang untuk skripsi ini.</strong>
                         <div class="flex gap-2">
-                            <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
-                                @csrf
-                                <button class="button button--small button--success acss-sidang-approve-button" type="submit">Setujui Sidang</button>
-                            </form>
+                            @if ($hasAllAdvisorSidangRequests)
+                                <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
+                                    @csrf
+                                    <button class="button button--small button--success acss-sidang-approve-button" type="submit">Setujui Sidang</button>
+                                </form>
+                            @else
+                                <span class="text-xs acss-muted">Menunggu semua pembimbing mengajukan sidang.</span>
+                            @endif
                             <button class="button button--small button--danger" type="button" onclick="document.querySelector('[data-sidang-reject-modal]').hidden = false"><span class="dosen-btn-icon">@include('partials.icons.archive')</span><span>Tolak Sidang</span></button>
                         </div>
                     </div>
@@ -80,12 +94,12 @@
     @endif
 
     @if (!empty($pendingSidangRequest))
-        <div class="acss-modal" data-sidang-reject-modal hidden>
+        <div class="acss-modal" data-sidang-reject-modal role="dialog" aria-modal="true" aria-labelledby="sidang-reject-modal-title" hidden>
             <div class="acss-modal__backdrop" onclick="this.parentElement.hidden = true"></div>
             <div class="acss-modal__dialog acss-modal__dialog--master">
                 <div class="acss-modal__head">
                     <div>
-                        <h3 class="acss-card-title">Tolak Sidang</h3>
+                        <h3 class="acss-card-title" id="sidang-reject-modal-title">Tolak Sidang</h3>
                     </div>
                     <button type="button" class="acss-modal__close" onclick="this.closest('[data-sidang-reject-modal]').hidden = true" aria-label="Tutup">×</button>
                 </div>
@@ -125,14 +139,6 @@
                         <p>{{ $skripsi->student->nim ?? '-' }} •
                             {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) $skripsi->title) }}</div>
-                        @if (($proposalVersions ?? collect())->isNotEmpty() || $skripsi->isProposalPhase())
-                            <div class="acss-link-gap-top">
-                                <a href="{{ route('kaprodi.skripsi.proposal', $skripsi) }}" class="acss-link-subtle acss-link-subtle--icon" target="_blank" rel="noopener noreferrer">
-                                    <span class="acss-link-subtle__icon">@include('partials.icons.file')</span>
-                                    <span>Lihat Proposal</span>
-                                </a>
-                            </div>
-                        @endif
                     </div>
                     <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                 </div>
@@ -146,10 +152,14 @@
     @if ($isProposalPhase)
         <div class="acss-detail-pair-grid">
             <section class="card" id="riwayat-proposal">
-                <div class="section-heading">
+                <div class="section-heading acss-crud-head--inline">
                     <div>
                         <h3 class="acss-card-title">Riwayat Proposal</h3>
                     </div>
+                    <a href="{{ route('kaprodi.skripsi.proposal', $skripsi) }}" class="acss-link-subtle acss-link-subtle--icon" target="_blank" rel="noopener noreferrer">
+                        <span class="acss-link-subtle__icon">@include('partials.icons.file')</span>
+                        <span>Lihat Proposal</span>
+                    </a>
                 </div>
                 <div class="table-shell table-shell--proposal-docs">
                     <div class="table-shell__head table-shell__grid acss-table-cols-kaprodi-proposal-history">
@@ -189,6 +199,19 @@
                 </section>
             @endif
         </div>
+    @endif
+
+    @if ($skripsi->periode && ! $skripsi->periode->is_aktif && $skripsi->periode->status !== 'active')
+        <section class="card card--notice">
+            <div class="section-heading"><div><h3>Penyelesaian Skripsi Historis</h3></div></div>
+            <p class="acss-muted">Khusus pencatatan dokumen final mahasiswa yang telah lulus dari periode lama. Tindakan ini langsung menyelesaikan arsip skripsi.</p>
+            <form method="POST" action="{{ route('kaprodi.skripsi.final-review.legacy-complete', $skripsi) }}" enctype="multipart/form-data" onsubmit="return confirm('Simpan dokumen final historis dan tandai skripsi selesai?')">
+                @csrf
+                <label class="form-field"><span>Dokumen Final Skripsi</span><input type="file" name="file" accept=".pdf,.doc,.docx" required></label>
+                @error('file')<small class="form-error">{{ $message }}</small>@enderror
+                <button class="button button--small" type="submit">Simpan Arsip & Selesaikan</button>
+            </form>
+        </section>
     @endif
 
     @if (! $isProposalPhase)
@@ -311,7 +334,7 @@
                             <div class="table-shell__cell">
                                 <div><strong>{{ \Illuminate\Support\Str::title((string) ($sidangRequest->lecturer?->name ?? '-')) }}</strong></div>
                                 <div class="acss-muted text-xs">{{ str($sidangRequest->role_type)->replace('_', ' ')->title() }}</div>
-                                @if ($sidangRequest->status !== 'approved')
+                                @if ($sidangRequest->status !== 'approved' && $hasAllAdvisorSidangRequests)
                                     <div class="acss-row-actions acss-row-actions--always acss-row-actions--compact">
                                         <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $sidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
                                             @csrf
@@ -467,12 +490,12 @@
     </div>
     @endif
 
-    <div class="acss-modal" data-reviewer-modal hidden>
+    <div class="acss-modal" data-reviewer-modal role="dialog" aria-modal="true" aria-labelledby="reviewer-modal-title" hidden>
         <div class="acss-modal__backdrop" data-reviewer-modal-close></div>
         <div class="acss-modal__dialog">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tambahkan Reviewer</h3>
+                    <h3 class="acss-card-title" id="reviewer-modal-title">Tambahkan Reviewer</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-reviewer-modal-close aria-label="Tutup">×</button>
             </div>
@@ -652,8 +675,11 @@
                     lecturers.forEach((lecturer) => {
                         const item = document.createElement('li');
                         item.className = 'acss-reviewer-result-item';
-                        item.innerHTML =
-                            `<strong>${lecturer.name}</strong><br><small>${lecturer.email}</small>`;
+                        const name = document.createElement('strong');
+                        const email = document.createElement('small');
+                        name.textContent = lecturer.name;
+                        email.textContent = lecturer.email;
+                        item.append(name, document.createElement('br'), email);
                         item.onclick = () => {
                             searchInput.value = lecturer.name;
                             hiddenInput.value = lecturer.id;
@@ -710,12 +736,12 @@
         })();
     </script>
 
-    <div class="acss-modal" data-proposal-reject-modal hidden>
+    <div class="acss-modal" data-proposal-reject-modal role="dialog" aria-modal="true" aria-labelledby="show-proposal-reject-modal-title" hidden>
         <div class="acss-modal__backdrop" onclick="this.parentElement.hidden = true"></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tolak / Revisi Proposal</h3>
+                    <h3 class="acss-card-title" id="show-proposal-reject-modal-title">Tolak / Revisi Proposal</h3>
                 </div>
                 <button type="button" class="acss-modal__close" onclick="this.closest('[data-proposal-reject-modal]').hidden = true" aria-label="Tutup">×</button>
             </div>

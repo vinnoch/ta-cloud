@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['name', 'email', 'password', 'users_id', 'study_program_id', 'role', 'nim', 'nidn_nip'])]
 #[Hidden(['password', 'remember_token'])]
@@ -25,7 +24,6 @@ class User extends Authenticatable
     {
         return $this->belongsTo(UserLevel::class, 'users_id', 'users_id');
     }
-
 
     public function studyProgram()
     {
@@ -62,11 +60,6 @@ class User extends Authenticatable
         return $this->hasMany(DocumentVersion::class, 'uploaded_by');
     }
 
-    public function finalDocumentApprovals(): HasMany
-    {
-        return $this->hasMany(FinalDocumentApproval::class, 'reviewer_id');
-    }
-
     public function scopeForRole(Builder $query, string $role): Builder
     {
         return $query->whereHas('level', fn (Builder $relation): Builder => $relation->where('users_level', $role));
@@ -88,12 +81,13 @@ class User extends Authenticatable
         }
     }
 
-
     protected static function booted(): void
     {
         static::saving(function (self $user): void {
             if (! empty($user->attributes['role'])) {
-                $level = UserLevel::where('users_level', $user->attributes['role'])->first();
+                $level = in_array($user->attributes['role'], ['admin', 'kaprodi', 'dosen', 'mahasiswa'], true)
+                    ? UserLevel::firstOrCreate(['users_level' => $user->attributes['role']])
+                    : null;
 
                 if ($level) {
                     $user->attributes['users_id'] = $level->users_id;

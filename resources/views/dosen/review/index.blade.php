@@ -8,8 +8,8 @@
     ])
 
     <section class="panel-grid">
-        <article class="card">
-            <div class="form-grid">
+        <article class="acss-crud-card">
+            <div class="acss-crud-body form-grid">
                 @include('partials.forms.field', ['label' => 'Versi yang Direview', 'value' => 'v4 Proposal Revisi'])
                 @include('partials.forms.field', ['label' => 'Catatan Reviewer', 'type' => 'textarea', 'placeholder' => 'Masukkan catatan revisi atau persetujuan...'])
                 <div class="pill-row">

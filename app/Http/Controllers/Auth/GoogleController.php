@@ -6,8 +6,8 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends AuthenticatedSessionController
@@ -28,8 +28,8 @@ class GoogleController extends AuthenticatedSessionController
         $email = Str::lower((string) $googleUser->getEmail());
         $allowedDomain = Str::lower((string) config('services.google.allowed_domain'));
 
-        if ($email === '' || ! Str::endsWith($email, '@' . $allowedDomain)) {
-            return redirect()->route('login')->with('status', 'Login Google hanya untuk email @' . $allowedDomain . '.');
+        if ($email === '' || ! Str::endsWith($email, '@'.$allowedDomain)) {
+            return redirect()->route('login')->with('status', 'Login Google hanya untuk email @'.$allowedDomain.'.');
         }
 
         $user = User::query()
@@ -38,7 +38,12 @@ class GoogleController extends AuthenticatedSessionController
             ->first();
 
         if (! $user) {
-            return redirect()->route('login')->with('status', 'Akun belum terdaftar di TACLOUD. Hubungi admin.');
+            $user = User::query()->create([
+                'name' => $googleUser->getName() ?: Str::before($email, '@'),
+                'email' => $email,
+                'password' => Str::random(40),
+                'role' => 'mahasiswa',
+            ]);
         }
 
         if (method_exists($user, 'trashed') && $user->trashed()) {

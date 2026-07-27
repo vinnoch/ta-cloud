@@ -1,8 +1,8 @@
 @extends('layouts.app')
 @section('content')
     @include('partials.page-header', ['title' => 'Input Data Non-Skripsi', 'eyebrow' => 'Mahasiswa • Non-Skripsi'])
-    <section class="card">
-        <form method="POST" action="{{ route('mahasiswa.non-skripsi.store') }}" class="form-grid">
+    <section class="acss-crud-card">
+        <form method="POST" action="{{ route('mahasiswa.non-skripsi.store') }}" class="acss-crud-body form-grid">
             @csrf
             <label class="form-field"><span>Judul / Topik</span><input type="text" name="title" required></label>
             <label class="form-field"><span>Abstrak</span><textarea name="abstract" rows="4" required></textarea></label>

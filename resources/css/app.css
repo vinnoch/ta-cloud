@@ -118,8 +118,7 @@ body.ta-body {
 }
 
 .auth-form input[type="email"],
-.auth-form input[type="password"],
-.auth-shortcut-select {
+.auth-form input[type="password"] {
     border: 1px solid var(--border);
     width: 100%;
     color: var(--ink);
@@ -193,7 +192,9 @@ body.ta-body {
 }
 
 .page-content {
+    flex: 1 0 auto;
     display: grid;
+    align-content: start;
     gap: 1.25rem;
     padding: 1.15rem 2rem 2rem;
     background: #fff;
@@ -677,6 +678,13 @@ textarea {
 .acss-stack-block{display:grid;gap:1rem;min-width:0}
 .acss-grid-full{grid-column:1 / -1}
 .acss-info-grid{display:grid;gap:1rem}
+.acss-final-document-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(18rem,24rem);gap:1rem;align-items:center}
+@media (max-width:720px){.acss-final-document-row{grid-template-columns:minmax(0,1fr)}}
+.acss-title-link:hover{text-decoration:underline;text-underline-offset:.18rem}
+
+/* Secondary actions inside cards should not compete with page-level actions. */
+:is(.card,.acss-page-card,.acss-section-card,.acss-crud-card) .button:not(.button--primary):not(.button--success):not(.button--danger):not(.button--muted):not(.button--light):not(.button--google){background:#f8fafc!important;border-color:#d7deee!important;color:#334155!important}
+:is(.card,.acss-page-card,.acss-section-card,.acss-crud-card) .button:not(.button--primary):not(.button--success):not(.button--danger):not(.button--muted):not(.button--light):not(.button--google):hover{background:#eef2f7!important;border-color:#cbd5e1!important;color:#334155!important}
 .acss-info-item{display:grid;gap:.25rem}
 .acss-info-item>span{color:#64748b;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:none}
 
@@ -3700,15 +3708,34 @@ button[data-sidang-create-modal-open]:hover {
         grid-template-columns: 1fr;
     }
 }
-.button--danger {
-    background: #b42318;
-    border-color: #b42318;
-    color: #fff;
+button.button.button--danger,
+a.button.button--danger {
+    background: #b42318 !important;
+    border-color: #b42318 !important;
+    color: #fff !important;
 }
-.button--danger:hover {
-    background: #991b1b;
-    border-color: #991b1b;
-    color: #fff;
+button.button.button--danger:hover,
+a.button.button--danger:hover {
+    background: #991b1b !important;
+    border-color: #991b1b !important;
+    color: #fff !important;
+}
+.acss-cancel-request-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #b42318;
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1rem;
+    cursor: pointer;
+}
+.acss-cancel-request-link:hover {
+    text-decoration: underline;
+    text-underline-offset: .18rem;
 }
 .button--google,
 .auth-submit,

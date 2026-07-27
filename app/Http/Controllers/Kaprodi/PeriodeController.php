@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Periode;
-use App\Models\TahunAkademik;
 use App\Models\Skripsi;
+use App\Models\TahunAkademik;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,8 @@ use Illuminate\View\View;
 class PeriodeController extends Controller
 {
     use BuildsKaprodiPage;
-    public function index(Request $request): View|\Illuminate\Http\JsonResponse
+
+    public function index(Request $request): View|JsonResponse
     {
         $search = $request->string('q')->toString();
         $sort = $request->string('sort')->toString();
@@ -57,7 +59,7 @@ class PeriodeController extends Controller
             return response()->json([
                 'table_html' => view('kaprodi.periode.partials.table', ['periode' => $periode, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('kaprodi.periode.partials.pagination', ['periode' => $periode])->render(),
-                'count_text' => $periode->total() . ' periode akademik tersedia.',
+                'count_text' => $periode->total().' periode akademik tersedia.',
             ]);
         }
 
@@ -82,16 +84,17 @@ class PeriodeController extends Controller
             'sk_dokumen_url' => ['nullable', 'url', 'max:255'],
             'tgl_mulai' => ['required', 'date'],
             'tgl_selesai' => ['required', 'date', 'after:tgl_mulai'],
-            
+            'status' => ['required', Rule::in(['draft', 'active', 'closed'])],
         ]);
 
         $tahunAkademik = TahunAkademik::findOrFail($validated['tahun_akademik_id']);
-        $periodCode = $tahunAkademik->tahun_awal . $validated['semester'];
-        $isActive = false;
+        $periodCode = $tahunAkademik->tahun_awal.$validated['semester'];
+        $isActive = $validated['status'] === 'active';
 
         $data = array_merge($validated, [
             'kode_periode' => $periodCode,
-            'is_aktif' => $isActive, 'status' => 'draft',
+            'is_aktif' => $isActive,
+            'status' => $validated['status'],
         ]);
 
         DB::transaction(function () use ($data, $isActive) {
@@ -107,7 +110,7 @@ class PeriodeController extends Controller
             ->with('success', 'Periode berhasil ditambahkan.');
     }
 
-    public function show(Request $request, Periode $periode): View|\Illuminate\Http\JsonResponse
+    public function show(Request $request, Periode $periode): View|JsonResponse
     {
         $hasLinkedData = $this->hasLinkedData($periode);
         $assignedSearch = trim((string) $request->query('q', ''));
@@ -156,12 +159,12 @@ class PeriodeController extends Controller
                     'assignedSkripsis' => $skripsis,
                     'assignedSort' => $assignedSort,
                     'assignedDirection' => $assignedDirection,
-            'assignedFase' => $assignedFase,
+                    'assignedFase' => $assignedFase,
                 ])->render(),
                 'pagination_html' => view('kaprodi.periode.partials.assigned-pagination', [
                     'assignedSkripsis' => $skripsis,
                 ])->render(),
-                'count_text' => $skripsis->total() . ' skripsi aktif terhubung.',
+                'count_text' => $skripsis->total().' skripsi aktif terhubung.',
             ]);
         }
 
@@ -193,16 +196,17 @@ class PeriodeController extends Controller
             'sk_dokumen_url' => ['nullable', 'url', 'max:255'],
             'tgl_mulai' => ['required', 'date'],
             'tgl_selesai' => ['required', 'date', 'after:tgl_mulai'],
-            
+            'status' => ['required', Rule::in(['draft', 'active', 'closed'])],
         ]);
 
         $tahunAkademik = TahunAkademik::findOrFail($validated['tahun_akademik_id']);
-        $periodCode = $tahunAkademik->tahun_awal . $validated['semester'];
-        $isActive = false;
+        $periodCode = $tahunAkademik->tahun_awal.$validated['semester'];
+        $isActive = $validated['status'] === 'active';
 
         $data = array_merge($validated, [
             'kode_periode' => $periodCode,
-            'is_aktif' => $isActive, 'status' => 'draft',
+            'is_aktif' => $isActive,
+            'status' => $validated['status'],
         ]);
 
         DB::transaction(function () use ($periode, $data, $isActive) {

@@ -82,12 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-    <div class="acss-modal" data-ta-edit-modal hidden>
+    <div class="acss-modal" data-ta-edit-modal role="dialog" aria-modal="true" aria-labelledby="ta-edit-modal-title" hidden>
         <div class="acss-modal__backdrop" data-ta-edit-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Edit Tahun Akademik</h3>
+                    <h3 class="acss-card-title" id="ta-edit-modal-title">Edit Tahun Akademik</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-ta-edit-close aria-label="Tutup">×</button>
             </div>
@@ -114,12 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 
-    <div class="acss-modal" data-ta-create-modal hidden>
+    <div class="acss-modal" data-ta-create-modal role="dialog" aria-modal="true" aria-labelledby="ta-create-modal-title" hidden>
         <div class="acss-modal__backdrop" data-ta-create-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tambah Tahun Akademik</h3>
+                    <h3 class="acss-card-title" id="ta-create-modal-title">Tambah Tahun Akademik</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-ta-create-close aria-label="Tutup">×</button>
             </div>

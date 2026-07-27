@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bimbingan;
 use App\Models\DocumentVersion;
 use App\Models\Grade;
+use App\Models\Periode;
 use App\Models\Skripsi;
 use App\Models\User;
 use App\Services\NotificationService;
@@ -13,10 +14,10 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -24,12 +25,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SkripsiController extends Controller
 {
-    
-
-
-    
-
-
     use BuildsKaprodiPage;
 
     public function exportPage(Request $request): View
@@ -37,7 +32,7 @@ class SkripsiController extends Controller
         $search = $request->string('q')->toString();
         $status = $request->string('status')->toString();
         $periodeId = (int) $request->integer('periode_id');
-        $periodes = \App\Models\Periode::query()
+        $periodes = Periode::query()
             ->with('tahunAkademik')
             ->orderByDesc('is_aktif')
             ->orderByDesc('kode_periode')
@@ -102,6 +97,7 @@ class SkripsiController extends Controller
             ->when($status !== '', function ($query) use ($status, $phaseFilterMap) {
                 if (isset($phaseFilterMap[$status])) {
                     $query->whereIn(DB::raw('LOWER(current_phase)'), $phaseFilterMap[$status]);
+
                     return;
                 }
 
@@ -119,20 +115,21 @@ class SkripsiController extends Controller
             });
 
         $skripsis = (clone $baseQuery)
-            ->when(in_array($sort, ['mahasiswa','nim'], true), function ($query) use ($direction, $sort) {
+            ->when(in_array($sort, ['mahasiswa', 'nim'], true), function ($query) use ($direction, $sort) {
                 $query->join('users', 'users.id', '=', 'skripsis.student_id')
                     ->orderBy($sort === 'nim' ? 'users.nim' : 'users.name', $direction)
                     ->select('skripsis.*');
             })
             ->when($sort === 'judul', fn ($query) => $query->orderBy('title', $direction))
             ->when($sort === 'fase', fn ($query) => $query->orderBy('current_phase', $direction))
-            ->when(! in_array($sort, ['mahasiswa','nim','judul','fase'], true), fn ($query) => $query->orderByDesc('created_at'))
+            ->when(! in_array($sort, ['mahasiswa', 'nim', 'judul', 'fase'], true), fn ($query) => $query->orderByDesc('created_at'))
             ->paginate(10)
             ->withQueryString();
 
         $summarySource = (clone $summaryBaseQuery)->get(['current_phase'])
             ->map(function ($item) {
                 $item->current_phase = strtolower(str_replace('_', ' ', (string) $item->current_phase));
+
                 return $item;
             });
 
@@ -160,7 +157,7 @@ class SkripsiController extends Controller
                 'table_html' => view('kaprodi.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('kaprodi.skripsi.partials.pagination', ['skripsis' => $skripsis])->render(),
                 'stats_html' => view('kaprodi.skripsi.partials.stats', ['chartData' => $chartData])->render(),
-                'count_text' => $skripsis->total() . ' skripsi ditemukan.',
+                'count_text' => $skripsis->total().' skripsi ditemukan.',
                 'suggestions' => $suggestions,
             ]);
         }
@@ -177,7 +174,7 @@ class SkripsiController extends Controller
 
     public function show(Skripsi $skripsi): View
     {
-        $relations = ['student.level', 'periode', 'documentVersions.uploader', 'finalDocumentApprovals.reviewer'];
+        $relations = ['student.level', 'periode', 'documentVersions.uploader'];
 
         if (Schema::hasTable('reviewer_assignments')) {
             $relations[] = 'assignments.lecturer';
@@ -210,7 +207,7 @@ class SkripsiController extends Controller
             ->where('grade_event', 'sidang_skripsi')
             ->where('status', 'published')
             ->get()
-            ->keyBy(fn (Grade $grade) => $grade->reviewer_id . ':' . $grade->role_type);
+            ->keyBy(fn (Grade $grade) => $grade->reviewer_id.':'.$grade->role_type);
 
         $gradingProgress = [
             'expected_count' => $sidangAssignments->count(),
@@ -221,7 +218,7 @@ class SkripsiController extends Controller
         ];
 
         foreach ($sidangAssignments as $assignment) {
-            $gradeKey = $assignment->lecturer_id . ':' . $assignment->role_type;
+            $gradeKey = $assignment->lecturer_id.':'.$assignment->role_type;
             $reviewerData = [
                 'name' => $assignment->lecturer?->name ?? '-',
                 'role' => str($assignment->role_type)->replace('_', ' ')->title()->toString(),
@@ -387,7 +384,7 @@ class SkripsiController extends Controller
 
         if ($existingAssignment) {
             throw ValidationException::withMessages([
-                'lecturer_id' => 'Dosen ini sudah ditetapkan sebagai ' . str_replace('_', ' ', $existingAssignment->role_type) . '.',
+                'lecturer_id' => 'Dosen ini sudah ditetapkan sebagai '.str_replace('_', ' ', $existingAssignment->role_type).'.',
             ]);
         }
 
@@ -400,7 +397,7 @@ class SkripsiController extends Controller
         $notifications->send([$assignment->lecturer], [
             'type' => 'reviewer_assigned',
             'title' => 'Penugasan dosen baru',
-            'message' => 'Anda ditugaskan sebagai ' . str_replace('_', ' ', $assignment->role_type) . ' untuk ' . $assignment->skripsi->student->name . ': ' . $assignment->skripsi->title,
+            'message' => 'Anda ditugaskan sebagai '.str_replace('_', ' ', $assignment->role_type).' untuk '.$assignment->skripsi->student->name.': '.$assignment->skripsi->title,
             'url' => route('dosen.skripsi.show', ['skripsi' => $assignment->skripsi->id], false),
             'actor' => $request->user()->name,
             'meta' => [
@@ -412,7 +409,7 @@ class SkripsiController extends Controller
         $notifications->send([$assignment->skripsi->student], [
             'type' => 'reviewer_assigned',
             'title' => 'Reviewer ditetapkan',
-            'message' => $assignment->lecturer->name . ' ditetapkan sebagai ' . str_replace('_', ' ', $assignment->role_type) . ' untuk tugas akhir Anda.',
+            'message' => $assignment->lecturer->name.' ditetapkan sebagai '.str_replace('_', ' ', $assignment->role_type).' untuk tugas akhir Anda.',
             'url' => route('mahasiswa.skripsi.show', ['skripsi' => $assignment->skripsi->id], false),
             'actor' => $request->user()->name,
             'meta' => [
@@ -442,7 +439,6 @@ class SkripsiController extends Controller
 
         return back()->with('success', 'Pembimbing berhasil ditetapkan.');
     }
-
 
     public function assignPenguji(Request $request, Skripsi $skripsi): RedirectResponse
     {
@@ -488,6 +484,7 @@ class SkripsiController extends Controller
             ->when($status !== '', function ($query) use ($status, $phaseFilterMap) {
                 if (isset($phaseFilterMap[$status])) {
                     $query->whereIn(DB::raw('LOWER(current_phase)'), $phaseFilterMap[$status]);
+
                     return;
                 }
 
@@ -507,7 +504,7 @@ class SkripsiController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="rekap_skripsi_' . now()->format('Ymd_His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="rekap_skripsi_'.now()->format('Ymd_His').'.csv"',
         ];
 
         $callback = function () use ($skripsis) {
@@ -566,7 +563,7 @@ class SkripsiController extends Controller
             ->first();
 
         if ($conflictingSchedule) {
-            $message = 'Jadwal sidang bentrok dengan ' . ($conflictingSchedule->student?->name ?? 'mahasiswa lain') . ' pada ' . optional($conflictingSchedule->{$field})->format('d/m/Y H:i') . '.';
+            $message = 'Jadwal sidang bentrok dengan '.($conflictingSchedule->student?->name ?? 'mahasiswa lain').' pada '.optional($conflictingSchedule->{$field})->format('d/m/Y H:i').'.';
 
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
@@ -593,8 +590,8 @@ class SkripsiController extends Controller
             if ($student) {
                 $notifications->send([$student], [
                     'type' => $notificationType,
-                    'title' => 'Jadwal ' . $label . ' Ditetapkan',
-                    'message' => $label . ' untuk "' . $skripsi->title . '" dijadwalkan pada ' . $formattedDate . ' pukul ' . $formattedTime . '.',
+                    'title' => 'Jadwal '.$label.' Ditetapkan',
+                    'message' => $label.' untuk "'.$skripsi->title.'" dijadwalkan pada '.$formattedDate.' pukul '.$formattedTime.'.',
                     'url' => route('mahasiswa.skripsi.show', $skripsi, false),
                     'meta' => [
                         'skripsi_id' => $skripsi->id,
@@ -606,8 +603,8 @@ class SkripsiController extends Controller
             if ($lecturers->isNotEmpty()) {
                 $notifications->send($lecturers, [
                     'type' => $notificationType,
-                    'title' => 'Jadwal ' . $label . ' Ditetapkan',
-                    'message' => $label . ' ' . ($student?->name ?? 'mahasiswa') . ' dijadwalkan pada ' . $formattedDate . ' pukul ' . $formattedTime . '.',
+                    'title' => 'Jadwal '.$label.' Ditetapkan',
+                    'message' => $label.' '.($student?->name ?? 'mahasiswa').' dijadwalkan pada '.$formattedDate.' pukul '.$formattedTime.'.',
                     'url' => route('dosen.skripsi.show', $skripsi, false),
                     'meta' => [
                         'skripsi_id' => $skripsi->id,
@@ -621,13 +618,13 @@ class SkripsiController extends Controller
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
-                'message' => 'Jadwal ' . strtolower($label) . ' berhasil disimpan.',
+                'message' => 'Jadwal '.strtolower($label).' berhasil disimpan.',
                 'scheduled_at' => $scheduledAt->toIso8601String(),
                 'formatted' => $scheduledAt->translatedFormat('d M Y H:i'),
             ]);
         }
 
-        return back()->with('success', 'Jadwal ' . strtolower($label) . ' berhasil disimpan.');
+        return back()->with('success', 'Jadwal '.strtolower($label).' berhasil disimpan.');
     }
 
     private function renderReviewerTable(Skripsi $skripsi): string
@@ -659,7 +656,7 @@ class SkripsiController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="logbook_' . Str::slug($studentLabel, '_') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="logbook_'.Str::slug($studentLabel, '_').'.csv"',
         ];
 
         $callback = function () use ($skripsi) {

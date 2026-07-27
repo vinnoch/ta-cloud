@@ -58,27 +58,4 @@
         </div>
     </section>
 
-    @if ($skripsi->current_phase === 'review_dokumen_final')
-        <section class="acss-section-card">
-            <div class="acss-section-card__head"><div><h3 class="acss-card-title">Status Approval Dokumen Final</h3></div></div>
-            <div class="acss-section-card__body">
-                <div class="table-shell">
-                    <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi-approval">
-                        <span>Reviewer</span>
-                        <span>Peran</span>
-                        <span>Status</span>
-                    </div>
-                    @forelse($finalApprovals as $approval)
-                        <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi-approval acss-hover-row-group">
-                            <div class="table-shell__cell"><strong>{{ $approval->reviewer?->name ?? '-' }}</strong></div>
-                            <div class="table-shell__cell">{{ str($approval->role_type)->replace('_', ' ')->title() }}</div>
-                            <div class="table-shell__cell"><span class="pill">{{ strtoupper($approval->status) }}</span></div>
-                        </div>
-                    @empty
-                        <div class="empty-state">Belum ada status approval final.</div>
-                    @endforelse
-                </div>
-            </div>
-        </section>
-    @endif
 @endsection

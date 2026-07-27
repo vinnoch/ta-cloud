@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-    @if (session('success'))
-        <div class="notice notice--success">{{ session('success') }}</div>
+    @if (session('success') || request()->boolean('saved'))
+        <div class="notice notice--success">{{ session('success', 'Template dokumen final berhasil diperbarui.') }}</div>
     @endif
 
     @if (session('error'))
@@ -40,17 +40,20 @@
 
             <div class="acss-page-card">
                 <div class="acss-page-card__body">
+                    @php $currentStatus = old('status', $template->is_published ? 'published' : 'draft'); @endphp
+                    <input type="hidden" name="status" value="{{ $currentStatus }}">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <label class="form-field acss-field-tight md:w-1/3">
-                            <span>Status Template</span>
-                            <select name="status" required>
-                                <option value="draft" {{ old('status', $template->status) === 'draft' ? 'selected' : '' }}>Draft</option>
-                                <option value="published" {{ old('status', $template->status) === 'published' ? 'selected' : '' }}>Published</option>
-                            </select>
-                        </label>
+                        <div>
+                            <span class="acss-muted">Status saat ini: {{ strtoupper($currentStatus) }}</span>
+                        </div>
                         <div class="acss-form-actions acss-form-actions--end">
-                            <button class="button button--inline" type="submit">Simpan Perubahan</button>
                             <a class="button button--muted button--inline" href="{{ route('kaprodi.document-templates.show', $template) }}">Batal</a>
+                            @if ($currentStatus === 'draft')
+                                <button class="button button--inline" type="submit" name="status" value="draft">Simpan Draft</button>
+                                <button class="button button--success button--inline" type="submit" name="status" value="published">Publish</button>
+                            @else
+                                <button class="button button--success button--inline" type="submit" name="status" value="published">Simpan Perubahan</button>
+                            @endif
                         </div>
                     </div>
                 </div>

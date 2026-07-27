@@ -2,10 +2,10 @@
 
 use App\Models\FormatPenilaian;
 use App\Models\Grade;
+use App\Models\Periode;
 use App\Models\ReviewerAssignment;
 use App\Models\Skripsi;
 use App\Models\TahunAkademik;
-use App\Models\Periode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -81,6 +81,19 @@ it('stores final proposal submission and advances phase', function () {
         'phase' => 'proposal_final',
         'version_number' => 1,
     ]);
+});
+
+it('blocks premature final submission without complete grades', function () {
+    Grade::query()->where('skripsi_id', $this->skripsi->id)->delete();
+
+    $this->actingAs($this->mahasiswa)
+        ->post(route('mahasiswa.final.submit', [$this->skripsi, 'sidang_proposal']), [
+            'file' => UploadedFile::fake()->create('premature.pdf', 1000, 'application/pdf'),
+        ])
+        ->assertRedirect(route('mahasiswa.skripsi.show', $this->skripsi));
+
+    expect($this->skripsi->fresh()->current_phase)->toBe('sidang_proposal');
+    $this->assertDatabaseCount('document_versions', 0);
 });
 
 it('blocks final submission form for other mahasiswa', function () {

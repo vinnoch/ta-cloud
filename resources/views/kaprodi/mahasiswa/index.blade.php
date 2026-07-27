@@ -34,12 +34,12 @@
 
 
     
-    <div class="acss-modal" data-mahasiswa-create-modal hidden>
+    <div class="acss-modal" data-mahasiswa-create-modal role="dialog" aria-modal="true" aria-labelledby="mahasiswa-create-modal-title" hidden>
         <div class="acss-modal__backdrop" data-mahasiswa-create-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Tambah Mahasiswa</h3>
+                    <h3 class="acss-card-title" id="mahasiswa-create-modal-title">Tambah Mahasiswa</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-mahasiswa-create-close aria-label="Tutup">×</button>
             </div>
@@ -63,12 +63,12 @@
             </form>
         </div>
     </div>
-    <div class="acss-modal" data-mahasiswa-edit-modal hidden>
+    <div class="acss-modal" data-mahasiswa-edit-modal role="dialog" aria-modal="true" aria-labelledby="mahasiswa-edit-modal-title" hidden>
         <div class="acss-modal__backdrop" data-mahasiswa-edit-close></div>
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Edit Mahasiswa</h3>
+                    <h3 class="acss-card-title" id="mahasiswa-edit-modal-title">Edit Mahasiswa</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-mahasiswa-edit-close aria-label="Tutup">×</button>
             </div>

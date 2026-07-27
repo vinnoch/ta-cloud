@@ -15,6 +15,11 @@
         </div>
     @endif
     @forelse ($requests as $item)
+        @php
+            $advisorIds = $item->skripsi->assignments->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->pluck('lecturer_id')->unique();
+            $submittedAdvisorIds = $item->skripsi->sidangRequests->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->whereIn('status', ['submitted', 'approved'])->pluck('lecturer_id')->unique();
+            $canApprove = $item->role_type === 'mahasiswa' || ($advisorIds->isNotEmpty() && $submittedAdvisorIds->intersect($advisorIds)->count() === $advisorIds->count());
+        @endphp
         <div class="table-shell__row table-shell__grid acss-table-cols-sidang-reqs acss-hover-row-group">
             <div class="table-shell__cell">
                 <strong>{{ $item->submitted_at?->format('d/m/Y') ?? '-' }}</strong>
@@ -22,7 +27,7 @@
                 @if ($item->status !== 'approved')
                 <div class="acss-row-actions">
                     <a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.show', $item->skripsi) }}">@include('partials.icons.eye')<span>Permohonan Sidang</span></a>
-                    @if ($item->status === 'submitted')
+                    @if ($item->status === 'submitted' && $canApprove)
                         <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$item->skripsi, $item]) }}">
                             @csrf
                             <button class="button button--small button--success" type="submit">Setujui</button>

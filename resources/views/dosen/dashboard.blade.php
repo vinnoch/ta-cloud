@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-page-card">
-        <div class="acss-page-card__body">
-            <h1 class="acss-page-title">Dashboard Dosen</h1>
-            <p class="acss-muted ">Ringkasan bimbingan, antrian penilaian, dan persetujuan dokumen final.</p>
+    <section class="card card--profile acss-skripsi-detail-topcompact">
+        <div class="profile-card acss-dashboard-header">
+            <div>
+                <h1 class="acss-page-title">Dashboard Dosen</h1>
+                <p class="acss-muted">Ringkasan bimbingan, antrian penilaian, dan persetujuan dokumen final.</p>
+            </div>
         </div>
     </section>
 

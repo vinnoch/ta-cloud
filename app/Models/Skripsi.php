@@ -3,18 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Skripsi extends Model
 {
     use SoftDeletes;
+
     protected $table = 'skripsis';
 
     protected $casts = [
+        'final_submitted_at' => 'datetime',
         'proposal_reviewed_at' => 'datetime',
         'proposal_rejected_at' => 'datetime',
         'sidang_proposal_datetime' => 'datetime',
@@ -72,11 +74,15 @@ class Skripsi extends Model
         return $this->hasMany(DocumentVersion::class);
     }
 
+    public function documentSubmissions(): HasMany
+    {
+        return $this->hasMany(DocumentSubmission::class);
+    }
+
     public function grades(): HasMany
     {
         return $this->hasMany(Grade::class);
     }
-
 
     public function sidangRequests(): HasMany
     {
@@ -86,11 +92,6 @@ class Skripsi extends Model
     public function nonSkripsiRecord(): HasOne
     {
         return $this->hasOne(NonSkripsiRecord::class, 'skripsi_id');
-    }
-
-    public function finalDocumentApprovals(): HasMany
-    {
-        return $this->hasMany(FinalDocumentApproval::class);
     }
 
     public function isProposalPhase(): bool

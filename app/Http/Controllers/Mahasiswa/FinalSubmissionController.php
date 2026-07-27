@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\DocumentTemplate;
 use App\Models\DocumentSubmission;
+use App\Models\DocumentTemplate;
 use App\Models\DocumentVersion;
-use App\Models\FinalDocumentApproval;
 use App\Models\Grade;
 use App\Models\ReviewerAssignment;
 use App\Models\Skripsi;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\RoleNavigationService;
 use App\Services\StudentDocumentPathService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,15 +47,7 @@ class FinalSubmissionController extends Controller
             ->get()
             ->keyBy('document_template_item_id');
 
-        $latestDoc = $documents->first();
-        $approvals = $latestDoc
-            ? FinalDocumentApproval::query()
-                ->where('document_version_id', $latestDoc->id)
-                ->with('reviewer')
-                ->get()
-            : collect();
-
-        $navigation = app(\App\Services\RoleNavigationService::class);
+        $navigation = app(RoleNavigationService::class);
 
         return view('mahasiswa.final.skripsi', [
             'title' => 'Dokumen Final',
@@ -72,7 +64,6 @@ class FinalSubmissionController extends Controller
             'templateItems' => $submission['template_items'] ?? collect(),
             'existingSubmissions' => $existingSubmissions,
             'documents' => $documents,
-            'approvals' => $approvals,
             'canUpload' => $submission['allowed'],
         ]);
     }
@@ -87,7 +78,7 @@ class FinalSubmissionController extends Controller
         $this->authorizeOwner($request, $skripsi);
 
         $submission = $this->buildSubmissionState($skripsi, $event);
-        if (! $submission['allowed']) {
+        if (! ($submission['phase_allowed'] ?? false) && ! ($submission['already_submitted'] ?? false)) {
             return redirect()
                 ->route('mahasiswa.skripsi.show', $skripsi)
                 ->with('warning', $submission['message']);
@@ -98,6 +89,7 @@ class FinalSubmissionController extends Controller
             'submission' => $submission,
             'checklist' => $submission['checklist'],
             'cards' => $submission['cards'],
+            'canUpload' => $submission['allowed'],
         ]);
     }
 
@@ -124,9 +116,9 @@ class FinalSubmissionController extends Controller
 
             foreach ($templateItems as $item) {
                 if (($item->type ?? 'file') === 'link') {
-                    $rules['links.' . $item->id] = [$item->is_required ? 'required' : 'nullable', 'url', 'max:500'];
+                    $rules['links.'.$item->id] = [$item->is_required ? 'required' : 'nullable', 'url', 'max:500'];
                 } else {
-                    $rules['files.' . $item->id] = [$item->is_required ? 'required' : 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:20480'];
+                    $rules['files.'.$item->id] = [$item->is_required ? 'required' : 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:20480'];
                 }
             }
 
@@ -135,7 +127,7 @@ class FinalSubmissionController extends Controller
             \DB::transaction(function () use ($request, $skripsi, $templateItems, $documentPathService): void {
                 foreach ($templateItems as $item) {
                     if (($item->type ?? 'file') === 'link') {
-                        $link = trim((string) data_get($request->all(), 'links.' . $item->id, ''));
+                        $link = trim((string) data_get($request->all(), 'links.'.$item->id, ''));
                         if ($link === '') {
                             continue;
                         }
@@ -154,7 +146,7 @@ class FinalSubmissionController extends Controller
                         continue;
                     }
 
-                    $file = $request->file('files.' . $item->id);
+                    $file = $request->file('files.'.$item->id);
                     if (! $file) {
                         continue;
                     }
@@ -189,35 +181,6 @@ class FinalSubmissionController extends Controller
                 }
             });
 
-            $skripsi->assignments()
-                ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
-                ->get()
-                ->each(function ($assignment) use ($skripsi): void {
-                    $latestDocument = DocumentVersion::query()
-                        ->where('skripsi_id', $skripsi->id)
-                        ->where('phase', 'skripsi_final')
-                        ->latest('id')
-                        ->first();
-
-                    if (! $latestDocument) {
-                        return;
-                    }
-
-                    FinalDocumentApproval::query()->updateOrCreate(
-                        [
-                            'document_version_id' => $latestDocument->id,
-                            'reviewer_id' => $assignment->lecturer_id,
-                        ],
-                        [
-                            'skripsi_id' => $skripsi->id,
-                            'role_type' => $assignment->role_type,
-                            'status' => 'pending',
-                            'note' => null,
-                            'reviewed_at' => null,
-                        ]
-                    );
-                });
-
             $skripsi->update([
                 'current_phase' => $submission['next_phase'],
             ]);
@@ -230,7 +193,7 @@ class FinalSubmissionController extends Controller
             $notifications->send($recipients, [
                 'type' => 'skripsi_final_submitted',
                 'title' => 'Dokumen final skripsi dikirim',
-                'message' => $request->user()->name . ' mengirim dokumen final skripsi: ' . $skripsi->title,
+                'message' => $request->user()->name.' mengirim dokumen final skripsi: '.$skripsi->title,
                 'url' => route('kaprodi.skripsi.show', ['skripsi' => $skripsi->id], false),
             ]);
 
@@ -265,32 +228,6 @@ class FinalSubmissionController extends Controller
             'uploaded_by' => $request->user()->id,
         ]);
 
-        if ($event === 'sidang_skripsi') {
-            $skripsi->finalDocumentApprovals()
-                ->where('document_version_id', '!=', $document->id)
-                ->where('status', 'pending')
-                ->update(['status' => 'superseded']);
-
-            $skripsi->assignments()
-                ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
-                ->get()
-                ->each(function ($assignment) use ($skripsi, $document): void {
-                    FinalDocumentApproval::query()->updateOrCreate(
-                        [
-                            'document_version_id' => $document->id,
-                            'reviewer_id' => $assignment->lecturer_id,
-                        ],
-                        [
-                            'skripsi_id' => $skripsi->id,
-                            'role_type' => $assignment->role_type,
-                            'status' => 'pending',
-                            'note' => null,
-                            'reviewed_at' => null,
-                        ]
-                    );
-                });
-        }
-
         $updates = [
             'current_phase' => $submission['next_phase'],
         ];
@@ -309,7 +246,7 @@ class FinalSubmissionController extends Controller
         $notifications->send($recipients, [
             'type' => $event === 'sidang_proposal' ? 'proposal_final_submitted' : 'skripsi_final_submitted',
             'title' => $event === 'sidang_proposal' ? 'Final proposal dikirim' : 'Dokumen final skripsi dikirim',
-            'message' => $request->user()->name . ' mengirim ' . ($event === 'sidang_proposal' ? 'proposal final' : 'dokumen final skripsi') . ': ' . $skripsi->title,
+            'message' => $request->user()->name.' mengirim '.($event === 'sidang_proposal' ? 'proposal final' : 'dokumen final skripsi').': '.$skripsi->title,
             'url' => route('kaprodi.skripsi.show', ['skripsi' => $skripsi->id], false),
             'actor' => $request->user()->name,
             'meta' => [
@@ -366,14 +303,7 @@ class FinalSubmissionController extends Controller
             ->orderByDesc('version_number')
             ->first();
 
-        $hasRejectedFinalDocument = $event === 'sidang_skripsi' && $latestDocument
-            ? FinalDocumentApproval::query()
-                ->where('document_version_id', $latestDocument->id)
-                ->where('status', 'rejected')
-                ->exists()
-            : false;
-
-        $alreadySubmitted = (bool) $latestDocument && ! $hasRejectedFinalDocument;
+        $alreadySubmitted = (bool) $latestDocument;
 
         $average = $finalGrades->whereNotNull('score')->avg('score');
         $requiredGradeCount = max($assignedReviewerCount, 1);
@@ -394,6 +324,7 @@ class FinalSubmissionController extends Controller
             'event' => $event,
             'title' => $event === 'sidang_proposal' ? 'Final Submission Proposal' : 'Final Submission Skripsi',
             'allowed' => $allowed,
+            'phase_allowed' => $phaseAllowed,
             'message' => $alreadySubmitted
                 ? 'Final submission untuk tahap ini sudah pernah dikirim.'
                 : (! $phaseAllowed ? 'Tahap final submission belum tersedia untuk fase skripsi saat ini.' : 'Final submission baru tersedia setelah semua nilai masuk.'),
@@ -403,13 +334,13 @@ class FinalSubmissionController extends Controller
             'final_grade_count' => $finalGrades->count(),
             'required_grade_count' => $requiredGradeCount,
             'already_submitted' => $alreadySubmitted,
-            'has_rejected_final_document' => $hasRejectedFinalDocument,
+            'has_rejected_final_document' => false,
             'show_journal_field' => $event === 'sidang_skripsi',
             'template_items' => $templateItems,
             'checklist' => [
                 [
                     'title' => 'Nilai final tersedia',
-                    'description' => 'Minimal ' . $requiredGradeCount . ' penilai untuk tahap ' . str($event)->replace('_', ' ')->title() . '.',
+                    'description' => 'Minimal '.$requiredGradeCount.' penilai untuk tahap '.str($event)->replace('_', ' ')->title().'.',
                     'status' => $hasCompleteFinalGrades ? 'SIAP' : 'MENUNGGU',
                 ],
                 [
@@ -424,7 +355,7 @@ class FinalSubmissionController extends Controller
                 ],
                 ...($event === 'sidang_skripsi' && $templateItems->isNotEmpty() ? [[
                     'title' => 'Checklist dokumen final',
-                    'description' => $templateItems->count() . ' item sesuai template periode aktif.',
+                    'description' => $templateItems->count().' item sesuai template periode aktif.',
                     'status' => 'TERSEDIA',
                 ]] : []),
                 [
@@ -441,7 +372,7 @@ class FinalSubmissionController extends Controller
                 ],
                 [
                     'eyebrow' => 'Penilai Final',
-                    'title' => (string) $finalGrades->count() . ' / ' . (string) $requiredGradeCount,
+                    'title' => (string) $finalGrades->count().' / '.(string) $requiredGradeCount,
                     'description' => 'Jumlah dosen yang sudah mempublikasikan nilai.',
                 ],
             ],

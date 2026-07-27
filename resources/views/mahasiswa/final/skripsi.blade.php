@@ -11,7 +11,7 @@
 
     <section class="card card--profile">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($skripsi->student->name ?? 'M', 0, 1)) }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
@@ -32,14 +32,14 @@
     @endif
 
     @if (($documents ?? collect())->isNotEmpty())
-        <section class="acss-section-card">
-            <div class="acss-section-card__head">
+        <section class="acss-crud-card">
+            <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Dokumen Terkirim</h3>
                     <p class="acss-muted">Dokumen final yang sudah Anda kirim dan masih dalam proses pengecekan.</p>
                 </div>
             </div>
-            <div class="acss-section-card__body">
+            <div class="acss-crud-body">
                 <div class="table-shell">
                     @foreach (($documents ?? collect()) as $document)
                         @if ($loop->first)
@@ -83,14 +83,14 @@
             </section>
         @endif
 
-        <section class="acss-section-card" @if(!($canUpload ?? false)) style="opacity: 0.6; pointer-events: none;" @endif>
-            <div class="acss-section-card__head">
+        <section class="acss-crud-card" @if(!($canUpload ?? false)) style="opacity: 0.6; pointer-events: none;" @endif>
+            <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Form Dokumen Final</h3>
                     <p class="acss-muted">Lengkapi semua dokumen sesuai template periode aktif.</p>
                 </div>
             </div>
-            <div class="acss-section-card__body">
+            <div class="acss-crud-body">
                 <form method="POST" action="{{ route('mahasiswa.skripsi.final.skripsi.store', $skripsi) }}" enctype="multipart/form-data">
                     @csrf
                     <div class="rubric-list">
@@ -103,7 +103,7 @@
                             @endphp
                             <article class="rubric-item">
                                 <div class="rubric-item__content" style="width:100%;">
-                                    <div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(18rem,24rem); gap:1rem; align-items:center;">
+                                    <div class="acss-final-document-row">
                                         <div>
                                             <h4>{{ $item->name }}</h4>
                                             <p class="rubric-item__meta">

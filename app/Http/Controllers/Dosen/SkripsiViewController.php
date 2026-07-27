@@ -9,7 +9,6 @@ use App\Models\Skripsi;
 use App\Services\RoleNavigationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class SkripsiViewController extends Controller
@@ -71,18 +70,18 @@ class SkripsiViewController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-
         $summarySource = (clone $summaryBaseQuery)->get(['skripsis.current_phase'])
             ->map(function ($item) {
                 $item->current_phase = strtolower(str_replace('_', ' ', (string) $item->current_phase));
+
                 return $item;
             });
 
         $chartData = [
-            ['label' => 'Proposal', 'value' => $summarySource->where('current_phase', 'proposal')->count()],
-            ['label' => 'Sidang Proposal', 'value' => $summarySource->where('current_phase', 'sidang proposal')->count()],
+            ['label' => 'Proposal', 'value' => $summarySource->whereIn('current_phase', ['proposal', 'sidang proposal'])->count()],
             ['label' => 'Bimbingan Skripsi', 'value' => $summarySource->where('current_phase', 'bimbingan skripsi')->count()],
             ['label' => 'Sidang Skripsi', 'value' => $summarySource->whereIn('current_phase', ['sidang skripsi', 'revisi sidang skripsi'])->count()],
+            ['label' => 'Review Dokumen Final', 'value' => $summarySource->where('current_phase', 'review dokumen final')->count()],
             ['label' => 'Skripsi Selesai', 'value' => $summarySource->where('current_phase', 'skripsi selesai')->count()],
         ];
 
@@ -104,7 +103,7 @@ class SkripsiViewController extends Controller
                 'table_html' => view('dosen.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('dosen.skripsi.partials.pagination', ['skripsis' => $skripsis])->render(),
                 'stats_html' => view('dosen.skripsi.partials.stats', ['chartData' => $chartData])->render(),
-                'count_text' => $skripsis->total() . ' skripsi ditemukan.',
+                'count_text' => $skripsis->total().' skripsi ditemukan.',
                 'suggestions' => $suggestions,
             ]);
         }
@@ -119,6 +118,80 @@ class SkripsiViewController extends Controller
         ]));
     }
 
+    public function proposals(Request $request): View|JsonResponse
+    {
+        $search = trim((string) $request->query('q', ''));
+        $status = (string) $request->query('status', 'all');
+        $sort = (string) $request->query('sort', 'tanggal');
+        $direction = strtolower((string) $request->query('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if (! in_array($status, ['all', 'pending', 'approved', 'rejected'], true)) {
+            $status = 'all';
+        }
+
+        if (! in_array($sort, ['tanggal', 'mahasiswa', 'judul', 'periode'], true)) {
+            $sort = 'tanggal';
+        }
+
+        $proposals = Skripsi::query()
+            ->select('skripsis.*')
+            ->join('reviewer_assignments as proposal_assignments', 'proposal_assignments.skripsi_id', '=', 'skripsis.id')
+            ->leftJoin('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')
+            ->leftJoin('periodes as periodes_sort', 'periodes_sort.id', '=', 'skripsis.periode_id')
+            ->where('proposal_assignments.lecturer_id', $request->user()->id)
+            ->whereIn('skripsis.current_phase', ['proposal', 'sidang_proposal'])
+            ->when($status === 'approved', fn ($query) => $query->where('proposal_review_status', 'approved'))
+            ->when($status === 'rejected', fn ($query) => $query->whereIn('proposal_review_status', ['rejected', 'revision_required']))
+            ->when($status === 'pending', function ($query): void {
+                $query->where(function ($statusQuery): void {
+                    $statusQuery->whereNull('proposal_review_status')
+                        ->orWhereNotIn('proposal_review_status', ['approved', 'rejected', 'revision_required']);
+                });
+            })
+            ->withMin(['documentVersions as proposal_submitted_at' => fn ($query) => $query->where('phase', 'proposal')], 'created_at')
+            ->with([
+                'student',
+                'periode',
+                'documentVersions' => fn ($query) => $query->where('phase', 'proposal')->oldest('created_at'),
+            ])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($inner) use ($search): void {
+                    $inner->where('students_sort.name', 'like', "%{$search}%")
+                        ->orWhere('students_sort.nim', 'like', "%{$search}%")
+                        ->orWhere('skripsis.title', 'like', "%{$search}%");
+                });
+            })
+            ->distinct('skripsis.id');
+
+        $sortMap = [
+            'tanggal' => 'proposal_submitted_at',
+            'mahasiswa' => 'students_sort.name',
+            'judul' => 'skripsis.title',
+            'periode' => 'periodes_sort.kode_periode',
+        ];
+
+        $proposals = $proposals
+            ->orderBy($sortMap[$sort], $direction)
+            ->orderBy('skripsis.id', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'table_html' => view('dosen.proposal.partials.table', compact('proposals', 'sort', 'direction'))->render(),
+                'pagination_html' => view('dosen.proposal.partials.pagination', compact('proposals'))->render(),
+                'count_text' => $proposals->total().' proposal ditemukan.',
+            ]);
+        }
+
+        return view('dosen.proposal.index', $this->page('Proposal', 'DOSEN • PROPOSAL', compact(
+            'proposals',
+            'search',
+            'status',
+            'sort',
+            'direction',
+        )));
+    }
 
     public function search(Request $request): JsonResponse
     {
@@ -171,7 +244,7 @@ class SkripsiViewController extends Controller
             ->where('lecturer_id', $request->user()->id)
             ->first();
 
-        $skripsi->load(['student', 'periode', 'assignments.lecturer', 'bimbingans.reviewer', 'bimbingans.reviewedVersion', 'documentVersions.uploader', 'grades.reviewer', 'finalDocumentApprovals.reviewer', 'sidangRequests']);
+        $skripsi->load(['student', 'periode', 'assignments.lecturer', 'bimbingans.reviewer', 'bimbingans.reviewedVersion', 'documentVersions.uploader', 'grades.reviewer', 'sidangRequests']);
 
         $showGradeReminder = false;
 
@@ -188,7 +261,6 @@ class SkripsiViewController extends Controller
         return view('dosen.skripsi.show', $this->page('Detail Skripsi', 'DOSEN • DETAIL SKRIPSI', [
             'skripsi' => $skripsi,
             'myRoleType' => $assignment?->role_type,
-            'finalApprovals' => $skripsi->finalDocumentApprovals->sortBy('role_type')->values(),
             'showGradeReminder' => $showGradeReminder,
             'sidangProposalSchedule' => $skripsi->sidang_proposal_datetime,
             'sidangSkripsiSchedule' => $skripsi->sidang_skripsi_datetime,

@@ -23,31 +23,33 @@
                 </div>
             </div>
         </div>
-        <div class="acss-inline-actions form-actions form-actions--inline mt-4">
-            <form class="inline-form" method="POST" action="{{ route('kaprodi.formats.duplicate', $format) }}">
-                @csrf
-                <button class="button button--primary button--inline" type="submit">Duplikat</button>
-            </form>
-            @if (! ($isFormatLocked ?? false))
-                <a href="{{ route('kaprodi.formats.edit', $format) }}" class="button button--primary button--inline">
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M13.75 3.75a1.768 1.768 0 1 1 2.5 2.5L7.5 15H5v-2.5l8.75-8.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.25 6.25l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                    <span>Edit Format Nilai</span>
-                </a>
-            @endif
-        </div>
     </section>
+
+    <div class="acss-inline-actions form-actions form-actions--inline" style="display:flex; width:100%; justify-content:flex-end; margin:1.15rem 0;">
+        @if (! ($isFormatLocked ?? false))
+            <a href="{{ route('kaprodi.formats.edit', $format) }}" class="button button--primary button--inline">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M13.75 3.75a1.768 1.768 0 1 1 2.5 2.5L7.5 15H5v-2.5l8.75-8.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.25 6.25l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span>Edit Format Nilai</span>
+            </a>
+        @endif
+        <form class="inline-form" method="POST" action="{{ route('kaprodi.formats.duplicate', $format) }}">
+            @csrf
+            <button class="button button--primary button--inline" type="submit">Duplikat</button>
+        </form>
+    </div>
 
     <div class="acss-stack-sections">
         @if ($isFormatLocked ?? false)
-            <section class="card">
-                <div class="section-heading">
+            <section class="acss-crud-card">
+                <div class="acss-crud-head">
                     <div>
-                        <h3>Hubungkan Periode</h3>
+                        <h3 class="acss-card-title">Hubungkan Periode</h3>
                     </div>
                 </div>
-                <div class="acss-form-split" style="align-items: stretch;">
-                    <div class="acss-page-card" style="height: 100%;">
-                        <div class="acss-page-card__body" style="height: 100%;">
+                <div class="acss-crud-body">
+                    <div class="acss-form-split" style="align-items: stretch;">
+                        <div class="acss-page-card" style="height: 100%;">
+                            <div class="acss-page-card__body" style="height: 100%;">
                             <div class="section-heading"><div><h3 class="acss-card-title">Periode Tersedia</h3></div></div>
                             <div class="table-shell">
                                 @forelse ($unattachedPeriodes as $period)
@@ -62,7 +64,7 @@
                                             <form method="POST" action="{{ route('kaprodi.formats.add-periode', $format) }}">
                                                 @csrf
                                                 <input type="hidden" name="periode_id" value="{{ $period->id }}">
-                                                <button class="button button--inline" type="submit">Hubungkan</button>
+                                                <button class="button button--muted button--inline" type="submit" aria-label="Hubungkan periode" title="Hubungkan periode" style="width:2.35rem; min-width:2.35rem; height:2.35rem; padding:0; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; color:#111827;"> <span style="display:inline-flex; width:1.05rem; height:1.05rem;">@include('partials.icons.plus')</span></button>
                                             </form>
                                         </div>
                                     </div>
@@ -70,34 +72,45 @@
                                     <div class="empty-state">Belum ada periode tersedia.</div>
                                 @endforelse
                             </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="acss-page-card" style="height: 100%;">
-                        <div class="acss-page-card__body" style="height: 100%;">
+                        <div class="acss-page-card" style="height: 100%;">
+                            <div class="acss-page-card__body" style="height: 100%;">
                             <div class="section-heading"><div><h3 class="acss-card-title">Periode Terhubung</h3></div></div>
-                            <div class="flex flex-wrap gap-2 mt-2">
+                            <div class="table-shell">
                                 @forelse ($format->periodes as $period)
                                     @php $hasGrades = in_array($period->id, $periodeIdsWithGrades ?? [], true); @endphp
-                                    <span class="pill pill--blue flex items-center gap-2" style="padding: 0.4rem 0.8rem; border-radius: 9999px;">
-                                        <span>{{ $period->name }}@if (!empty($period->kode_periode)) ({{ $period->kode_periode }})@endif</span>
-                                        @if (!$hasGrades)
-                                            <form method="POST" action="{{ route('kaprodi.formats.remove-periode', [$format, $period]) }}" style="display:inline;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:text-red-700 font-bold focus:outline-none" style="background:none; border:none; padding:0; font-size:1.1rem; line-height:1; cursor:pointer;" title="Lepas periode">×</button>
-                                            </form>
-                                        @endif
-                                    </span>
+                                    <div class="table-shell__row table-shell__grid" style="--table-cols:minmax(0,1fr) auto;">
+                                        <div class="table-shell__cell">
+                                            <strong>{{ $period->name }}</strong>
+                                            @if (!empty($period->kode_periode))
+                                                <small>{{ $period->kode_periode }}</small>
+                                            @endif
+                                        </div>
+                                        <div class="table-shell__cell">
+                                            @if ($hasGrades)
+                                                <button class="button button--muted button--inline" type="button" disabled aria-label="Periode memiliki nilai terhubung" title="Nilai sidang sudah terhubung" style="width:2.35rem; min-width:2.35rem; height:2.35rem; padding:0; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; opacity:.45; cursor:not-allowed; color:#111827;"> <span style="display:inline-flex; width:1rem; height:1rem;">@include('partials.icons.x')</span></button>
+                                            @else
+                                                <form method="POST" action="{{ route('kaprodi.formats.remove-periode', [$format, $period]) }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="button button--muted button--inline" type="submit" aria-label="Lepas periode" title="Lepas periode" style="width:2.35rem; min-width:2.35rem; height:2.35rem; padding:0; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; color:#111827;"> <span style="display:inline-flex; width:1rem; height:1rem;">@include('partials.icons.x')</span></button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
                                 @empty
-                                    <div class="empty-state w-full text-center py-4">Belum ada periode terhubung.</div>
+                                    <div class="empty-state">Belum ada periode terhubung.</div>
                                 @endforelse
+                            </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
         @endif
+
         <section class="acss-crud-card" id="assigned-list-root" data-endpoint="{{ route('kaprodi.formats.show', $format) }}">
             <div class="acss-crud-head">
                 <div>
@@ -142,6 +155,19 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <div class="acss-inline-actions form-actions form-actions--inline" style="display:flex; width:100%; justify-content:flex-end; margin:1.15rem 0;">
+        @if (! ($isFormatLocked ?? false))
+            <a href="{{ route('kaprodi.formats.edit', $format) }}" class="button button--primary button--inline">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M13.75 3.75a1.768 1.768 0 1 1 2.5 2.5L7.5 15H5v-2.5l8.75-8.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.25 6.25l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span>Edit Format Nilai</span>
+            </a>
+        @endif
+        <form class="inline-form" method="POST" action="{{ route('kaprodi.formats.duplicate', $format) }}">
+            @csrf
+            <button class="button button--primary button--inline" type="submit">Duplikat</button>
+        </form>
     </div>
 
 @include('partials.ajax-list-script', [

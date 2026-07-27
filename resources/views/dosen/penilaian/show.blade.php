@@ -18,11 +18,11 @@
 
     <section class="card card--profile">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student?->name ?? 'M', 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($skripsi->student?->name ?? 'M', 0, 1)) }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
-                        <h2>{{ $skripsi->student?->name ?? 'Mahasiswa' }}</h2>
+                        <h2>{{ str($skripsi->student?->name ?? 'Mahasiswa')->title() }}</h2>
                         <p>{{ $skripsi->student?->nim ?? '-' }} • {{ $skripsi->periode?->name ?? '-' }}</p>
                         <div class="acss-grade-title">{{ $skripsi->title ?: 'Tanpa Judul' }}</div>
                     </div>
@@ -35,14 +35,14 @@
         </div>
     </section>
 
-    <section class="acss-section-card acss-section-card--grading">
-        <div class="acss-section-card__head">
+    <section class="acss-crud-card acss-section-card--grading">
+        <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Item Penilaian</h3>
                 <p class="acss-muted ">Isi seluruh skor sesuai bobot format nilai sidang.</p>
             </div>
         </div>
-        <div class="acss-section-card__body">
+        <div class="acss-crud-body">
             <form method="POST" action="{{ route('dosen.penilaian.store', $skripsi) }}" class="acss-form-stack-tight" data-grading-form>
                 @csrf
 

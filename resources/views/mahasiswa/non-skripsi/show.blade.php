@@ -11,9 +11,9 @@
         ]
     ])
     <section class="acss-stack-sections">
-        <article class="card acss-section-card">
-            <div class="acss-section-card__head"><div><h3 class="acss-card-title">{{ $non_skripsi->summary }}</h3></div></div>
-            <div class="acss-section-card__body"><div class="content-block">
+        <article class="acss-crud-card">
+            <div class="acss-crud-head"><div><h3 class="acss-card-title">{{ $non_skripsi->summary }}</h3></div></div>
+            <div class="acss-crud-body"><div class="content-block">
                 <label class="label-muted">Abstrak</label>
                 <p>{{ $non_skripsi->abstract }}</p>
             </div>

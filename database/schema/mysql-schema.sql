@@ -103,29 +103,6 @@ CREATE TABLE `failed_jobs` (
   UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `final_document_approvals`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `final_document_approvals` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `skripsi_id` bigint unsigned NOT NULL,
-  `document_version_id` bigint unsigned NOT NULL,
-  `reviewer_id` bigint unsigned NOT NULL,
-  `role_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
-  `note` text COLLATE utf8mb4_unicode_ci,
-  `reviewed_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `final_document_approvals_document_version_id_reviewer_id_unique` (`document_version_id`,`reviewer_id`),
-  KEY `final_document_approvals_reviewer_id_foreign` (`reviewer_id`),
-  KEY `final_document_approvals_skripsi_id_status_index` (`skripsi_id`,`status`),
-  CONSTRAINT `final_document_approvals_document_version_id_foreign` FOREIGN KEY (`document_version_id`) REFERENCES `document_versions` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `final_document_approvals_reviewer_id_foreign` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `final_document_approvals_skripsi_id_foreign` FOREIGN KEY (`skripsi_id`) REFERENCES `skripsis` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `format_penilaians`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -540,3 +517,4 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (37,'2026_05_08_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (38,'2026_05_08_000003_unify_sidang_requests',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (39,'2026_05_08_120000_add_proposal_review_fields_to_skripsis_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (40,'2026_05_14_000001_add_study_program_id_to_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (41,'2026_07_20_000000_drop_final_document_approvals_table',1);

@@ -1,27 +1,31 @@
 <?php
 
-use App\Http\Controllers\Kaprodi\DosenController;
-use App\Http\Controllers\Kaprodi\FormatPenilaianController;
-use App\Http\Controllers\Kaprodi\FinalReviewController;
 use App\Http\Controllers\Kaprodi\DocumentTemplateController;
+use App\Http\Controllers\Kaprodi\DosenController;
+use App\Http\Controllers\Kaprodi\FinalReviewController;
+use App\Http\Controllers\Kaprodi\FormatPenilaianController;
 use App\Http\Controllers\Kaprodi\ImportUserController;
 use App\Http\Controllers\Kaprodi\MahasiswaController;
 use App\Http\Controllers\Kaprodi\NilaiController;
 use App\Http\Controllers\Kaprodi\NonSkripsiController;
 use App\Http\Controllers\Kaprodi\PeriodeController;
 use App\Http\Controllers\Kaprodi\ProposalSubmissionController;
-use App\Http\Controllers\Kaprodi\SkripsiController;
 use App\Http\Controllers\Kaprodi\SidangRequestController;
+use App\Http\Controllers\Kaprodi\SkripsiController;
 use App\Http\Controllers\Kaprodi\TahunAkademikController;
+use App\Models\Periode;
+use App\Models\SidangRequest;
+use App\Models\Skripsi;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])->group(function () use ($page, $crudSideCards, $adminFields, $tableAction, $sampleId, $skripsiDetailPage) {
-        Route::get('/dashboard', function (\Illuminate\Http\Request $request) use ($page) {
-        $periodes = \App\Models\Periode::query()->with('tahunAkademik')->orderByDesc('is_aktif')->orderByDesc('kode_periode')->get();
+Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])->group(function () use ($page) {
+    Route::get('/dashboard', function (Request $request) use ($page) {
+        $periodes = Periode::query()->with('tahunAkademik')->orderByDesc('is_aktif')->orderByDesc('kode_periode')->get();
         $defaultPeriodeId = (int) ($periodes->firstWhere('is_aktif', true)?->id ?? $periodes->first()?->id ?? 0);
         $selectedPeriodeId = (int) $request->query('periode_id', $defaultPeriodeId);
 
-        $baseSkripsiQuery = \App\Models\Skripsi::query()
+        $baseSkripsiQuery = Skripsi::query()
             ->where('type', 'skripsi')
             ->when($selectedPeriodeId > 0, fn ($query) => $query->where('periode_id', $selectedPeriodeId));
 
@@ -41,7 +45,7 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
             })
             ->count();
 
-        $pendingSidangRequests = \App\Models\SidangRequest::query()
+        $pendingSidangRequests = SidangRequest::query()
             ->where('status', 'submitted')
             ->where('role_type', '!=', 'mahasiswa')
             ->whereHas('skripsi', function ($query) use ($selectedPeriodeId) {
@@ -111,7 +115,6 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
         ]));
     })->name('dashboard');
 
-
     Route::match(['GET', 'POST'], '/skripsi', [SkripsiController::class, 'index'])->name('skripsi.index');
     Route::get('/non-skripsi', [NonSkripsiController::class, 'index'])->name('non-skripsi.index');
     Route::get('/non-skripsi/{skripsi}', [NonSkripsiController::class, 'show'])->name('non-skripsi.show');
@@ -129,6 +132,7 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
     Route::post('/skripsi/{skripsi}/proposal/approve', [ProposalSubmissionController::class, 'approve'])->name('skripsi.proposal.approve');
     Route::post('/skripsi/{skripsi}/proposal/reject', [ProposalSubmissionController::class, 'reject'])->name('skripsi.proposal.reject');
     Route::post('/skripsi/{skripsi}/final-review/approve', [FinalReviewController::class, 'approve'])->name('skripsi.final-review.approve');
+    Route::post('/skripsi/{skripsi}/final-review/legacy-complete', [FinalReviewController::class, 'completeLegacy'])->name('skripsi.final-review.legacy-complete');
     Route::delete('/skripsi/{skripsi}/reviewers/{assignment}', [SkripsiController::class, 'unassignReviewer'])->name('skripsi.reviewers.destroy');
     Route::get('/export-skripsi', [SkripsiController::class, 'exportPage'])->name('skripsi.export.page');
     Route::get('/skripsi/export/csv', [SkripsiController::class, 'exportCsv'])->name('skripsi.export.csv');
@@ -189,9 +193,8 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
     Route::post('/format-penilaian/{format}/duplicate', [FormatPenilaianController::class, 'duplicate'])->name('formats.duplicate');
     Route::post('/format-penilaian/{format}/add-periode', [FormatPenilaianController::class, 'addPeriode'])->name('formats.add-periode');
     Route::delete('/format-penilaian/{format}/remove-periode/{periode}', [FormatPenilaianController::class, 'removePeriode'])->name('formats.remove-periode');
-    Route::post('/document-templates/{documentTemplate}/add-periode', [\App\Http\Controllers\Kaprodi\DocumentTemplateController::class, 'addPeriode'])->name('document-templates.add-periode');
-    Route::delete('/document-templates/{documentTemplate}/remove-periode/{periode}', [\App\Http\Controllers\Kaprodi\DocumentTemplateController::class, 'removePeriode'])->name('document-templates.remove-periode');
-    Route::delete('/format-penilaian/{format}/remove-periode/{periode}', [FormatPenilaianController::class, 'removePeriode'])->name('formats.remove-periode');
+    Route::post('/document-templates/{documentTemplate}/add-periode', [DocumentTemplateController::class, 'addPeriode'])->name('document-templates.add-periode.legacy');
+    Route::delete('/document-templates/{documentTemplate}/remove-periode/{periode}', [DocumentTemplateController::class, 'removePeriode'])->name('document-templates.remove-periode');
     Route::delete('/format-penilaian/{format}', [FormatPenilaianController::class, 'destroy'])->name('formats.destroy');
 
     Route::get('/import/dosen', [ImportUserController::class, 'showDosen'])->name('import.dosen');

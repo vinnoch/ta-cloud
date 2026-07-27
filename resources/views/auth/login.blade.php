@@ -40,20 +40,6 @@
             <form method="POST" action="{{ route('login') }}" class="auth-form" id="login-form">
                 @csrf
 
-                @if (! empty($testAccounts))
-                    <label>
-                        <span>Shortcut Role</span>
-                        <select id="login-shortcut-select" class="auth-shortcut-select">
-                            <option value="">Pilih role</option>
-                            @foreach ($testAccounts as $index => $account)
-                                <option value="{{ $index }}" data-email="{{ $account['email'] }}" data-password="{{ $account['password'] }}">
-                                    {{ $account['role'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </label>
-                @endif
-
                 <label>
                     <span>Email</span>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus

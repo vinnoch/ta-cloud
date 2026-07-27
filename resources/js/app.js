@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initNotifications();
     initTopbarSkripsiSearch();
-    initLoginShortcut();
+    initModalAccessibility();
     initCenteredConfirm();
     initFilterBars();
     initDatetimePickers();
@@ -268,6 +268,110 @@ function escapeHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
+function initModalAccessibility() {
+    const triggers = new WeakMap();
+    let lastInteraction = null;
+
+    const focusable = (modal) => {
+        const visible = (element) => !element.closest('[hidden]') && element.getAttribute('aria-hidden') !== 'true';
+        const meaningful = Array.from(modal.querySelectorAll(
+            '[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.acss-modal__close), a[href], [tabindex]:not([tabindex="-1"])',
+        )).filter(visible);
+        const close = Array.from(modal.querySelectorAll('.acss-modal__close:not([disabled])')).filter(visible);
+        return [...meaningful, ...close];
+    };
+
+    const openModals = () => Array.from(document.querySelectorAll('.acss-modal:not([hidden])'));
+
+    const activate = (modal) => {
+        const trigger = document.activeElement instanceof HTMLElement && !modal.contains(document.activeElement)
+            ? document.activeElement
+            : lastInteraction;
+        if (trigger instanceof HTMLElement && !modal.contains(trigger)) {
+            triggers.set(modal, trigger);
+        }
+
+        queueMicrotask(() => {
+            if (modal.hidden || modal.contains(document.activeElement)) return;
+            const target = focusable(modal)[0];
+            if (target) {
+                target.focus();
+                return;
+            }
+            modal.dataset.a11yFocusTarget = 'true';
+            modal.tabIndex = -1;
+            modal.focus();
+        });
+    };
+
+    const deactivate = (modal) => {
+        if (modal.dataset.a11yFocusTarget === 'true') {
+            delete modal.dataset.a11yFocusTarget;
+            modal.removeAttribute('tabindex');
+        }
+        const trigger = triggers.get(modal);
+        triggers.delete(modal);
+        if (trigger?.isConnected) queueMicrotask(() => trigger.focus());
+    };
+
+    const observeModal = (modal) => {
+        if (!modal.hidden) activate(modal);
+    };
+
+    document.addEventListener('click', (event) => {
+        if (event.target instanceof HTMLElement) lastInteraction = event.target.closest('button, a, [tabindex]') || event.target;
+    }, true);
+
+    document.addEventListener('keydown', (event) => {
+        const modal = openModals().at(-1);
+        if (!modal) return;
+
+        if (event.key === 'Escape') {
+            const closeButton = modal.querySelector('.acss-modal__close:not([disabled])');
+            if (!closeButton || modal.matches('[aria-busy="true"], [data-modal-dismiss-disabled]')) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            closeButton.click();
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+        const items = focusable(modal);
+        if (!items.length) {
+            event.preventDefault();
+            modal.tabIndex = -1;
+            modal.focus();
+            return;
+        }
+        const first = items[0];
+        const last = items.at(-1);
+        if (event.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) {
+            event.preventDefault();
+            first.focus();
+        }
+    }, true);
+
+    new MutationObserver((records) => {
+        records.forEach((record) => {
+            if (record.type === 'attributes') {
+                if (!record.target.matches('.acss-modal')) return;
+                record.target.hidden ? deactivate(record.target) : activate(record.target);
+                return;
+            }
+            record.addedNodes.forEach((node) => {
+                if (!(node instanceof HTMLElement)) return;
+                if (node.matches('.acss-modal')) observeModal(node);
+                node.querySelectorAll?.('.acss-modal').forEach(observeModal);
+            });
+        });
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+
+    document.querySelectorAll('.acss-modal').forEach(observeModal);
+}
+
 
 
 function initCenteredConfirm() {
@@ -277,13 +381,16 @@ function initCenteredConfirm() {
 
     const modal = document.createElement('div');
     modal.className = 'acss-modal acss-confirm-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'confirm-modal-title');
     modal.hidden = true;
     modal.innerHTML = `
         <div class="acss-modal__backdrop" data-confirm-cancel></div>
         <div class="acss-modal__dialog acss-confirm-modal__dialog">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title">Konfirmasi</h3>
+                    <h3 class="acss-card-title" id="confirm-modal-title">Konfirmasi</h3>
                 </div>
                 <button type="button" class="acss-modal__close" data-confirm-cancel aria-label="Tutup">×</button>
             </div>
@@ -453,7 +560,11 @@ function initTopbarSkripsiSearch() {
             (payload.suggestions || []).forEach((item) => {
                 const div = document.createElement('div');
                 div.className = 'skripsi-suggestion acss-topbar-suggestion';
-                div.innerHTML = `<strong>${item.title ?? '-'}</strong><br><small>${item.student_name ?? '-'} • ${item.nim ?? '-'}</small>`;
+                const title = document.createElement('strong');
+                const meta = document.createElement('small');
+                title.textContent = item.title ?? '-';
+                meta.textContent = `${item.student_name ?? '-'} • ${item.nim ?? '-'}`;
+                div.append(title, document.createElement('br'), meta);
                 div.addEventListener('click', () => {
                     input.value = item.title ?? '';
                     hideSuggestions();
@@ -483,24 +594,6 @@ function initTopbarSkripsiSearch() {
         if (!event.target.closest('.search-box')) {
             hideSuggestions();
         }
-    });
-}
-
-
-function initLoginShortcut() {
-    const shortcut = document.getElementById('login-shortcut-select');
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-
-    if (!shortcut || !email || !password) return;
-
-    shortcut.addEventListener('change', () => {
-        const option = shortcut.options[shortcut.selectedIndex];
-        if (!option || !option.dataset.email) return;
-
-        email.value = option.dataset.email || '';
-        password.value = option.dataset.password || '';
-        password.focus();
     });
 }
 

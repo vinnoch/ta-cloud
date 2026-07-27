@@ -9,11 +9,11 @@
     @endphp
     <section class="card card--profile">
         <div class="profile-card">
-            <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
+            <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($skripsi->student->name ?? 'M', 0, 1)) }}</div>
             <div class="profile-card__main">
                 <div class="profile-card__meta">
                     <div>
-                        <h2>{{ $skripsi->student->name ?? 'Mahasiswa' }}</h2>
+                        <h2>{{ str($skripsi->student->name ?? 'Mahasiswa')->title() }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title ?: 'Tanpa Judul' }}</div>
                     </div>
@@ -61,12 +61,13 @@
             $eventAverage = $eventGrades->whereNotNull('score')->avg('score');
             $eventName = str($event)->replace('_', ' ')->title();
         @endphp
-        <section class="card">
-            <div class="section-heading">
+        <section class="acss-crud-card">
+            <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Nilai {{ $eventName }}</h3>
                 </div>
             </div>
+            <div class="acss-crud-body">
             <div class="table-shell">
                 <div class="table-shell__head table-shell__grid acss-table-cols-mhs-nilai-summary">
                     <span>Dosen</span>
@@ -82,6 +83,7 @@
             <p class="acss-muted acss-table-note-gap">
                 Rata-rata Nilai: <strong>{{ $eventAverage ? number_format($eventAverage, 1) : '-' }}</strong>
             </p>
+            </div>
         </section>
     @empty
         <section class="acss-section-card">

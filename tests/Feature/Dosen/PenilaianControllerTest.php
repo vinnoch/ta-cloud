@@ -2,8 +2,10 @@
 
 use App\Models\FormatPenilaian;
 use App\Models\ItemPenilaian;
+use App\Models\Periode;
 use App\Models\ReviewerAssignment;
 use App\Models\Skripsi;
+use App\Models\TahunAkademik;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -14,12 +16,12 @@ beforeEach(function () {
     $this->dosen = User::factory()->dosen()->create();
     $this->otherDosen = User::factory()->dosen()->create();
     $this->mahasiswa = User::factory()->mahasiswa()->create();
-    $tahun = \App\Models\TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
-    $this->periode = \App\Models\Periode::query()->create([
-        'id' => 1,'tahun_akademik_id' => $tahun->id,'kode_periode' => '20251','semester' => 1,
-        'sk_nomor' => 'SK-1','tgl_mulai' => '2025-08-01','tgl_selesai' => '2026-01-31','is_aktif' => true,'status' => 'active',
+    $tahun = TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
+    $this->periode = Periode::query()->create([
+        'id' => 1, 'tahun_akademik_id' => $tahun->id, 'kode_periode' => '20251', 'semester' => 1,
+        'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01', 'tgl_selesai' => '2026-01-31', 'is_aktif' => true, 'status' => 'active',
     ]);
-    $this->skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id,'periode_id' => 1,'title' => 'TA','type' => 'skripsi','current_phase' => 'sidang_skripsi']);
+    $this->skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'sidang_skripsi']);
     ReviewerAssignment::query()->create(['skripsi_id' => $this->skripsi->id, 'lecturer_id' => $this->dosen->id, 'role_type' => 'penguji_1']);
 
     $this->format = FormatPenilaian::query()->create(['nama' => 'Format Sidang', 'template_type' => 'sidang_skripsi', 'is_published' => true, 'is_locked' => false, 'is_default' => true]);
@@ -33,7 +35,7 @@ it('stores weighted grade for assigned dosen', function () {
 
     $items = $this->format->items()->orderBy('sort_order')->get();
     $this->actingAs($this->dosen)->post(route('dosen.penilaian.store', $this->skripsi), [
-        'submit_action' => 'final',
+        'save_mode' => 'publish_lock',
         'scores' => [
             $items[0]->id => 80,
             $items[1]->id => 90,
@@ -51,4 +53,21 @@ it('stores weighted grade for assigned dosen', function () {
 
 it('blocks unassigned dosen from grading', function () {
     $this->actingAs($this->otherDosen)->get(route('dosen.penilaian.show', $this->skripsi))->assertSessionHasErrors();
+});
+
+it('rejects grades outside the allowed range', function () {
+    $items = $this->format->items()->orderBy('sort_order')->get();
+
+    $this->actingAs($this->dosen)->post(route('dosen.penilaian.store', $this->skripsi), [
+        'save_mode' => 'publish_lock',
+        'scores' => [
+            $items[0]->id => -1,
+            $items[1]->id => 101,
+        ],
+    ])->assertSessionHasErrors([
+        'scores.'.$items[0]->id,
+        'scores.'.$items[1]->id,
+    ]);
+
+    $this->assertDatabaseCount('grades', 0);
 });
