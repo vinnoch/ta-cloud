@@ -15,4 +15,7 @@ Thumbs.db
 *.log
 /bootstrap/cache
 /venv
-/testsprite_tests/
+/docs/reports/launch-readiness/
+/output/pdf/
+/testsprite_tests/tmp/
+**/__pycache__/
