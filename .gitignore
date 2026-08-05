@@ -19,3 +19,7 @@ Thumbs.db
 /output/pdf/
 /testsprite_tests/tmp/
 **/__pycache__/
+/.codex/
+/.vscode/
+/docs/legacy-chats/
+/tmp/
