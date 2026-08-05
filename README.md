@@ -145,7 +145,7 @@ Panduan HTML multi-halaman tersedia di folder `public/docs/`:
 - program-specific workflow engine
 - API / token auth layer
 
-## Instalasi Produksi Ringkas
+## Panduan Singkat Instalasi Production Server
 
 ```bash
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
