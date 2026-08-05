@@ -3,7 +3,7 @@
 - **Purpose**: Sistem manajemen tugas akhir untuk mengelola proposal, bimbingan, permohonan sidang, penilaian, dokumen final, template dokumen final, dan arsip akademik.
 - **Cakupan implementasi saat ini**: Kaprodi, Dosen, dan Mahasiswa sudah aktif dengan alur inti. Notifikasi realtime, request unlock nilai, final submission, dan template dokumen final sudah masuk ke alur aktif.
 - **Tech stack**:
-  - **Backend**: Laravel 13, PHP 8.3
+  - **Backend**: Laravel 13, PHP 8.4
   - **Frontend**: Blade, Tailwind CSS v4, Vite, Alpine-style server-rendered UI
   - **Realtime**: Laravel Reverb
   - **Testing**: Pest

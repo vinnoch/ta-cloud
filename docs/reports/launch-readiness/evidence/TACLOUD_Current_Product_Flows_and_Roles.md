@@ -101,7 +101,7 @@ The current product centralizes:
 
 | Layer | Current implementation |
 |---|---|
-| Backend | Laravel 13, PHP `^8.3` |
+| Backend | Laravel 13, PHP `^8.4` |
 | Server-rendered UI | Blade |
 | Authentication | Laravel session authentication, Laravel Socialite Google OAuth |
 | Realtime notifications | Laravel Reverb and database notifications |

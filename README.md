@@ -152,5 +152,5 @@ https://domain-produksi/superadmin/reauth/google/callback
 Jangan pernah menjalankan `php artisan migrate:fresh` pada server produksi.
 
 ## Pengembangan Lokal
-Project memakai Laravel 13 + PHP 8.3 + Vite + Tailwind v4 + Reverb.
+Project memakai Laravel 13 + PHP 8.4 + Vite + Tailwind v4 + Reverb.
 Lihat `.env.example` dan panduan pada folder `public/docs/` untuk konfigurasi lanjutan.
