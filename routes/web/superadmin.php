@@ -20,6 +20,7 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     Route::put('/users/{user}', [UserController::class, 'update'])->middleware('fresh.superadmin')->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('fresh.superadmin')->name('users.destroy');
     Route::post('/users/{user}/restore', [UserController::class, 'restore'])->middleware('fresh.superadmin')->name('users.restore');
+    Route::delete('/users/{user}/permanent', [UserController::class, 'permanentlyDestroy'])->middleware('fresh.superadmin')->name('users.permanently-destroy');
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SettingController::class, 'update'])->middleware('fresh.superadmin')->name('settings.update');
     Route::get('/audit', function () {

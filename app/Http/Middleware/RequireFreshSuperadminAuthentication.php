@@ -16,6 +16,7 @@ class RequireFreshSuperadminAuthentication
         'superadmin.users.update' => ['role'],
         'superadmin.users.destroy' => [],
         'superadmin.users.restore' => [],
+        'superadmin.users.permanently-destroy' => [],
         'superadmin.settings.update' => ['application_name'],
     ];
 

@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -75,5 +76,22 @@ class UserController extends Controller
         PrivilegedAudit::record('user.reactivated', $restored, [], ['email' => $restored->email, 'role' => $restored->role], $request);
 
         return redirect()->route('superadmin.users.index')->with('status', 'Akun berhasil diaktifkan kembali.');
+    }
+
+    public function permanentlyDestroy(Request $request, int $user, SuperadminAccounts $accounts): RedirectResponse
+    {
+        try {
+            $deleted = $accounts->permanentlyDelete($user);
+        } catch (ValidationException $exception) {
+            return redirect()->route('superadmin.users.index')->withErrors($exception->errors());
+        }
+
+        PrivilegedAudit::record('user.permanently_deleted', $deleted, [
+            'email' => $deleted->email,
+            'name' => $deleted->name,
+            'role' => $deleted->role,
+        ], request: $request);
+
+        return redirect()->route('superadmin.users.index')->with('status', 'Akun berhasil dihapus permanen.');
     }
 }

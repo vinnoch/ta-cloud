@@ -4,8 +4,10 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 
@@ -61,14 +63,19 @@ it('isolates superadmin routes from other roles', function () {
 
 it('renders account actions in the user cell and the last login time', function () {
     $superadmin = superadminUser();
+    $inactive = User::factory()->dosen()->create();
+    $inactive->delete();
     $superadmin->forceFill(['last_login_at' => now()])->saveQuietly();
 
     $this->actingAs($superadmin)->get(route('superadmin.users.index'))
         ->assertOk()
         ->assertSeeInOrder(['Akun', 'Peran', 'Status', 'Login Terakhir'])
-        ->assertDontSee('Tindakan')
+        ->assertDontSee('<span>Tindakan</span>', false)
         ->assertSee('data-account-edit-open', false)
         ->assertSee('data-account-edit-modal', false)
+        ->assertSee(route('superadmin.users.permanently-destroy', $inactive->id), false)
+        ->assertDontSee(route('superadmin.users.permanently-destroy', $superadmin->id), false)
+        ->assertSee('Hapus Permanen')
         ->assertSee($superadmin->last_login_at->translatedFormat('d M Y'));
 });
 
@@ -92,6 +99,10 @@ it('protects the last active superadmin', function () {
     $this->actingAs($superadmin)->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
         ->delete(route('superadmin.users.destroy', $superadmin))
         ->assertSessionHasErrors('role');
+
+    $this->actingAs($superadmin)->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
+        ->delete(route('superadmin.users.permanently-destroy', $superadmin->id))
+        ->assertSessionHasErrors('user');
 
     expect($superadmin->fresh())->not->toBeNull();
 });
@@ -144,6 +155,151 @@ it('reactivates an account without changing its role', function () {
 
     expect($target->fresh()->role)->toBe('dosen');
     $this->assertDatabaseHas('audit_logs', ['action' => 'user.reactivated', 'target_id' => $target->id]);
+});
+
+it('permanently deletes only an unused inactive account and clears disposable records', function () {
+    $actor = superadminUser();
+    $target = User::factory()->dosen()->create();
+    $target->delete();
+
+    DB::table('sessions')->insert([
+        'id' => 'target-session',
+        'user_id' => $target->id,
+        'payload' => 'unused',
+        'last_activity' => now()->timestamp,
+    ]);
+    DB::table('notifications')->insert([
+        'id' => (string) Str::uuid(),
+        'type' => 'test',
+        'notifiable_type' => User::class,
+        'notifiable_id' => $target->id,
+        'data' => '{}',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($actor)->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
+        ->delete(route('superadmin.users.permanently-destroy', $target->id))
+        ->assertRedirect(route('superadmin.users.index'))
+        ->assertSessionHas('status', 'Akun berhasil dihapus permanen.');
+
+    $this->assertDatabaseMissing('users', ['id' => $target->id])
+        ->assertDatabaseMissing('sessions', ['user_id' => $target->id])
+        ->assertDatabaseMissing('notifications', ['notifiable_type' => User::class, 'notifiable_id' => $target->id])
+        ->assertDatabaseHas('audit_logs', [
+            'action' => 'user.permanently_deleted',
+            'target_id' => $target->id,
+        ]);
+});
+
+it('rejects permanent deletion of an active account', function () {
+    $actor = superadminUser();
+    $target = User::factory()->dosen()->create();
+
+    $this->actingAs($actor)->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
+        ->delete(route('superadmin.users.permanently-destroy', $target->id))
+        ->assertRedirect(route('superadmin.users.index'))
+        ->assertSessionHasErrors('user');
+
+    $this->assertDatabaseHas('users', ['id' => $target->id, 'deleted_at' => null]);
+});
+
+it('blocks permanent deletion for every academic user reference without deleting related data', function (string $table, string $column) {
+    $actor = superadminUser();
+    $target = User::factory()->dosen()->create();
+    $student = User::factory()->mahasiswa()->create();
+    $tahunAkademikId = DB::table('tahun_akademiks')->insertGetId([
+        'tahun_awal' => 2026,
+        'tahun_akhir' => 2027,
+    ]);
+    $periodeId = DB::table('periodes')->insertGetId([
+        'tahun_akademik_id' => $tahunAkademikId,
+        'kode_periode' => '2026-1',
+        'semester' => 1,
+        'tgl_mulai' => '2026-08-01',
+        'tgl_selesai' => '2026-12-31',
+    ]);
+    $skripsiId = DB::table('skripsis')->insertGetId([
+        'student_id' => $table === 'skripsis' ? $target->id : $student->id,
+        'periode_id' => $periodeId,
+        'title' => 'Deletion guard',
+        'type' => 'skripsi',
+        'current_phase' => 'proposal',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    match ([$table, $column]) {
+        ['skripsis', 'student_id'] => null,
+        ['reviewer_assignments', 'lecturer_id'] => DB::table($table)->insert([
+            'skripsi_id' => $skripsiId, $column => $target->id, 'role_type' => 'pembimbing_1',
+        ]),
+        ['grades', 'reviewer_id'] => DB::table($table)->insert([
+            'skripsi_id' => $skripsiId,
+            'format_penilaian_id' => DB::table('format_penilaians')->insertGetId(['nama' => 'Guard']),
+            $column => $target->id,
+            'role_type' => 'penguji_1',
+            'grade_event' => 'sidang_skripsi',
+        ]),
+        ['bimbingans', 'reviewer_id'] => DB::table($table)->insert([
+            'skripsi_id' => $skripsiId,
+            $column => $target->id,
+            'phase' => 'proposal',
+            'meeting_date' => now()->toDateString(),
+        ]),
+        ['document_versions', 'uploaded_by'] => DB::table($table)->insert([
+            'skripsi_id' => $skripsiId,
+            'phase' => 'proposal',
+            'version_number' => 1,
+            'file_path' => 'guard.pdf',
+            'mime_type' => 'application/pdf',
+            'size' => 1,
+            $column => $target->id,
+        ]),
+        ['sidang_requests', 'lecturer_id'] => DB::table($table)->insert([
+            'skripsi_id' => $skripsiId,
+            $column => $target->id,
+            'role_type' => 'pembimbing_1',
+        ]),
+        ['sidang_requests', 'approved_by'] => DB::table($table)->insert([
+            'skripsi_id' => $skripsiId,
+            'lecturer_id' => User::factory()->dosen()->create()->id,
+            'approved_by' => $target->id,
+            'role_type' => 'pembimbing_1',
+        ]),
+    };
+    $target->delete();
+
+    $this->actingAs($actor)->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
+        ->delete(route('superadmin.users.permanently-destroy', $target->id))
+        ->assertRedirect(route('superadmin.users.index'))
+        ->assertSessionHasErrors('user');
+
+    $this->assertSoftDeleted($target);
+    expect(DB::table($table)->where($column, $target->id)->exists())->toBeTrue();
+})->with([
+    ['skripsis', 'student_id'],
+    ['reviewer_assignments', 'lecturer_id'],
+    ['grades', 'reviewer_id'],
+    ['bimbingans', 'reviewer_id'],
+    ['document_versions', 'uploaded_by'],
+    ['sidang_requests', 'lecturer_id'],
+    ['sidang_requests', 'approved_by'],
+]);
+
+it('forbids non-superadmins from permanently deleting an account', function () {
+    $target = User::factory()->dosen()->create();
+    $target->delete();
+
+    $this->delete(route('superadmin.users.permanently-destroy', $target->id))
+        ->assertRedirect(route('login'));
+
+    $this->actingAs(User::factory()->kaprodi()->create())
+        ->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
+        ->delete(route('superadmin.users.permanently-destroy', $target->id))
+        ->assertForbidden();
+
+    $this->assertSoftDeleted($target);
 });
 
 it('renders saved branding and escapes its title', function () {
@@ -253,6 +409,7 @@ it('keeps every sensitive superadmin mutation behind fresh authentication', func
         'superadmin.users.update',
         'superadmin.users.destroy',
         'superadmin.users.restore',
+        'superadmin.users.permanently-destroy',
         'superadmin.settings.update',
     ] as $name) {
         expect(Route::getRoutes()->getByName($name)?->gatherMiddleware())->toContain('fresh.superadmin');

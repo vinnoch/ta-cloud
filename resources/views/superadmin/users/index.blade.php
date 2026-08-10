@@ -35,6 +35,12 @@
                                         @csrf
                                         <button class="text-link acss-action-link" type="submit">@include('partials.icons.edit')<span>Aktifkan</span></button>
                                     </form>
+                                    <span class="acss-action-separator">|</span>
+                                    <form class="inline-form" method="POST" action="{{ route('superadmin.users.permanently-destroy', $user->id) }}" onsubmit="return confirm('Hapus akun {{ addslashes($user->name) }} secara permanen? Tindakan ini tidak dapat dibatalkan.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-link text-link--danger acss-action-link" type="submit">@include('partials.icons.archive')<span>Hapus Permanen</span></button>
+                                    </form>
                                 @else
                                     <button class="text-link acss-action-link" type="button" data-account-edit-open data-action="{{ route('superadmin.users.update', $user) }}" data-name="{{ e($user->name) }}" data-email="{{ e($user->email) }}" data-role="{{ $user->role }}">@include('partials.icons.edit')<span>Edit</span></button>
                                     <span class="acss-action-separator">|</span>
