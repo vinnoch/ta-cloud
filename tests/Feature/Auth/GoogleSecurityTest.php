@@ -153,24 +153,22 @@ test('google callback accepts uppercase valid domain and links existing user by 
     $this->assertAuthenticatedAs($user);
 });
 
-test('google callback creates first-time allowed-domain user with least-privileged role', function () {
+test('google callback rejects unknown allowed-domain user', function () {
     stubGoogleUser(makeGoogleUser('new.student@widyakarya.ac.id', 'google-new', null, 'New Student'));
 
     $this->get(route('auth.google.callback'))
-        ->assertRedirect(AuthenticatedSessionController::dashboardRouteForRole('mahasiswa'));
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'Akun belum terdaftar. Hubungi Superadmin atau Kaprodi.');
 
-    $user = User::query()->where('email', 'new.student@widyakarya.ac.id')->firstOrFail();
-
-    expect($user->name)->toBe('New Student')
-        ->and($user->role)->toBe('mahasiswa')
-        ->and($user->users_id)->toBe(3)
-        ->and($user->google_id)->toBe('google-new')
-        ->and($user->email_verified_at)->not->toBeNull();
-
-    $this->assertAuthenticatedAs($user);
+    $this->assertGuest();
+    $this->assertDatabaseMissing('users', ['email' => 'new.student@widyakarya.ac.id']);
 });
 
-test('google callback normalizes first-time email and does not create a duplicate on later login', function () {
+test('google callback normalizes provisioned email and does not create a duplicate on later login', function () {
+    $user = createUserForGoogle('mahasiswa', [
+        'email' => 'repeat@widyakarya.ac.id',
+    ]);
+
     stubGoogleUser(makeGoogleUser('REPEAT@WIDYAKARYA.AC.ID', 'google-repeat'));
 
     $this->get(route('auth.google.callback'))
@@ -183,6 +181,7 @@ test('google callback normalizes first-time email and does not create a duplicat
         ->assertRedirect(AuthenticatedSessionController::dashboardRouteForRole('mahasiswa'));
 
     expect(User::query()->whereRaw('LOWER(email) = ?', ['repeat@widyakarya.ac.id'])->count())->toBe(1);
+    $this->assertAuthenticatedAs($user);
 });
 
 test('google callback rejects soft deleted user', function () {

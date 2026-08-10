@@ -38,12 +38,7 @@ class GoogleController extends AuthenticatedSessionController
             ->first();
 
         if (! $user) {
-            $user = User::query()->create([
-                'name' => $googleUser->getName() ?: Str::before($email, '@'),
-                'email' => $email,
-                'password' => Str::random(40),
-                'role' => 'mahasiswa',
-            ]);
+            return redirect()->route('login')->with('status', 'Akun belum terdaftar. Hubungi Superadmin atau Kaprodi.');
         }
 
         if (method_exists($user, 'trashed') && $user->trashed()) {
