@@ -17,3 +17,6 @@ Route::middleware('guest')->group(function (): void {
 Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
+
+Route::get('logout', fn () => redirect()->route('home'))
+    ->name('logout.redirect');

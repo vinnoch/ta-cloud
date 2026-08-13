@@ -174,6 +174,20 @@ test('logout invalidates authentication and rotates the session', function () {
     $this->get('/mahasiswa/skripsi')->assertRedirect(route('login'));
 });
 
+test('guest get logout redirects home without changing authentication', function () {
+    $this->get('/logout')->assertRedirect(route('home'));
+
+    $this->assertGuest();
+});
+
+test('authenticated get logout redirects home without logging out', function () {
+    $user = User::factory()->dosen()->create();
+
+    $this->actingAs($user)->get('/logout')->assertRedirect(route('home'));
+
+    $this->assertAuthenticatedAs($user);
+});
+
 test('repeated failed logins trigger rate limiting', function () {
     $email = 'throttled@example.test';
     $credentials = ['email' => $email, 'password' => 'wrong-password'];
