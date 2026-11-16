@@ -81,6 +81,7 @@ class RegistrationApprovalController extends Controller
         abort_if($actor->is($registration), 403);
         abort_unless(in_array($actor->role, ['superadmin', 'admin', 'kaprodi'], true), 403);
         abort_if($actor->role === 'kaprodi' && (int) $actor->study_program_id !== (int) $registration->study_program_id, 403);
-        abort_unless($registration->registration_method === 'google' && $registration->role === 'mahasiswa', 404);
+        abort_if($actor->role === 'kaprodi' && $registration->role === 'kaprodi', 403);
+        abort_unless($registration->registration_method === 'google' && in_array($registration->role, ['mahasiswa', 'dosen', 'kaprodi'], true), 404);
     }
 }

@@ -77,6 +77,12 @@ class GoogleController extends AuthenticatedSessionController
         Auth::login($user, true);
         $request->session()->regenerate();
 
+        if (count($user->availableRoleNames()) > 1) {
+            $request->session()->forget('active_role');
+
+            return redirect()->route('role-selection.create');
+        }
+
         $fallback = static::dashboardRouteForRole($user->role);
         $intended = (string) $request->session()->pull('url.intended', '');
 

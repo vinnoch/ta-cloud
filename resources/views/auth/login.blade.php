@@ -40,12 +40,18 @@
                 <div class="demo-login" aria-labelledby="demo-login-title">
                     <p id="demo-login-title">Mode Demo</p>
                     <div class="demo-login__roles">
-                        @foreach ($demoRoles as $role)
+                        @foreach ($demoRoles as $role => $label)
                             <form method="POST" action="{{ route('demo.login', $role) }}">
                                 @csrf
-                                <button class="button demo-login__button" type="submit">{{ ucfirst($role) }}</button>
+                                <button class="button demo-login__button" type="submit">{{ $label }}</button>
                             </form>
                         @endforeach
+                        @if ($demoRegistration)
+                            <form method="POST" action="{{ route('demo.register') }}">
+                                @csrf
+                                <button class="button demo-login__button" type="submit">New Member</button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             @endif

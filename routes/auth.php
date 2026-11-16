@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\GoogleRegistrationController;
+use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\RegistrationApprovalController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,9 +20,12 @@ Route::middleware('guest')->group(function (): void {
     Route::post('registration/cancel', [GoogleRegistrationController::class, 'cancel'])->name('register.cancel');
 
     Route::post('demo/login/{role}', [AuthenticatedSessionController::class, 'demo'])
-        ->whereIn('role', ['superadmin', 'kaprodi', 'dosen', 'mahasiswa'])
+        ->whereIn('role', ['superadmin', 'kaprodi', 'dosen', 'mahasiswa', 'multi-role'])
         ->middleware('throttle:10,1')
         ->name('demo.login');
+    Route::post('demo/register', [AuthenticatedSessionController::class, 'demoRegistration'])
+        ->middleware('throttle:10,1')
+        ->name('demo.register');
 });
 
 Route::prefix('registrations')->name('registrations.')->middleware(['auth', 'role:superadmin,admin,kaprodi'])->group(function (): void {
@@ -33,6 +37,11 @@ Route::prefix('registrations')->name('registrations.')->middleware(['auth', 'rol
 Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
+
+Route::middleware('auth')->group(function (): void {
+    Route::get('select-role', [RoleSelectionController::class, 'create'])->name('role-selection.create');
+    Route::post('select-role', [RoleSelectionController::class, 'store'])->name('role-selection.store');
+});
 
 Route::get('logout', fn () => redirect()->route('home'))
     ->name('logout.redirect');

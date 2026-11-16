@@ -13,7 +13,7 @@ class RequireFreshSuperadminAuthentication
 
     private const SAFE_INPUTS = [
         'superadmin.users.store' => ['name', 'email', 'role'],
-        'superadmin.users.update' => ['role'],
+        'superadmin.users.update' => ['roles'],
         'superadmin.users.destroy' => [],
         'superadmin.users.restore' => [],
         'superadmin.users.permanently-destroy' => [],

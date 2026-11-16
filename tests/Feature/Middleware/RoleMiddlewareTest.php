@@ -118,3 +118,18 @@ it('rechecks the current database role for an existing authenticated session', f
     $this->get(route('dosen.dashboard'))
         ->assertOk();
 });
+
+it('uses only an assigned active role from the session', function () {
+    $user = User::factory()->state(['role' => 'superadmin'])->create();
+    $dosenLevel = \App\Models\UserLevel::query()->firstOrCreate(['users_level' => 'dosen']);
+    $user->assignedRoles()->syncWithoutDetaching([$user->users_id, $dosenLevel->users_id]);
+
+    $this->actingAs($user)
+        ->withSession(['active_role' => 'dosen'])
+        ->get(route('dosen.dashboard'))
+        ->assertOk();
+
+    $this->withSession(['active_role' => 'kaprodi'])
+        ->get(route('kaprodi.dashboard'))
+        ->assertForbidden();
+});

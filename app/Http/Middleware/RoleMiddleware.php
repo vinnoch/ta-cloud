@@ -22,6 +22,10 @@ class RoleMiddleware
 
         $user = $request->user();
 
+        if ($user !== null && count($user->availableRoleNames()) > 1 && ! $request->session()->has('active_role')) {
+            return redirect()->route('role-selection.create');
+        }
+
         if ($user === null || ! in_array($user->role, $allowedRoles, true)) {
             abort(403);
         }

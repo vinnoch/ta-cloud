@@ -22,7 +22,7 @@ class EnableDemoMode extends Command
             return self::FAILURE;
         }
 
-        $this->info('Demo mode enabled.');
+        $this->info('Demo mode enabled with multi-role and new-member scenarios.');
 
         return self::SUCCESS;
     }

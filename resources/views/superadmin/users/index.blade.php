@@ -42,7 +42,7 @@
                                         <button class="text-link text-link--danger acss-action-link" type="submit">@include('partials.icons.archive')<span>Hapus Permanen</span></button>
                                     </form>
                                 @else
-                                    <button class="text-link acss-action-link" type="button" data-account-edit-open data-action="{{ route('superadmin.users.update', $user) }}" data-name="{{ e($user->name) }}" data-email="{{ e($user->email) }}" data-role="{{ $user->role }}">@include('partials.icons.edit')<span>Edit</span></button>
+                                    <button class="text-link acss-action-link" type="button" data-account-edit-open data-action="{{ route('superadmin.users.update', $user) }}" data-name="{{ e($user->name) }}" data-email="{{ e($user->email) }}" data-roles='@json($user->availableRoleNames())'>@include('partials.icons.edit')<span>Edit</span></button>
                                     <span class="acss-action-separator">|</span>
                                     <form class="inline-form" method="POST" action="{{ route('superadmin.users.destroy', $user) }}" onsubmit="return confirm('Nonaktifkan akun {{ addslashes($user->name) }}?')">
                                         @csrf
@@ -111,12 +111,14 @@
                 <div class="acss-master-form-shell">
                     <label class="form-field"><span>Nama</span><input data-account-edit-name disabled></label>
                     <label class="form-field"><span>Email</span><input data-account-edit-email disabled></label>
-                    <label class="form-field">
-                        <span>Peran</span>
-                        <select name="role" data-account-edit-role required>
-                            @foreach ($roles as $role)<option value="{{ $role }}">{{ str($role)->replace('_', ' ')->title() }}</option>@endforeach
-                        </select>
-                    </label>
+                    <fieldset class="form-field role-checkbox-group">
+                        <legend>Peran</legend>
+                        <div class="role-checkbox-list">
+                            @foreach ($roles as $role)
+                                <label><input type="checkbox" name="roles[]" value="{{ $role }}" data-account-edit-role> <span>{{ str($role)->replace('_', ' ')->title() }}</span></label>
+                            @endforeach
+                        </div>
+                    </fieldset>
                 </div>
                 <div class="form-actions form-actions--inline">
                     <button class="button button--muted button--inline" type="button" data-account-edit-close>Batal</button>
@@ -145,7 +147,10 @@
                     editModal.querySelector('[data-account-edit-form]').action = editButton.dataset.action;
                     editModal.querySelector('[data-account-edit-name]').value = editButton.dataset.name;
                     editModal.querySelector('[data-account-edit-email]').value = editButton.dataset.email;
-                    editModal.querySelector('[data-account-edit-role]').value = editButton.dataset.role;
+                    const assignedRoles = JSON.parse(editButton.dataset.roles);
+                    editModal.querySelectorAll('[data-account-edit-role]').forEach((input) => {
+                        input.checked = assignedRoles.includes(input.value);
+                    });
                     toggle(editModal, true);
                 }
             });
