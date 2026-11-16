@@ -9,6 +9,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->intended(match (auth()->user()->role) {
             'superadmin' => route('superadmin.dashboard'),
+            'admin' => route('admin.dashboard'),
             'mahasiswa' => route('mahasiswa.skripsi.index'),
             'dosen' => route('dosen.dashboard'),
             'kaprodi' => route('kaprodi.dashboard'),

@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'users_id', 'study_program_id', 'role', 'nim', 'nidn_nip'])]
+#[Fillable(['name', 'email', 'password', 'users_id', 'study_program_id', 'role', 'nim', 'nidn_nip', 'google_id', 'google_avatar', 'account_status', 'registration_method', 'reviewed_by', 'reviewed_at', 'rejection_reason'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,6 +31,11 @@ class User extends Authenticatable
     public function studyProgram()
     {
         return $this->belongsTo(StudyProgram::class, 'study_program_id');
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reviewed_by');
     }
 
     public function skripsi(): HasOne
@@ -105,6 +111,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'reviewed_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

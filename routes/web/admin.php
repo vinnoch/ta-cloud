@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:kaprodi'])->group(function () use ($page, $crudSideCards, $adminFields, $tableActionPair) {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () use ($page, $crudSideCards, $adminFields, $tableActionPair) {
     Route::get('/dashboard', function () use ($page) {
         return view('admin.dashboard', $page('admin', 'Dashboard Admin', 'ADMIN • DASHBOARD', [
             'stats' => [

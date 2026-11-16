@@ -18,6 +18,8 @@ class ReauthenticationController extends Controller
         'superadmin.users.restore',
         'superadmin.users.permanently-destroy',
         'superadmin.settings.update',
+        'registrations.approve',
+        'registrations.reject',
     ];
 
     public function redirect(): RedirectResponse

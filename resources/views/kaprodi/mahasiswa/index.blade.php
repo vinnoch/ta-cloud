@@ -12,6 +12,14 @@
                 <p class="acss-muted " id="count-text">{{ $mahasiswa->total() }} akun mahasiswa ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
+                @if (Route::has('registrations.index'))
+                    <a class="button button--muted button--inline" href="{{ route('registrations.index') }}">
+                        <span>Pendaftaran</span>
+                        @if (($pendingRegistrationCount ?? 0) > 0)
+                            <span class="registration-count" aria-label="{{ $pendingRegistrationCount }} pendaftaran menunggu">{{ $pendingRegistrationCount }}</span>
+                        @endif
+                    </a>
+                @endif
                 <button type="button" class="button button--inline" data-mahasiswa-create-open>@include('partials.icons.plus')<span>Tambah Mahasiswa</span></button>
             </div>
         </div>
