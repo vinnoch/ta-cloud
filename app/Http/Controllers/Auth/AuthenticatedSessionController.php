@@ -15,7 +15,8 @@ class AuthenticatedSessionController extends Controller
     {
         return view('auth.login', [
             'title' => 'Masuk TA Cloud',
-            'demoRoles' => $demoMode->enabled() ? array_keys(DemoMode::ACCOUNTS) : [],
+            'demoRoles' => $demoMode->enabled() ? $demoMode->loginOptions() : [],
+            'demoRegistration' => $demoMode->enabled(),
         ]);
     }
 
@@ -38,7 +39,23 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
         $user->forceFill(['last_login_at' => now()])->saveQuietly();
 
+        if (count($user->availableRoleNames()) > 1) {
+            $request->session()->forget('active_role');
+
+            return redirect()->route('role-selection.create');
+        }
+
         return redirect()->to(static::dashboardRouteForRole($user->role));
+    }
+
+    public function demoRegistration(Request $request, DemoMode $demoMode): RedirectResponse
+    {
+        $identity = $demoMode->registrationIdentity();
+        abort_unless($identity, 404);
+
+        $request->session()->put('registration.google_identity', $identity);
+
+        return redirect()->route('register');
     }
 
     public static function dashboardRouteForRole(string $role): string

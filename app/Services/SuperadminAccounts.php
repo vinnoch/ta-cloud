@@ -8,16 +8,19 @@ use Illuminate\Validation\ValidationException;
 
 class SuperadminAccounts
 {
-    public function updateRole(User $target, string $role): void
+    /** @param array<int, string> $roles */
+    public function updateRoles(User $target, array $roles): void
     {
-        DB::transaction(function () use ($target, $role): void {
+        DB::transaction(function () use ($target, $roles): void {
             $locked = User::query()->withTrashed()->lockForUpdate()->findOrFail($target->id);
 
-            if ($locked->role === 'superadmin' && $role !== 'superadmin') {
+            if ($locked->hasAssignedRole('superadmin') && ! in_array('superadmin', $roles, true)) {
                 $this->protectLastSuperadmin($locked->id);
             }
 
-            $locked->update(['role' => $role]);
+            $levels = DB::table('users_level')->whereIn('users_level', $roles)->pluck('users_id', 'users_level');
+            $locked->update(['role' => $roles[0]]);
+            $locked->assignedRoles()->sync($levels->values()->all());
         });
     }
 
@@ -89,7 +92,7 @@ class SuperadminAccounts
     private function protectLastSuperadmin(int $targetId): void
     {
         $otherExists = User::query()
-            ->where('role', 'superadmin')
+            ->forRole('superadmin')
             ->whereKeyNot($targetId)
             ->lockForUpdate()
             ->exists();

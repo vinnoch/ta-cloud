@@ -46,6 +46,7 @@ class UserController extends Controller
         abort_unless($domain !== '' && Str::afterLast($data['email'], '@') === $domain, 422, 'Institutional email required.');
 
         $user = User::query()->create($data + ['password' => Str::random(64)]);
+        $user->assignedRoles()->syncWithoutDetaching([$user->users_id]);
         PrivilegedAudit::record('user.invited', $user, [], ['email' => $user->email, 'role' => $user->role], $request);
 
         return redirect()->route('superadmin.users.index')->with('status', 'Akun berhasil dibuat.');
@@ -53,10 +54,13 @@ class UserController extends Controller
 
     public function update(Request $request, User $user, SuperadminAccounts $accounts): RedirectResponse
     {
-        $data = $request->validate(['role' => ['required', Rule::in(User::ROLES)]]);
-        $before = ['role' => $user->role];
-        $accounts->updateRole($user, $data['role']);
-        PrivilegedAudit::record('user.role_changed', $user, $before, ['role' => $data['role']], $request);
+        $data = $request->validate([
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => ['required', 'distinct', Rule::in(User::ROLES)],
+        ]);
+        $before = ['roles' => $user->availableRoleNames()];
+        $accounts->updateRoles($user, $data['roles']);
+        PrivilegedAudit::record('user.roles_changed', $user, $before, ['roles' => $data['roles']], $request);
 
         return redirect()->route('superadmin.users.index')->with('status', 'User berhasil diperbarui.');
     }

@@ -16,6 +16,19 @@ class DemoMode
         'kaprodi' => ['name' => 'Demo Kaprodi', 'email' => 'kaprodi@demo.tacloud.test'],
         'dosen' => ['name' => 'Demo Dosen', 'email' => 'dosen@demo.tacloud.test'],
         'mahasiswa' => ['name' => 'Demo Mahasiswa', 'email' => 'mahasiswa@demo.tacloud.test'],
+        'multi-role' => [
+            'name' => 'Demo Multi Role',
+            'email' => 'multi-role@demo.tacloud.test',
+            'role' => 'superadmin',
+            'roles' => ['superadmin', 'dosen'],
+        ],
+    ];
+
+    public const REGISTRATION = [
+        'google_id' => 'demo-new-member',
+        'name' => 'Demo New Member',
+        'email' => 'demo.new-member@widyakarya.ac.id',
+        'avatar' => null,
     ];
 
     public function enabled(): bool
@@ -30,7 +43,10 @@ class DemoMode
         DB::transaction(function (): void {
             $studyProgramId = StudyProgram::query()->value('id') ?? $this->createDemoStudyProgram();
 
-            foreach (self::ACCOUNTS as $role => $fixture) {
+            User::query()->withTrashed()->where('email', self::REGISTRATION['email'])->forceDelete();
+
+            foreach (self::ACCOUNTS as $key => $fixture) {
+                $role = $fixture['role'] ?? $key;
                 $user = User::query()->withTrashed()->firstOrNew(['email' => $fixture['email']]);
                 $user->forceFill([
                     'name' => $fixture['name'],
@@ -45,6 +61,12 @@ class DemoMode
                 if ($user->trashed()) {
                     $user->restore();
                 }
+
+                $roleIds = DB::table('users_level')
+                    ->whereIn('users_level', $fixture['roles'] ?? [$role])
+                    ->pluck('users_id')
+                    ->all();
+                $user->assignedRoles()->sync($roleIds);
             }
         });
 
@@ -63,7 +85,7 @@ class DemoMode
         return DB::transaction(function (): int {
             $users = User::query()
                 ->withTrashed()
-                ->whereIn('email', collect(self::ACCOUNTS)->pluck('email'))
+                ->whereIn('email', collect(self::ACCOUNTS)->pluck('email')->push(self::REGISTRATION['email']))
                 ->lockForUpdate()
                 ->get();
 
@@ -109,6 +131,24 @@ class DemoMode
         }
 
         return User::query()->where('email', $fixture['email'])->first();
+    }
+
+    /** @return array<string, string> */
+    public function loginOptions(): array
+    {
+        return collect(self::ACCOUNTS)->mapWithKeys(fn (array $fixture, string $key): array => [
+            $key => $key === 'multi-role' ? 'Multi Role' : str($key)->title()->toString(),
+        ])->all();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function registrationIdentity(): ?array
+    {
+        if (! $this->enabled()) {
+            return null;
+        }
+
+        return self::REGISTRATION + ['expires_at' => now()->addMinutes(15)->timestamp];
     }
 
     private function markerPath(): string

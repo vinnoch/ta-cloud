@@ -15,7 +15,9 @@ class StoreGoogleRegistrationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nim' => ['required', 'string', 'max:30', Rule::unique('users', 'nim')],
+            'role' => ['required', Rule::in(['mahasiswa', 'dosen', 'kaprodi'])],
+            'nim' => ['nullable', 'required_if:role,mahasiswa', 'string', 'max:30', Rule::unique('users', 'nim')],
+            'nidn_nip' => ['nullable', 'required_if:role,dosen,kaprodi', 'string', 'max:255', Rule::unique('users', 'nidn_nip')],
             'study_program_id' => ['required', 'integer', Rule::exists('study_programs', 'id')->where('is_active', true)],
         ];
     }

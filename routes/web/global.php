@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
+        if (count(auth()->user()->availableRoleNames()) > 1 && ! session()->has('active_role')) {
+            return redirect()->route('role-selection.create');
+        }
+
         return redirect()->intended(match (auth()->user()->role) {
             'superadmin' => route('superadmin.dashboard'),
             'admin' => route('admin.dashboard'),

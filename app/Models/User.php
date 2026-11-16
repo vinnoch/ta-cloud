@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -26,6 +27,25 @@ class User extends Authenticatable
     public function level()
     {
         return $this->belongsTo(UserLevel::class, 'users_id', 'users_id');
+    }
+
+    public function assignedRoles(): BelongsToMany
+    {
+        return $this->belongsToMany(UserLevel::class, 'user_roles', 'user_id', 'users_id')->withTimestamps();
+    }
+
+    /** @return array<int, string> */
+    public function availableRoleNames(): array
+    {
+        $roles = $this->assignedRoles()->pluck('users_level')->all();
+
+        return $roles !== [] ? $roles : array_values(array_filter([$this->attributes['role'] ?? $this->level?->users_level]));
+    }
+
+    public function hasAssignedRole(string $role): bool
+    {
+        return ($this->attributes['role'] ?? null) === $role
+            || $this->assignedRoles()->where('users_level', $role)->exists();
     }
 
     public function studyProgram()
@@ -70,12 +90,25 @@ class User extends Authenticatable
 
     public function scopeForRole(Builder $query, string $role): Builder
     {
-        return $query->whereHas('level', fn (Builder $relation): Builder => $relation->where('users_level', $role));
+        return $query->where(function (Builder $query) use ($role): void {
+            $query->where('role', $role)
+                ->orWhereHas('assignedRoles', fn (Builder $relation): Builder => $relation->where('users_level', $role));
+        });
     }
 
     public function getRoleAttribute(): ?string
     {
-        return $this->attributes['role'] ?? $this->level?->users_level;
+        $storedRole = $this->attributes['role'] ?? $this->level?->users_level;
+
+        if (app()->bound('request') && request()->hasSession()) {
+            $activeRole = request()->session()->get('active_role');
+
+            if (is_string($activeRole) && ($activeRole === $storedRole || $this->hasAssignedRole($activeRole))) {
+                return $activeRole;
+            }
+        }
+
+        return $storedRole;
     }
 
     public function setRoleAttribute(string $value): void

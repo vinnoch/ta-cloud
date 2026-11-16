@@ -50,8 +50,9 @@ class GoogleRegistrationController extends Controller
                 'google_avatar' => $identity['avatar'],
                 'email_verified_at' => now(),
                 'password' => Str::random(64),
-                'role' => 'mahasiswa',
-                'nim' => $data['nim'],
+                'role' => $data['role'],
+                'nim' => $data['nim'] ?? null,
+                'nidn_nip' => $data['nidn_nip'] ?? null,
                 'study_program_id' => $data['study_program_id'],
                 'account_status' => 'pending',
                 'registration_method' => 'google',
@@ -59,6 +60,7 @@ class GoogleRegistrationController extends Controller
                 'reviewed_at' => null,
                 'rejection_reason' => null,
             ])->save();
+            $user->assignedRoles()->syncWithoutDetaching([$user->users_id]);
 
             return $user;
         });

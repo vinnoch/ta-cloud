@@ -5,7 +5,9 @@
     <form method="POST" action="{{ $action }}" id="reauth-resume-form">
         @csrf
         @if (! in_array($method, ['GET', 'POST'], true)) @method($method) @endif
-        @foreach ($input as $name => $value)<input type="hidden" name="{{ $name }}" value="{{ $value }}">@endforeach
+        @foreach ($input as $name => $value)
+            @foreach ((array) $value as $item)<input type="hidden" name="{{ $name }}{{ is_array($value) ? '[]' : '' }}" value="{{ $item }}">@endforeach
+        @endforeach
         <button type="submit">Lanjutkan tindakan</button>
     </form>
     <script>document.getElementById('reauth-resume-form').submit();</script>

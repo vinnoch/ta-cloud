@@ -41,6 +41,13 @@ beforeEach(function () {
         $table->timestamps();
     });
 
+    Schema::create('user_roles', function ($table) {
+        $table->unsignedBigInteger('user_id');
+        $table->unsignedBigInteger('users_id');
+        $table->timestamps();
+        $table->primary(['user_id', 'users_id']);
+    });
+
     DB::table('users_level')->insert([
         ['users_id' => 1, 'users_level' => 'kaprodi', 'created_at' => now(), 'updated_at' => now()],
         ['users_id' => 2, 'users_level' => 'dosen', 'created_at' => now(), 'updated_at' => now()],
