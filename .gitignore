@@ -20,6 +20,8 @@ Thumbs.db
 /testsprite_tests/tmp/
 **/__pycache__/
 /.codex/
+/.codegraph/
 /.vscode/
-/docs/legacy-chats/
+/docs/
+/storage/pail/
 /tmp/
