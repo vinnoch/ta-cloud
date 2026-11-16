@@ -21,7 +21,7 @@ class ApplicationBranding
                 'name' => $settings?->application_name ?: 'TA Cloud UKWK',
                 'logo_url' => $logoPath && Storage::disk('public')->exists($logoPath)
                     ? Storage::disk('public')->url($logoPath)
-                    : asset('images/ukwk-logo.png'),
+                    : '/images/ukwk-logo.png',
             ];
         });
     }

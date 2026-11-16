@@ -19,6 +19,7 @@ class RoleNavigationService
         return [
             ['label' => 'Dashboard', 'href' => route('superadmin.dashboard'), 'active' => 'superadmin.dashboard', 'icon' => 'partials.icons.dashboard-monitor'],
             ['label' => 'Users', 'href' => route('superadmin.users.index'), 'active' => 'superadmin.users.*', 'icon' => 'partials.icons.grid'],
+            ['label' => 'Pendaftaran', 'href' => route('registrations.index'), 'active' => 'registrations.*', 'icon' => 'partials.icons.clipboard'],
             ['label' => 'Setting', 'href' => route('superadmin.settings.edit'), 'active' => 'superadmin.settings.*', 'icon' => 'partials.icons.edit'],
             ['label' => 'Log Sistem', 'href' => route('superadmin.audit.index'), 'active' => 'superadmin.audit.*', 'icon' => 'partials.icons.phase-shield'],
         ];
@@ -28,6 +29,7 @@ class RoleNavigationService
     {
         return [
             ['label' => 'Dashboard', 'href' => route('kaprodi.dashboard'), 'active' => 'kaprodi.dashboard', 'icon' => 'partials.icons.dashboard-monitor'],
+            ['label' => 'Pendaftaran', 'href' => route('registrations.index'), 'active' => 'registrations.*', 'icon' => 'partials.icons.clipboard'],
             [
                 'label' => 'Monitoring',
                 'href' => route('kaprodi.skripsi.index'),

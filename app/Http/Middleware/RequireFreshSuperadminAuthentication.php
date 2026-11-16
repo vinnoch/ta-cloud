@@ -18,10 +18,16 @@ class RequireFreshSuperadminAuthentication
         'superadmin.users.restore' => [],
         'superadmin.users.permanently-destroy' => [],
         'superadmin.settings.update' => ['application_name'],
+        'registrations.approve' => [],
+        'registrations.reject' => ['rejection_reason'],
     ];
 
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->user()?->role !== 'superadmin') {
+            return $next($request);
+        }
+
         $authenticatedAt = (int) $request->session()->get('superadmin_reauthenticated_at', 0);
 
         if ($authenticatedAt >= now()->subSeconds(self::MAX_AGE_SECONDS)->timestamp) {

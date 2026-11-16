@@ -13,23 +13,10 @@
 </head>
 
 <body class="ta-body">
-@php
-    $translateAuthError = function (string $message): string {
-        return match ($message) {
-            'auth.failed' => 'Email atau password tidak sesuai.',
-            'These credentials do not match our records.' => 'Email atau password tidak sesuai.',
-            'The email field is required.' => 'Email wajib diisi.',
-            'The password field is required.' => 'Password wajib diisi.',
-            'The email field must be a valid email address.' => 'Format email tidak valid.',
-            default => $message,
-        };
-    };
-@endphp
-
-    <main class="auth-page auth-page--single">
+    <main class="auth-page auth-page--single" style="background-image: linear-gradient(180deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.76) 48%, rgba(254,249,239,0.96) 100%), radial-gradient(circle at top left, rgba(0,40,142,0.08), transparent 32%), url('/images/login-wave-ukwk.png'), linear-gradient(180deg, #fffef9 0%, var(--paper) 100%)">
         <section class="auth-card auth-card--login-single">
             <div class="auth-brand">
-                <img class="auth-brand__logo" src="{{ $branding['logo_url'] }}" alt="{{ $branding['name'] }} logo">
+                <img class="auth-brand__logo auth-brand__logo--horizontal" src="{{ asset('images/logo-horizontal-warna.png') }}" alt="Universitas Katolik Widya Karya">
                 
                 <h1>{{ $branding['name'] }}</h1>
             </div>
@@ -37,64 +24,6 @@
             @if (session('status'))
                 <div class="auth-status">{{ session('status') }}</div>
             @endif
-
-            <form method="POST" action="{{ route('login') }}" class="auth-form" id="login-form">
-                @csrf
-
-                <div class="auth-field-group">
-                    <label>
-                        <span>Email</span>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                            autocomplete="username" @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
-                    </label>
-                    @error('email')
-                        <p class="auth-error" id="email-error" role="alert">{{ $translateAuthError($message) }}</p>
-                    @enderror
-                </div>
-
-                <div class="auth-field-group">
-                    <label>
-                        <span>Password</span>
-                        <div class="password-field">
-                            <input id="password" type="password" name="password" required autocomplete="current-password"
-                                @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
-                        <button class="password-toggle" type="button" data-password-toggle
-                            data-password-target="password" aria-label="Tampilkan password" aria-pressed="false">
-                            <span class="sr-only password-toggle__show">Tampilkan password</span>
-                            <span class="sr-only password-toggle__hide">Sembunyikan password</span>
-                            <svg class="password-toggle__icon password-toggle__icon--show" viewBox="0 0 24 24"
-                                aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                            <svg class="password-toggle__icon password-toggle__icon--hide" viewBox="0 0 24 24"
-                                aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 3l18 18" />
-                                <path d="M10.6 10.7A3 3 0 0 0 12 15a3 3 0 0 0 2.1-.9" />
-                                <path d="M9.4 5.2A11 11 0 0 1 12 5c6.5 0 10 7 10 7a18.7 18.7 0 0 1-4 4.8" />
-                                <path d="M6.6 6.7A18.4 18.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.5" />
-                            </svg>
-                        </button>
-                        </div>
-                    </label>
-                    @error('password')
-                        <p class="auth-error" id="password-error" role="alert">{{ $translateAuthError($message) }}</p>
-                    @enderror
-                </div>
-
-                <label class="auth-check">
-                    <input type="checkbox" name="remember">
-                    <span>Remember me</span>
-                </label>
-
-                <button class="button button--primary auth-submit" type="submit">Masuk</button>
-            </form>
-
-            <div class="auth-divider">
-                <span>Atau</span>
-            </div>
 
             <a href="{{ route('auth.google') }}" class="button button--google">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -105,6 +34,21 @@
                 </svg>
                 <span>Masuk dengan Google</span>
             </a>
+            <p class="auth-registration-link">Gunakan akun @widyakarya.ac.id</p>
+
+            @if ($demoRoles)
+                <div class="demo-login" aria-labelledby="demo-login-title">
+                    <p id="demo-login-title">Mode Demo</p>
+                    <div class="demo-login__roles">
+                        @foreach ($demoRoles as $role)
+                            <form method="POST" action="{{ route('demo.login', $role) }}">
+                                @csrf
+                                <button class="button demo-login__button" type="submit">{{ ucfirst($role) }}</button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
         </section>
     </main>

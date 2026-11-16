@@ -28,7 +28,7 @@ class GoogleController extends AuthenticatedSessionController
         $email = Str::lower((string) $googleUser->getEmail());
         $allowedDomain = Str::lower((string) config('services.google.allowed_domain'));
 
-        if ($email === '' || ! Str::endsWith($email, '@'.$allowedDomain)) {
+        if ($email === '' || Str::afterLast($email, '@') !== $allowedDomain || data_get($googleUser->user, 'email_verified', true) !== true) {
             return redirect()->route('login')->with('status', 'Login Google hanya untuk email @'.$allowedDomain.'.');
         }
 
@@ -38,11 +38,33 @@ class GoogleController extends AuthenticatedSessionController
             ->first();
 
         if (! $user) {
-            return redirect()->route('login')->with('status', 'Akun belum terdaftar. Hubungi Superadmin atau Kaprodi.');
+            $request->session()->put('registration.google_identity', [
+                'google_id' => (string) $googleUser->getId(),
+                'name' => (string) $googleUser->getName(),
+                'email' => $email,
+                'avatar' => $googleUser->getAvatar(),
+                'expires_at' => now()->addMinutes(15)->timestamp,
+            ]);
+
+            return redirect()->route('register');
         }
 
         if (method_exists($user, 'trashed') && $user->trashed()) {
             return redirect()->route('login')->with('status', 'Akun tidak aktif. Hubungi admin.');
+        }
+
+        if ($user->google_id && ! hash_equals((string) $user->google_id, (string) $googleUser->getId())) {
+            return redirect()->route('login')->with('status', 'Identitas Google tidak cocok dengan akun terdaftar.');
+        }
+
+        if (in_array($user->account_status, ['pending', 'rejected'], true)) {
+            $request->session()->put('registration.status_identity', ['email' => $user->email, 'google_id' => $user->google_id]);
+
+            return redirect()->route('register.status');
+        }
+
+        if ($user->account_status !== 'active') {
+            return redirect()->route('login')->with('status', 'Akun belum aktif.');
         }
 
         $user->forceFill([

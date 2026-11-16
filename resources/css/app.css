@@ -53,11 +53,11 @@ body.ta-body {
 .auth-page--single {
     background-image:
         linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.7) 52%, rgba(255,255,255,0.9) 100%),
-        url('/images/login-wave.jpg'),
+        var(--auth-background-image, none),
         linear-gradient(180deg, #fffef9 0%, var(--paper) 100%);
     background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
+    background-size: cover, cover, 100% 100%, cover;
+    background-position: center, center, center, center;
 }
 
 .auth-card {
@@ -88,6 +88,12 @@ body.ta-body {
     object-fit: contain;
     width: 5rem;
     height: 5rem;
+}
+
+.auth-brand__logo--horizontal {
+    width: min(100%, 11rem);
+    height: auto;
+    max-height: 4.5rem;
 }
 
 .auth-brand h1 {
@@ -621,12 +627,14 @@ textarea {
     background: var(--primary-strong);
 }
 
-.button--google {
-    width: 100%;
+.auth-card .button--google {
+    width: 82%;
+    max-width: 22rem;
+    margin-inline: auto;
     min-height: 3rem;
-    background: #fff;
-    color: #1f2937;
-    border: 1px solid #cbd5e1;
+    background: #003b7a;
+    color: #fff;
+    border: 1px solid #003b7a;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -636,8 +644,25 @@ textarea {
     cursor: pointer;
 }
 
-.button--google:hover {
-    background: #f8fafc;
+@media (max-width: 560px) {
+    .auth-card .button--google {
+        width: 100%;
+    }
+}
+
+.auth-card .button--google:hover {
+    background: #002d5d;
+    border-color: #002d5d;
+    color: #fff;
+    transform: none;
+}
+
+.auth-card .button--google:focus-visible {
+    background: #003b7a;
+    border-color: #003b7a;
+    color: #fff;
+    outline: 3px solid rgba(31, 66, 152, 0.18);
+    outline-offset: 2px;
 }
 
 /* --- ACSS CORE COMPONENTS REBUILT --- */
@@ -857,7 +882,7 @@ textarea {
     background:
         linear-gradient(180deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.76) 48%, rgba(254,249,239,0.96) 100%),
         radial-gradient(circle at top left, rgba(0,40,142,0.08), transparent 32%),
-        url('/images/login-wave.jpg') center center / cover no-repeat,
+        var(--auth-background-image, none) center center / 100% 100% no-repeat,
         linear-gradient(180deg, #fffef9 0%, var(--paper) 100%);
 }
 
@@ -3850,3 +3875,32 @@ a.button.button--danger:hover {
     border-radius: 6px;
 }
 .acss-table-note-gap { margin-top: 1rem; }
+
+/* Student registration and Kaprodi approval */
+.auth-registration-link{margin:1rem 0 0;text-align:center;color:#64748b;font-size:.9rem}
+.auth-registration-link a{color:var(--primary);font-weight:700;text-underline-offset:.2rem}
+.demo-login{margin-top:1rem}.demo-login>p{display:flex;align-items:center;gap:.75rem;margin:0 0 .65rem;color:#64748b;font-size:.88rem;font-weight:500;text-align:center}.demo-login>p::before,.demo-login>p::after{content:"";height:1px;flex:1;background:#e2e8f0}.demo-login__roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}.demo-login__roles form{margin:0}button.demo-login__button{width:100%;min-height:44px;background:#fff;border:1px solid #cbd5e1;color:var(--primary);font-weight:700}button.demo-login__button:hover,button.demo-login__button:focus-visible{background:#e9eef9;border-color:var(--primary)}
+.registration-page{padding-block:2rem}
+.registration-card{width:min(100%,42rem)}
+.auth-brand p{margin:.25rem 0 0;color:#64748b;text-align:center;line-height:1.5}
+.registration-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.auth-field-group label{display:block;margin-bottom:.4rem;font-size:.88rem;font-weight:700;color:#334155}
+.auth-field-group select{width:100%;min-height:2.75rem;border:1px solid #cbd5e1;border-radius:6px;background:#fff;padding:.7rem .8rem;color:#0f172a}
+.auth-help{display:block;margin-top:.4rem;color:#64748b;font-size:.8rem;line-height:1.45}
+.registration-identity{display:flex;align-items:center;gap:.75rem;padding:.85rem;border:1px solid #d7deee;border-radius:8px;background:#f8fafc}
+.registration-identity>span:nth-child(2){display:grid;min-width:0;flex:1}.registration-identity small{color:#64748b;overflow-wrap:anywhere}
+.registration-identity__avatar{display:inline-grid;place-items:center;width:2.75rem;height:2.75rem;flex:0 0 auto;border-radius:50%;background:#e9eef9;color:var(--primary);font-weight:800}
+.button.is-disabled{pointer-events:none;opacity:.55}
+.registration-status-card{max-width:35rem;text-align:center}
+.registration-status-icon{display:grid;place-items:center;width:3.5rem;height:3.5rem;margin:0 auto 1rem;border-radius:50%;background:#dcfae6;color:#067647;font-size:1.5rem;font-weight:800}.registration-status-icon.is-rejected{background:#fee4e2;color:#b42318}
+.registration-eyebrow{margin:0 0 .35rem;color:var(--primary);font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.registration-status-card h1{margin:0;font-size:1.5rem}.registration-status-card>p{color:#64748b;line-height:1.55}
+.registration-status-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin:1.25rem 0}.registration-status-steps span{padding:.65rem .4rem;border-radius:6px;background:#f1f5f9;color:#64748b;font-size:.78rem;font-weight:700}.registration-status-steps .is-complete{background:#dcfae6;color:#067647}.registration-status-steps .is-current{background:#e9eef9;color:var(--primary)}
+.registration-count{display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .35rem;border-radius:999px;background:#b42318;color:#fff;font-size:.72rem;font-weight:800}
+.registration-review-filters{display:flex;gap:.4rem;margin:1.25rem 0;border-bottom:1px solid #e2e8f0}.registration-filter{padding:.7rem .9rem;border-bottom:2px solid transparent;color:#64748b;text-decoration:none;font-weight:700}.registration-filter.is-active{border-color:var(--primary);color:var(--primary)}
+.registration-review-list{display:grid;gap:.85rem}.registration-review-item{display:grid;grid-template-columns:minmax(15rem,.8fr) minmax(24rem,1.2fr) auto;gap:1rem;align-items:center;padding:1rem;border:1px solid #e2e8f0;border-radius:8px}.registration-review-item__identity{display:flex;align-items:center;gap:.7rem;min-width:0}.registration-review-item__identity div{display:grid;min-width:0}.registration-review-item__identity span{color:#64748b;font-size:.82rem;overflow-wrap:anywhere}
+.registration-evidence{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin:0}.registration-evidence div{min-width:0}.registration-evidence dt{color:#64748b;font-size:.72rem}.registration-evidence dd{margin:.2rem 0 0;font-size:.84rem;font-weight:700;overflow-wrap:anywhere}
+.registration-review-actions{display:flex;align-items:center;gap:.5rem}.registration-review-actions form{margin:0}.registration-reject{position:relative}.registration-reject summary{list-style:none;cursor:pointer}.registration-reject summary::-webkit-details-marker{display:none}.registration-reject form{position:absolute;right:0;top:calc(100% + .5rem);z-index:5;width:min(22rem,80vw);padding:1rem;border:1px solid #e2e8f0;border-radius:8px;background:#fff;box-shadow:0 16px 36px rgba(15,23,42,.14)}.registration-reject label{display:block;margin-bottom:.4rem;font-weight:700}.registration-reject textarea{width:100%;min-height:6rem;margin-bottom:.7rem;padding:.7rem;border:1px solid #cbd5e1;border-radius:6px;resize:vertical}
+.registration-empty{display:grid;gap:.3rem}.registration-empty span{color:#64748b}
+@media(max-width:980px){.registration-review-item{grid-template-columns:1fr}.registration-evidence{grid-template-columns:repeat(2,minmax(0,1fr))}.registration-review-actions{justify-content:flex-start}}
+@media(max-width:560px){.registration-page{padding:1rem}.registration-form-grid{grid-template-columns:1fr}.registration-identity{align-items:flex-start;flex-wrap:wrap}.registration-status-steps{grid-template-columns:1fr}.registration-evidence{grid-template-columns:1fr 1fr}.registration-review-filters{overflow-x:auto}.registration-filter{white-space:nowrap}.registration-review-actions{align-items:stretch}.registration-review-actions>.button,.registration-review-actions>form,.registration-review-actions>form .button,.registration-reject{flex:1}.registration-reject summary{text-align:center}}
