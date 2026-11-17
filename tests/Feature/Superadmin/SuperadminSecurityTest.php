@@ -331,11 +331,11 @@ it('redirects stale sensitive requests and retains only allow-listed role data',
     $target = User::factory()->dosen()->create();
 
     $this->actingAs($actor)
-        ->put(route('superadmin.users.update', $target), ['role' => 'kaprodi', 'unsafe' => 'discard-me'])
+        ->put(route('superadmin.users.update', $target), ['roles' => ['kaprodi'], 'unsafe' => 'discard-me'])
         ->assertRedirect(route('superadmin.reauth.redirect'))
         ->assertSessionHas('superadmin_reauth_pending', fn (array $pending) => $pending['route'] === 'superadmin.users.update'
             && $pending['method'] === 'PUT'
-            && $pending['input'] === ['role' => 'kaprodi']);
+            && $pending['input'] === ['roles' => ['kaprodi']]);
 
     expect($target->fresh()->role)->toBe('dosen');
 });
@@ -389,7 +389,7 @@ it('resumes a role update after same-user google reauthentication and keeps lega
             'route' => 'superadmin.users.update',
             'parameters' => ['user' => $target->id],
             'method' => 'PUT',
-            'input' => ['role' => 'kaprodi'],
+            'input' => ['roles' => ['kaprodi']],
         ]])
         ->get(route('superadmin.reauth.callback'))
         ->assertRedirect(route('superadmin.reauth.resume'))
@@ -398,11 +398,11 @@ it('resumes a role update after same-user google reauthentication and keeps lega
     $resume = $this->get(route('superadmin.reauth.resume'))
         ->assertOk()
         ->assertSee(route('superadmin.users.update', $target), false)
-        ->assertSee('name="role" value="kaprodi"', false)
+        ->assertSee('name="roles[]" value="kaprodi"', false)
         ->assertDontSee('http://attacker.test', false);
 
     $this->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
-        ->put(route('superadmin.users.update', $target), ['role' => 'kaprodi'])
+        ->put(route('superadmin.users.update', $target), ['roles' => ['kaprodi']])
         ->assertRedirect(route('superadmin.users.index'))
         ->assertSessionHas('status', 'User berhasil diperbarui.');
 
@@ -411,7 +411,7 @@ it('resumes a role update after same-user google reauthentication and keeps lega
         ->and($target->level->users_level)->toBe('kaprodi')
         ->and($target->users_id)->toBe($target->level->users_id);
     $this->assertDatabaseHas('audit_logs', ['action' => 'superadmin.reauthenticated'])
-        ->assertDatabaseHas('audit_logs', ['action' => 'user.role_changed', 'target_id' => $target->id]);
+        ->assertDatabaseHas('audit_logs', ['action' => 'user.roles_changed', 'target_id' => $target->id]);
 });
 
 it('keeps every sensitive superadmin mutation behind fresh authentication', function () {
@@ -442,10 +442,10 @@ it('renders the superadmin workspace navigation without audit payloads', functio
     $this->actingAs($actor)->get(route('superadmin.audit.index'))
         ->assertOk()
         ->assertSeeInOrder(['Dashboard', 'Users', 'Setting', 'Log Sistem'])
-        ->assertSeeInOrder(['Waktu', 'Pengguna', 'Aktivitas', 'Konteks', 'Detail'])
+        ->assertSeeInOrder(['Waktu', 'Pengguna', 'Topik', 'Konteks', 'Sumber'])
         ->assertDontSee('Pelaku')
         ->assertDontSee('Target')
-        ->assertSee('Settings Updated')
+        ->assertSee('memperbarui nama aplikasi atau logo')
         ->assertSee($actor->name)
         ->assertSee('Sistem')
         ->assertDontSee('never-render-this');
