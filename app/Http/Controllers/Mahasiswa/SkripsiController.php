@@ -306,6 +306,7 @@ class SkripsiController extends Controller
     public function edit(Request $request, Skripsi $skripsi): View
     {
         $this->authorizeOwner($request, $skripsi);
+        abort_unless($skripsi->isDraft(), 403, 'Proposal yang sudah diajukan tidak dapat diedit.');
 
         return view('mahasiswa.skripsi.edit', [
             'skripsi' => $skripsi,
@@ -316,6 +317,7 @@ class SkripsiController extends Controller
     public function update(Request $request, Skripsi $skripsi, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
+        abort_unless($skripsi->isDraft(), 403, 'Proposal yang sudah diajukan tidak dapat diedit.');
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],

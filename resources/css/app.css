@@ -2974,13 +2974,22 @@ button.button:hover {
 }
 .acss-submission-footer {
     display: flex;
-    align-items: end;
+    align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1rem 0;
 }
-.acss-submission-footer > .form-field {
-    width: min(100%, 22rem);
+.acss-status-label {
+    display: grid;
+    gap: .2rem;
+    color: #64748b;
+    font-size: .78rem;
+    line-height: 1.2;
+}
+.acss-status-label strong {
+    color: #172033;
+    font-size: .95rem;
+    font-weight: 700;
 }
 .acss-submission-footer .acss-form-actions {
     display: flex;
@@ -2994,12 +3003,12 @@ button.button:hover {
         align-items: stretch;
         flex-direction: column;
     }
-    .acss-submission-footer > .form-field {
-        width: 100%;
-    }
     .acss-submission-footer .acss-form-actions,
     .acss-submission-footer .button {
         width: 100%;
+    }
+    .acss-submission-footer .button--primary {
+        order: -1;
     }
 }
 

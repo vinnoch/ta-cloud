@@ -78,16 +78,14 @@
         </section>
 
         <div class="acss-submission-footer">
-            <label class="form-field acss-field-tight">
-                <span>Status Pengajuan</span>
-                <select name="save_mode" required>
-                    <option value="draft" @selected(old('save_mode', 'draft') === 'draft')>Draft</option>
-                    <option value="published" @selected(old('save_mode') === 'published')>Published</option>
-                </select>
-            </label>
+            <div class="acss-status-label" aria-label="Status pengajuan">
+                <span>Status</span>
+                <strong>Draft</strong>
+            </div>
             <div class="acss-form-actions">
-                <button class="button button--success button--inline" type="submit">Simpan Pengajuan</button>
                 <a class="button button--muted button--inline" href="{{ route('mahasiswa.skripsi.index') }}">Batal</a>
+                <button class="button button--muted button--inline" type="submit" name="save_mode" value="draft">Simpan Draft</button>
+                <button class="button button--primary button--inline" type="submit" name="save_mode" value="published">Ajukan Proposal</button>
             </div>
         </div>
     </form>

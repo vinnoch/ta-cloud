@@ -16,7 +16,10 @@
             <div class="">{{ $skripsi->proposal_review_note ?: 'Kaprodi telah meminta Anda mengunggah revisi proposal terbaru.' }}</div>
         </div>
     @elseif ($isProposalProcessing)
-        <div class="notice notice--danger">Pengajuan Proposal sedang diproses oleh Kaprodi.</div>
+        <div class="notice notice--info">
+            <strong>Proposal sedang ditinjau dan terkunci.</strong>
+            <div>Proposal tidak dapat diedit hingga Kaprodi memberikan keputusan persetujuan atau penolakan.</div>
+        </div>
     @endif
 
     <section class="card card--profile">
