@@ -15,7 +15,7 @@
                 <h1 class="acss-page-title">Users</h1>
             </div>
             <div class="acss-crud-head__actions">
-                <button class="button button--inline" type="button" data-account-create-open>@include('partials.icons.plus')<span>Buat Akun</span></button>
+                <button class="button button--primary button--inline" type="button" data-account-create-open>@include('partials.icons.plus')<span>Buat Akun</span></button>
             </div>
         </div>
         <div class="acss-crud-body">
@@ -26,36 +26,56 @@
                     </div>
                 @endif
                 @forelse ($users as $user)
-                    <div class="table-shell__row table-shell__grid acss-table-cols-superadmin-users acss-hover-row-group">
-                        <div class="table-shell__cell">
+                    <article class="table-shell__row table-shell__grid acss-table-cols-superadmin-users acss-hover-row-group user-record-card">
+                        <div class="table-shell__cell user-record-card__identity">
                             <strong>{{ $user->name }}</strong><small>{{ $user->email }}</small>
-                            <div class="acss-row-actions">
-                                @if ($user->trashed())
-                                    <form class="inline-form" method="POST" action="{{ route('superadmin.users.restore', $user->id) }}" onsubmit="return confirm('Aktifkan kembali akun ini?')">
-                                        @csrf
-                                        <button class="text-link acss-action-link" type="submit">@include('partials.icons.edit')<span>Aktifkan</span></button>
-                                    </form>
-                                    <span class="acss-action-separator">|</span>
-                                    <form class="inline-form" method="POST" action="{{ route('superadmin.users.permanently-destroy', $user->id) }}" onsubmit="return confirm('Hapus akun {{ addslashes($user->name) }} secara permanen? Tindakan ini tidak dapat dibatalkan.')">
+                        </div>
+                        <div class="table-shell__cell user-record-card__role" data-mobile-label="Peran"><span class="pill pill--blue">{{ str($user->role)->replace('_', ' ')->title() }}</span></div>
+                        <div class="table-shell__cell user-record-card__status" data-mobile-label="Status"><span class="pill {{ $user->trashed() ? 'pill--muted' : 'pill--green' }}">{{ $user->trashed() ? 'Nonaktif' : 'Aktif' }}</span></div>
+                        <div class="table-shell__cell user-record-card__login" data-mobile-label="Login terakhir">@if ($user->last_login_at)<strong>{{ $user->last_login_at->translatedFormat('d M Y') }}</strong><small>{{ $user->last_login_at->format('H:i') }} WIB</small>@else<span class="acss-muted">Belum pernah</span>@endif</div>
+                        <details class="user-record-card__login-details">
+                            <summary>Login terakhir</summary>
+                            <div>@if ($user->last_login_at)<strong>{{ $user->last_login_at->translatedFormat('d M Y') }}</strong><span>{{ $user->last_login_at->format('H:i') }} WIB</span>@else<span>Belum pernah</span>@endif</div>
+                        </details>
+                        <div class="user-record-card__actions acss-row-actions">
+                            @if ($user->trashed())
+                                <form class="inline-form" method="POST" action="{{ route('superadmin.users.restore', $user->id) }}" onsubmit="return confirm('Aktifkan kembali akun ini?')">
+                                    @csrf
+                                    <button class="text-link acss-action-link user-record-card__primary-action" type="submit">@include('partials.icons.edit')<span>Aktifkan</span></button>
+                                </form>
+                                <span class="acss-action-separator user-record-card__desktop-secondary">|</span>
+                                <form class="inline-form user-record-card__desktop-secondary" method="POST" action="{{ route('superadmin.users.permanently-destroy', $user->id) }}" onsubmit="return confirm('Hapus akun {{ addslashes($user->name) }} secara permanen? Tindakan ini tidak dapat dibatalkan.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="text-link text-link--danger acss-action-link" type="submit">@include('partials.icons.archive')<span>Hapus Permanen</span></button>
+                                </form>
+                                <details class="user-record-card__mobile-secondary">
+                                    <summary aria-label="Tindakan lainnya">•••</summary>
+                                    <form method="POST" action="{{ route('superadmin.users.permanently-destroy', $user->id) }}" onsubmit="return confirm('Hapus akun {{ addslashes($user->name) }} secara permanen? Tindakan ini tidak dapat dibatalkan.')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="text-link text-link--danger acss-action-link" type="submit">@include('partials.icons.archive')<span>Hapus Permanen</span></button>
                                     </form>
-                                @else
-                                    <button class="text-link acss-action-link" type="button" data-account-edit-open data-action="{{ route('superadmin.users.update', $user) }}" data-name="{{ e($user->name) }}" data-email="{{ e($user->email) }}" data-roles='@json($user->availableRoleNames())'>@include('partials.icons.edit')<span>Edit</span></button>
-                                    <span class="acss-action-separator">|</span>
-                                    <form class="inline-form" method="POST" action="{{ route('superadmin.users.destroy', $user) }}" onsubmit="return confirm('Nonaktifkan akun {{ addslashes($user->name) }}?')">
+                                </details>
+                            @else
+                                <button class="text-link acss-action-link user-record-card__primary-action" type="button" data-account-edit-open data-action="{{ route('superadmin.users.update', $user) }}" data-name="{{ e($user->name) }}" data-email="{{ e($user->email) }}" data-roles='@json($user->availableRoleNames())'>@include('partials.icons.edit')<span>Edit</span></button>
+                                <span class="acss-action-separator user-record-card__desktop-secondary">|</span>
+                                <form class="inline-form user-record-card__desktop-secondary" method="POST" action="{{ route('superadmin.users.destroy', $user) }}" onsubmit="return confirm('Nonaktifkan akun {{ addslashes($user->name) }}?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="text-link text-link--danger acss-action-link" type="submit">@include('partials.icons.archive')<span>Nonaktifkan</span></button>
+                                </form>
+                                <details class="user-record-card__mobile-secondary">
+                                    <summary aria-label="Tindakan lainnya">•••</summary>
+                                    <form method="POST" action="{{ route('superadmin.users.destroy', $user) }}" onsubmit="return confirm('Nonaktifkan akun {{ addslashes($user->name) }}?')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="text-link text-link--danger acss-action-link" type="submit">@include('partials.icons.archive')<span>Nonaktifkan</span></button>
                                     </form>
-                                @endif
-                            </div>
+                                </details>
+                            @endif
                         </div>
-                        <div class="table-shell__cell"><span class="pill pill--blue">{{ str($user->role)->replace('_', ' ')->title() }}</span></div>
-                        <div class="table-shell__cell"><span class="pill {{ $user->trashed() ? 'pill--muted' : 'pill--green' }}">{{ $user->trashed() ? 'Nonaktif' : 'Aktif' }}</span></div>
-                        <div class="table-shell__cell">@if ($user->last_login_at)<strong>{{ $user->last_login_at->translatedFormat('d M Y') }}</strong><small>{{ $user->last_login_at->format('H:i') }} WIB</small>@else<span class="acss-muted">Belum pernah</span>@endif</div>
-                    </div>
+                    </article>
                 @empty
                     <div class="empty-state">Belum ada akun.</div>
                 @endforelse

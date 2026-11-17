@@ -36,7 +36,46 @@ document.addEventListener('DOMContentLoaded', () => {
     initCenteredConfirm();
     initFilterBars();
     initDatetimePickers();
+    initMobileNavigation();
 });
+
+function initMobileNavigation() {
+    const dialog = document.querySelector('[data-mobile-menu]');
+    const openButton = document.querySelector('[data-mobile-menu-open]');
+    const closeButton = dialog?.querySelector('[data-mobile-menu-close]');
+
+    if (!dialog || !openButton || !closeButton) return;
+
+    const closeMenu = () => {
+        if (!dialog.open) return;
+        dialog.close();
+        document.body.classList.remove('mobile-menu-open');
+        openButton.focus();
+    };
+
+    openButton.addEventListener('click', () => {
+        dialog.showModal();
+        document.body.classList.add('mobile-menu-open');
+        closeButton.focus();
+    });
+
+    closeButton.addEventListener('click', closeMenu);
+    dialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeMenu();
+    });
+    dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) closeMenu();
+    });
+    dialog.addEventListener('close', () => {
+        document.body.classList.remove('mobile-menu-open');
+    });
+
+    const mobileQuery = window.matchMedia('(max-width: 720px)');
+    mobileQuery.addEventListener('change', (event) => {
+        if (!event.matches && dialog.open) closeMenu();
+    });
+}
 
 function initNotifications() {
     const shell = document.querySelector('[data-notification-shell]');

@@ -1,12 +1,11 @@
 <?php
 
+use App\Http\Controllers\Superadmin\AuditLogController;
 use App\Http\Controllers\Superadmin\DashboardController;
 use App\Http\Controllers\Superadmin\ReauthenticationController;
 use App\Http\Controllers\Superadmin\SettingController;
 use App\Http\Controllers\Superadmin\SystemInformationController;
 use App\Http\Controllers\Superadmin\UserController;
-use App\Models\AuditLog;
-use App\Services\RoleNavigationService;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:superadmin'])->group(function (): void {
@@ -23,18 +22,8 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     Route::delete('/users/{user}/permanent', [UserController::class, 'permanentlyDestroy'])->middleware('fresh.superadmin')->name('users.permanently-destroy');
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SettingController::class, 'update'])->middleware('fresh.superadmin')->name('settings.update');
-    Route::get('/audit', function () {
-        $navigation = app(RoleNavigationService::class);
-
-        return view('superadmin.audit', [
-            'title' => 'Log Sistem',
-            'heading' => 'Log Sistem',
-            'crumbs' => 'SUPERADMIN • LOG SISTEM',
-            'navItems' => $navigation->superadminNavItems(),
-            'navFooterItems' => $navigation->footerItems(),
-            'navRole' => 'superadmin',
-            'primaryCta' => null,
-            'logs' => AuditLog::query()->with('actor')->latest()->paginate(50),
-        ]);
-    })->name('audit.index');
+    Route::get('/audit', [AuditLogController::class, 'index'])->name('audit.index');
+    Route::get('/audit/settings', [AuditLogController::class, 'settings'])->name('audit.settings');
+    Route::put('/audit/retention', [AuditLogController::class, 'updateRetention'])->middleware('fresh.superadmin')->name('audit.retention.update');
+    Route::delete('/audit', [AuditLogController::class, 'destroy'])->middleware('fresh.superadmin')->name('audit.destroy');
 });

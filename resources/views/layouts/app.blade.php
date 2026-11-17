@@ -42,6 +42,16 @@
                     </small>
                 </footer>
             </div>
+
+            @auth
+                @if (($sidebarMode ?? 'with-sidebar') === 'with-sidebar')
+                    @include('partials.mobile-nav', [
+                        'navRole' => $navRole ?? 'global',
+                        'navItems' => $navItems ?? [],
+                        'navFooterItems' => $navFooterItems ?? [],
+                    ])
+                @endif
+            @endauth
         </div>
         @stack('scripts')
     </body>

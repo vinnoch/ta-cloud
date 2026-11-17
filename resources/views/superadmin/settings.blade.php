@@ -11,6 +11,10 @@
             </div>
         </div>
         <div class="acss-crud-body">
+            <nav class="acss-settings-tabs" aria-label="Bagian pengaturan">
+                <a class="is-active" href="{{ route('superadmin.settings.edit') }}" aria-current="page">Aplikasi</a>
+                <a href="{{ route('superadmin.audit.settings') }}">Log Sistem</a>
+            </nav>
             <form method="POST" action="{{ route('superadmin.settings.update') }}" enctype="multipart/form-data" class="acss-superadmin-settings-grid">
                 @csrf
                 @method('PUT')
@@ -22,7 +26,7 @@
                     </label>
                     <label class="form-field">
                         <span>Logo Aplikasi</span>
-                        <input name="logo" type="file" accept="image/png,image/jpeg,image/webp" @error('logo') aria-invalid="true" aria-describedby="logo-error" @enderror>
+                        <input class="acss-brand-logo-input" name="logo" type="file" accept="image/png,image/jpeg,image/webp" @error('logo') aria-invalid="true" aria-describedby="logo-error" @enderror>
                         <small class="acss-muted">PNG, JPG, atau WebP. Maksimum 2 MB dan 2000 × 2000 piksel.</small>
                         @error('logo')<small class="form-error" id="logo-error">{{ $message }}</small>@enderror
                     </label>

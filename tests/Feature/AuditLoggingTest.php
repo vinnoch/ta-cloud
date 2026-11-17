@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ApplicationSetting;
 use App\Models\AuditLog;
 use App\Models\User;
 use App\Services\PrivilegedAudit;
@@ -51,12 +52,17 @@ it('removes sensitive metadata recursively', function () {
     expect($metadata)->toBe(['status' => 'approved', 'nested' => ['note' => 'safe']]);
 });
 
-it('retains exactly the newest 500 records', function () {
-    foreach (range(1, 505) as $sequence) {
-        PrivilegedAudit::record("retention.{$sequence}");
-    }
+it('removes logs older than the configured retention and keeps the cutoff boundary', function () {
+    $this->travelTo('2026-11-16 12:00:00');
+    ApplicationSetting::current()->update(['log_retention_days' => 60]);
 
-    expect(AuditLog::query()->count())->toBe(500)
-        ->and(AuditLog::query()->oldest('id')->value('action'))->toBe('retention.6')
-        ->and(AuditLog::query()->latest('id')->value('action'))->toBe('retention.505');
+    AuditLog::query()->create(['action' => 'retention.expired', 'created_at' => now()->subDays(60)->subSecond()]);
+    AuditLog::query()->create(['action' => 'retention.boundary', 'created_at' => now()->subDays(60)]);
+
+    PrivilegedAudit::record('retention.current');
+
+    expect(AuditLog::query()->pluck('action')->all())->toBe([
+        'retention.boundary',
+        'retention.current',
+    ]);
 });

@@ -54,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
                 $footerItems = $navigation->footerItems();
 
                 $navItems = match ($role) {
+                    'superadmin' => $navigation->superadminNavItems(),
                     'mahasiswa' => $navigation->mahasiswaNavItems($user?->id),
                     'dosen' => $navigation->dosenNavItems(),
                     'kaprodi' => $navigation->kaprodiNavItems(),

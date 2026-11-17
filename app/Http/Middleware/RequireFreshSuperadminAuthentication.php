@@ -18,6 +18,8 @@ class RequireFreshSuperadminAuthentication
         'superadmin.users.restore' => [],
         'superadmin.users.permanently-destroy' => [],
         'superadmin.settings.update' => ['application_name'],
+        'superadmin.audit.retention.update' => ['log_retention_days'],
+        'superadmin.audit.destroy' => [],
         'registrations.approve' => [],
         'registrations.reject' => ['rejection_reason'],
     ];

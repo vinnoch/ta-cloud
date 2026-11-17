@@ -12,7 +12,7 @@
                 <p id="count-text" class="acss-muted ">{{ $formats->total() }} format ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
-                <a class="button button--inline" href="{{ route('kaprodi.formats.create') }}">@include('partials.icons.plus')<span>Tambah Format</span></a>
+                <a class="button button--primary button--inline" href="{{ route('kaprodi.formats.create') }}">@include('partials.icons.plus')<span>Tambah Format</span></a>
             </div>
         </div>
 

@@ -20,7 +20,7 @@
                         @endif
                     </a>
                 @endif
-                <button type="button" class="button button--inline" data-mahasiswa-create-open>@include('partials.icons.plus')<span>Tambah Mahasiswa</span></button>
+                <button type="button" class="button button--primary button--inline" data-mahasiswa-create-open>@include('partials.icons.plus')<span>Tambah Mahasiswa</span></button>
             </div>
         </div>
 

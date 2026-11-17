@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\ApplicationSetting;
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Services\ApplicationBranding;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -118,9 +120,12 @@ it('allows deactivation when another active superadmin remains and audits it', f
         ->assertDatabaseHas('audit_logs', ['action' => 'user.deactivated', 'target_id' => $target->id]);
 });
 
-it('validates and audits minimal branding settings', function () {
+it('uses the default logo then refreshes cached branding after a logo upload', function () {
     Storage::fake('public');
     $actor = superadminUser();
+    $branding = app(ApplicationBranding::class);
+
+    expect($branding->get()['logo_url'])->toBe('/images/logo-horizontal-warna.png');
 
     $this->actingAs($actor)->withSession(['superadmin_reauthenticated_at' => now()->timestamp])
         ->put(route('superadmin.settings.update'), [
@@ -128,6 +133,12 @@ it('validates and audits minimal branding settings', function () {
             'logo' => UploadedFile::fake()->image('logo.png', 400, 400),
         ])->assertRedirect(route('superadmin.settings.edit'))
         ->assertSessionHas('status', 'Pengaturan berhasil diperbarui.');
+
+    $settings = ApplicationSetting::query()->firstOrFail();
+
+    Storage::disk('public')->assertExists($settings->logo_path);
+
+    expect($branding->get()['logo_url'])->toBe(Storage::disk('public')->url($settings->logo_path));
 
     $this->assertDatabaseHas('application_settings', ['application_name' => 'TA Cloud UKWK'])
         ->assertDatabaseHas('audit_logs', ['action' => 'settings.updated']);
@@ -411,6 +422,8 @@ it('keeps every sensitive superadmin mutation behind fresh authentication', func
         'superadmin.users.restore',
         'superadmin.users.permanently-destroy',
         'superadmin.settings.update',
+        'superadmin.audit.retention.update',
+        'superadmin.audit.destroy',
     ] as $name) {
         expect(Route::getRoutes()->getByName($name)?->gatherMiddleware())->toContain('fresh.superadmin');
     }
@@ -429,11 +442,11 @@ it('renders the superadmin workspace navigation without audit payloads', functio
     $this->actingAs($actor)->get(route('superadmin.audit.index'))
         ->assertOk()
         ->assertSeeInOrder(['Dashboard', 'Users', 'Setting', 'Log Sistem'])
-        ->assertSeeInOrder(['Waktu', 'Aktivitas', 'User'])
+        ->assertSeeInOrder(['Waktu', 'Pengguna', 'Aktivitas', 'Konteks', 'Detail'])
         ->assertDontSee('Pelaku')
         ->assertDontSee('Target')
         ->assertSee('Settings Updated')
         ->assertSee($actor->name)
-        ->assertSee('Terminal')
+        ->assertSee('Sistem')
         ->assertDontSee('never-render-this');
 });
