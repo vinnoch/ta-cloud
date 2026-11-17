@@ -41,6 +41,13 @@
                     ->all();
             }
         @endphp
+        <div class="workspace-header__mobile-title">
+            <a href="{{ route('home') }}">{{ $branding['name'] }}</a>
+            @if (filled($topbarHeading))
+                <span aria-hidden="true">/</span>
+                <strong>{{ $topbarHeading }}</strong>
+            @endif
+        </div>
         @if (!empty($topbarEyebrow))
             <p class="workspace-header__breadcrumb">
                 @if (is_array($topbarEyebrow))

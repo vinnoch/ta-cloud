@@ -133,7 +133,7 @@
                 </div>
                 @if(in_array($myRoleType ?? null, ['pembimbing_1','pembimbing_2']) && $skripsi->current_phase === 'bimbingan_skripsi')
                     <div class="acss-crud-head__actions">
-                        <button type="button" class="button button--inline" data-bimbingan-create-modal-open><span class="dosen-btn-icon">@include("partials.icons.plus")</span><span>Tambah Bimbingan</span></button>
+                        <button type="button" class="button button--primary button--inline" data-bimbingan-create-modal-open><span class="dosen-btn-icon">@include("partials.icons.plus")</span><span>Tambah Bimbingan</span></button>
                     </div>
                 @endif
             </div>

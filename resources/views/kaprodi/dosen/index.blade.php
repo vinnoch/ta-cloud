@@ -12,7 +12,7 @@
                 <p class="acss-muted " id="count-text">{{ $dosen->total() }} akun dosen ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
-                <button type="button" class="button button--inline" data-dosen-create-open>@include('partials.icons.plus')<span>Tambah Dosen</span></button>
+                <button type="button" class="button button--primary button--inline" data-dosen-create-open>@include('partials.icons.plus')<span>Tambah Dosen</span></button>
             </div>
         </div>
 

@@ -16,7 +16,7 @@
                 <p id="count-text" class="acss-muted">{{ $templates->total() }} template ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
-                <a class="button button--inline" href="{{ route('kaprodi.document-templates.create') }}">+ Tambah</a>
+                <a class="button button--primary button--inline" href="{{ route('kaprodi.document-templates.create') }}">+ Tambah</a>
             </div>
         </div>
 

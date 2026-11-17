@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class ApplicationSetting extends Model
 {
-    protected $fillable = ['application_name', 'logo_path'];
+    protected $fillable = ['application_name', 'logo_path', 'log_retention_days'];
 
     public static function current(): self
     {
         return self::query()->firstOrCreate([], ['application_name' => 'TA Cloud UKWK']);
+    }
+
+    protected function casts(): array
+    {
+        return ['log_retention_days' => 'integer'];
     }
 }

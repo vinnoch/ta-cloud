@@ -11,7 +11,7 @@
                 <p class="acss-muted " id="count-text">{{ $tahunAkademik->total() }} tahun akademik ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
-                <button type="button" class="button button--inline" data-ta-create-open>@include('partials.icons.plus')<span>Tambah Tahun Akademik</span></button>
+                <button type="button" class="button button--primary button--inline" data-ta-create-open>@include('partials.icons.plus')<span>Tambah Tahun Akademik</span></button>
             </div>
         </div>
 

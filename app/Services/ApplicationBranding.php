@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ApplicationBranding
 {
-    public const CACHE_KEY = 'application.branding';
+    public const CACHE_KEY = 'application.branding.v2';
 
     public function get(): array
     {
@@ -21,7 +21,7 @@ class ApplicationBranding
                 'name' => $settings?->application_name ?: 'TA Cloud UKWK',
                 'logo_url' => $logoPath && Storage::disk('public')->exists($logoPath)
                     ? Storage::disk('public')->url($logoPath)
-                    : '/images/ukwk-logo.png',
+                    : '/images/logo-horizontal-warna.png',
             ];
         });
     }

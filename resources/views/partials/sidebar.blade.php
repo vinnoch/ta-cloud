@@ -14,7 +14,7 @@
 
             @if (!empty($children))
                 <details class="side-group {{ $isActive ? 'is-active' : '' }}" {{ $isActive ? 'open' : '' }}>
-                    <summary class="side-link side-group__trigger {{ $isActive ? 'is-active' : '' }}">
+                    <summary class="side-link side-group__trigger {{ $isActive ? 'is-active' : '' }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                         <span class="side-link__icon">@include($item['icon'])</span>
                         <span>{{ $item['label'] }}</span>
                         <span class="side-group__chevron" aria-hidden="true">▾</span>
@@ -28,7 +28,7 @@
                     </div>
                 </details>
             @else
-                <a class="side-link {{ $isActive ? 'is-active' : '' }}" href="{{ $item['href'] }}">
+                <a class="side-link {{ $isActive ? 'is-active' : '' }}" href="{{ $item['href'] }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                     <span class="side-link__icon">@include($item['icon'])</span>
                     <span>{{ $item['label'] }}</span>
                 </a>
@@ -45,13 +45,13 @@
             @if (($item['label'] ?? '') === 'Keluar' && auth()->check())
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="side-link side-link--footer is-danger side-link--button" type="submit">
+                    <button class="side-link side-link--footer is-danger side-link--button" type="submit" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                         <span class="side-link__icon">@include($item['icon'])</span>
                         <span>{{ $item['label'] }}</span>
                     </button>
                 </form>
             @else
-                <a class="side-link side-link--footer {{ !empty($item['danger']) ? 'is-danger' : '' }}" href="{{ $item['href'] }}">
+                <a class="side-link side-link--footer {{ !empty($item['danger']) ? 'is-danger' : '' }}" href="{{ $item['href'] }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                     <span class="side-link__icon">@include($item['icon'])</span>
                     <span>{{ $item['label'] }}</span>
                 </a>

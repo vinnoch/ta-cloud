@@ -4,7 +4,7 @@
     $nextDirection = fn (string $column) => $sort === $column && $direction === 'asc' ? 'desc' : 'asc';
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
-<div class="table-shell">
+<div class="table-shell pilot-table pilot-table--dosen-skripsi">
     @if (count($skripsis) > 0)
         <div class="table-shell__head table-shell__grid acss-table-cols-dosen-skripsi">
             <button type="button" class="acss-sort-button" data-sort-column="nim" data-sort-direction="{{ $nextDirection('nim') }}">Mahasiswa <span>{{ $indicator('nim') }}</span></button>
@@ -13,15 +13,18 @@
         </div>
     @endif
     @forelse($skripsis as $s)
-        <div class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi acss-hover-row-group">
-            <div class="table-shell__cell">
+        <article class="table-shell__row table-shell__grid acss-table-cols-dosen-skripsi acss-hover-row-group pilot-record-card pilot-record-card--dosen-skripsi">
+            <div class="table-shell__cell pilot-record-card__identity" data-mobile-label="Mahasiswa">
                 <strong>{{ $s->student->name ?? '-' }}</strong>
                 <small>{{ $s->student->nim ?? '-' }}</small>
-                <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ route('dosen.skripsi.show', $s) }}">@include('partials.icons.eye')<span>Skripsi</span></a></div>
+                <div class="acss-row-actions pilot-record-card__desktop-actions"><a class="text-link acss-action-link" href="{{ route('dosen.skripsi.show', $s) }}">@include('partials.icons.eye')<span>Skripsi</span></a></div>
             </div>
-            <div class="table-shell__cell table-shell__cell--title">{{ $s->title }}</div>
-            <div class="table-shell__cell"><span class="pill">{{ str($s->current_phase)->replace(['_', '-'], ' ')->upper() }}</span></div>
-        </div>
+            <div class="table-shell__cell table-shell__cell--title pilot-record-card__title">{{ $s->title }}</div>
+            <div class="table-shell__cell pilot-record-card__phase" data-mobile-label="Fase"><span class="pill">{{ str($s->current_phase)->replace(['_', '-'], ' ')->upper() }}</span></div>
+            <div class="pilot-record-card__mobile-actions">
+                <a class="pilot-record-card__primary-action" href="{{ route('dosen.skripsi.show', $s) }}">@include('partials.icons.eye')<span>Lihat</span></a>
+            </div>
+        </article>
     @empty
         <div class="empty-state">Belum ada skripsi assignment.</div>
     @endforelse

@@ -11,7 +11,7 @@
                 <p class="acss-muted " id="count-text">{{ $periode->total() }} periode akademik tersedia.</p>
             </div>
             <div class="acss-crud-head__actions">
-                <button type="button" class="button button--inline" data-periode-create-open>@include('partials.icons.plus')<span>Tambah Periode</span></button>
+                <button type="button" class="button button--primary button--inline" data-periode-create-open>@include('partials.icons.plus')<span>Tambah Periode</span></button>
             </div>
         </div>
 

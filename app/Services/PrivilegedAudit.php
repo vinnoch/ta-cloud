@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Schema;
 
 class PrivilegedAudit
 {
-    public const MAX_RECORDS = 500;
-
     public static function record(string $action, ?Model $target = null, array $before = [], array $after = [], ?Request $request = null, bool $markRequest = true): void
     {
         if (! Schema::hasTable('audit_logs') || ! Schema::hasTable('application_settings')) {
@@ -21,7 +19,7 @@ class PrivilegedAudit
         $actor = auth()->user();
 
         DB::transaction(function () use ($action, $target, $before, $after, $request, $actor): void {
-            DB::table('application_settings')->lockForUpdate()->value('id');
+            $settings = DB::table('application_settings')->lockForUpdate()->first();
 
             AuditLog::query()->create([
                 'actor_id' => $actor?->id,
@@ -35,14 +33,11 @@ class PrivilegedAudit
                 'user_agent' => $request?->userAgent(),
             ]);
 
-            $oldestRetainedId = AuditLog::query()
-                ->latest('id')
-                ->offset(self::MAX_RECORDS - 1)
-                ->value('id');
+            $days = Schema::hasColumn('application_settings', 'log_retention_days')
+                ? (int) $settings?->log_retention_days
+                : AuditLogMaintenance::DEFAULT_RETENTION_DAYS;
 
-            if ($oldestRetainedId) {
-                AuditLog::query()->where('id', '<', $oldestRetainedId)->delete();
-            }
+            app(AuditLogMaintenance::class)->purgeExpiredLocked($days);
         });
 
         if ($markRequest) {
