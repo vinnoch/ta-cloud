@@ -88,6 +88,20 @@ it('protects retention changes and log deletion with fresh superadmin authentica
     expect(ApplicationSetting::current()->log_retention_days)->toBe(90);
 });
 
+it('resumes log deletion after fresh superadmin authentication', function () {
+    $actor = auditSuperadmin();
+
+    $this->actingAs($actor)->withSession(['superadmin_reauth_pending' => [
+        'route' => 'superadmin.audit.destroy',
+        'parameters' => [],
+        'method' => 'DELETE',
+        'input' => [],
+    ]])->get(route('superadmin.reauth.resume'))
+        ->assertOk()
+        ->assertSee('action="'.route('superadmin.audit.destroy').'"', false)
+        ->assertSee('name="_method" value="DELETE"', false);
+});
+
 it('renders readable audit activity details without management controls', function () {
     $actor = auditSuperadmin();
     AuditLog::query()->create([

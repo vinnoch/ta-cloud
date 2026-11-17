@@ -18,6 +18,8 @@ class ReauthenticationController extends Controller
         'superadmin.users.restore',
         'superadmin.users.permanently-destroy',
         'superadmin.settings.update',
+        'superadmin.audit.retention.update',
+        'superadmin.audit.destroy',
         'registrations.approve',
         'registrations.reject',
     ];
