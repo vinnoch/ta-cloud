@@ -33,7 +33,10 @@
                 <div class="">{{ $activeSkripsi->proposal_review_note ?: 'Kaprodi telah meminta Anda mengunggah revisi proposal terbaru.' }}</div>
             </div>
         @elseif ($activeSkripsi->isProcessing())
-            <div class="notice notice--danger">Pengajuan Proposal sedang diproses oleh Kaprodi.</div>
+            <div class="notice notice--info">
+                <strong>Proposal sedang ditinjau dan terkunci.</strong>
+                <div>Proposal tidak dapat diedit hingga Kaprodi memberikan keputusan persetujuan atau penolakan.</div>
+            </div>
         @endif
 
         <section class="card card--profile">
@@ -285,21 +288,15 @@
                             </div>
                         </label>
                     </div>
-                    <div class="acss-page-card" style="margin-top: 1rem;">
-                        <div class="acss-page-card__body" style="padding: 1rem 1.25rem;">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <label class="form-field acss-field-tight md:w-1/3">
-                                    <span>Status Pengajuan</span>
-                                    <select name="save_mode" required>
-                                        <option value="draft" @selected(old('save_mode', 'draft') === 'draft')>Draft</option>
-                                        <option value="published" @selected(old('save_mode') === 'published')>Published</option>
-                                    </select>
-                                </label>
-                                <div class="acss-form-actions">
-                                    <button class="button button--inline" type="submit">Simpan Pengajuan</button>
-                                    <button class="button button--muted button--inline" type="button" data-draft-edit-modal-close>Batal</button>
-                                </div>
-                            </div>
+                    <div class="acss-submission-footer">
+                        <div class="acss-status-label" aria-label="Status pengajuan">
+                            <span>Status</span>
+                            <strong>Draft</strong>
+                        </div>
+                        <div class="acss-form-actions">
+                            <button class="button button--muted button--inline" type="button" data-draft-edit-modal-close>Batal</button>
+                            <button class="button button--muted button--inline" type="submit" name="save_mode" value="draft">Simpan Draft</button>
+                            <button class="button button--primary button--inline" type="submit" name="save_mode" value="published">Ajukan Proposal</button>
                         </div>
                     </div>
                 </form>

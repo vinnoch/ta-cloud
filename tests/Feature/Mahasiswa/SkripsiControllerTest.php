@@ -68,7 +68,7 @@ it('ignores forged ownership and workflow fields', function () {
 });
 
 it('shows edit updates softdeletes own skripsi', function () {
-    $skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Old', 'type' => 'skripsi', 'current_phase' => 'proposal']);
+    $skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Old', 'type' => 'skripsi', 'current_phase' => 'proposal', 'proposal_review_status' => 'draft']);
 
     $this->actingAs($this->mahasiswa)
         ->get(route('mahasiswa.skripsi.show', $skripsi))
@@ -89,6 +89,33 @@ it('shows edit updates softdeletes own skripsi', function () {
         ->delete(route('mahasiswa.skripsi.destroy', $skripsi))
         ->assertRedirect();
     expect(Skripsi::withTrashed()->find($skripsi->id)->deleted_at)->not->toBeNull();
+});
+
+it('blocks editing a published proposal through direct routes', function () {
+    $skripsi = Skripsi::query()->create([
+        'student_id' => $this->mahasiswa->id,
+        'periode_id' => 1,
+        'title' => 'Submitted Proposal',
+        'type' => 'skripsi',
+        'current_phase' => 'proposal',
+        'proposal_review_status' => 'published',
+    ]);
+
+    $this->actingAs($this->mahasiswa)
+        ->get(route('mahasiswa.skripsi.edit', $skripsi))
+        ->assertForbidden();
+
+    $this->actingAs($this->mahasiswa)
+        ->put(route('mahasiswa.skripsi.update', $skripsi), [
+            'title' => 'Changed After Submission',
+            'type' => 'non_skripsi',
+        ])
+        ->assertForbidden();
+
+    expect($skripsi->fresh())
+        ->title->toBe('Submitted Proposal')
+        ->type->toBe('skripsi')
+        ->proposal_review_status->toBe('published');
 });
 
 it('blocks other mahasiswa', function () {

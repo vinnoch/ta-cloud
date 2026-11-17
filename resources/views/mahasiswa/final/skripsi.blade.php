@@ -36,7 +36,7 @@
             <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Dokumen Terkirim</h3>
-                    <p class="acss-muted">Dokumen final yang sudah Anda kirim dan masih dalam proses pengecekan.</p>
+                    <p class="acss-muted">Dokumen yang sudah dikirim terkunci dan tidak dapat diedit hingga disetujui atau ditolak.</p>
                 </div>
             </div>
             <div class="acss-crud-body">

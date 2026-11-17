@@ -50,26 +50,12 @@
                 </div>
             </section>
 
-            <div class="acss-page-card">
-                <div class="acss-page-card__body">
-                    @php $currentStatus = old('status', 'draft'); @endphp
-                    <input type="hidden" name="status" value="{{ $currentStatus }}">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div>
-                            <span class="acss-muted">Status saat ini: {{ strtoupper($currentStatus) }}</span>
-                        </div>
-                        <div class="acss-form-actions acss-form-actions--end">
-                            <a class="button button--muted button--inline" href="{{ route('kaprodi.document-templates.index') }}">Batal</a>
-                            @if ($currentStatus === 'draft')
-                                <button class="button button--inline" type="submit" name="status" value="draft">Simpan Draft</button>
-                                <button class="button button--success button--inline" type="submit" name="status" value="published">Publish</button>
-                            @else
-                                <button class="button button--success button--inline" type="submit" name="status" value="published">Simpan Perubahan</button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @php $currentStatus = old('status', 'draft'); @endphp
+            <input type="hidden" name="status" value="{{ $currentStatus }}">
+            @include('kaprodi.partials.publish-draft-footer', [
+                'currentStatus' => $currentStatus,
+                'cancelUrl' => route('kaprodi.document-templates.index'),
+            ])
         </div>
     </form>
 @endsection
