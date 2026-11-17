@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-crud-card">
-        <div class="acss-crud-head">
-            <div>
-                <h1 class="acss-page-title">{{ $heading ?? 'Buat Skripsi Baru' }}</h1>
+    <form class="acss-form-stack acss-form-stack--sm" method="POST" action="{{ route('mahasiswa.skripsi.store') }}"
+        enctype="multipart/form-data">
+        @csrf
+        <section class="acss-crud-card">
+            <div class="acss-crud-head">
+                <div>
+                    <h1 class="acss-page-title">{{ $heading ?? 'Buat Skripsi Baru' }}</h1>
+                </div>
             </div>
-        </div>
 
-        <div class="acss-crud-body">
-            <form class="acss-form-stack acss-form-stack--sm" method="POST" action="{{ route('mahasiswa.skripsi.store') }}"
-                enctype="multipart/form-data">
-                @csrf
+            <div class="acss-crud-body acss-form-stack acss-form-stack--sm">
                 <label class="form-field">
                     <span>Judul Penelitian</span>
                     <input type="text" name="title" value="{{ old('title') }}" placeholder="Masukkan judul skripsi"
@@ -74,27 +74,23 @@
                     @enderror
                 </label>
 
-                <div class="acss-page-card ">
-                    <div class="acss-page-card__body">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <label class="form-field acss-field-tight md:w-1/3">
-                                <span>Status Pengajuan</span>
-                                <select name="save_mode" required>
-                                    <option value="draft" @selected(old('save_mode', 'draft') === 'draft')>Draft</option>
-                                    <option value="published" @selected(old('save_mode') === 'published')>Published</option>
-                                </select>
-                            </label>
-                            <div class="acss-form-actions">
-                                <button class="button button--success button--inline" type="submit">Simpan Pengajuan</button>
-                                <a class="button button--muted button--inline"
-                                    href="{{ route('mahasiswa.skripsi.index') }}">Batal</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
+            </div>
+        </section>
+
+        <div class="acss-submission-footer">
+            <label class="form-field acss-field-tight">
+                <span>Status Pengajuan</span>
+                <select name="save_mode" required>
+                    <option value="draft" @selected(old('save_mode', 'draft') === 'draft')>Draft</option>
+                    <option value="published" @selected(old('save_mode') === 'published')>Published</option>
+                </select>
+            </label>
+            <div class="acss-form-actions">
+                <button class="button button--success button--inline" type="submit">Simpan Pengajuan</button>
+                <a class="button button--muted button--inline" href="{{ route('mahasiswa.skripsi.index') }}">Batal</a>
+            </div>
         </div>
-    </section>
+    </form>
 
     @push('scripts')
         <script>
