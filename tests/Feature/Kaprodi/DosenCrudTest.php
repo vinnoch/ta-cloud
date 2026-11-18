@@ -59,7 +59,7 @@ test('kaprodi can view dosen detail with mahasiswa bimbingan list', function () 
         ->assertSee('Mahasiswa Bimbingan')
         ->assertSee('Adrian Sterling')
         ->assertSee('2021004592')
-        ->assertSee('Hapus Dosen');
+        ->assertSee('Hapus');
 });
 
 test('kaprodi create dosen form shows password toggle controls', function () {

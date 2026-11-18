@@ -53,9 +53,6 @@
                     'passwordRequired' => true,
                 ])
                 </div>
-                <div class="pill-row">
-                    <span class="pill">Login enabled</span>
-                </div>
                 <div class="form-actions form-actions--inline">
                     <button type="button" class="button button--muted button--inline" data-dosen-create-close>Batal</button>
                     <button class="button button--inline" type="submit">Simpan Dosen</button>
@@ -112,9 +109,6 @@
                         </button>
                     </div>
                 </label>
-                </div>
-                <div class="pill-row">
-                    <span class="pill">Login enabled</span>
                 </div>
                 <div class="form-actions form-actions--inline">
                     <button type="button" class="button button--muted button--inline" data-dosen-edit-close>Batal</button>
