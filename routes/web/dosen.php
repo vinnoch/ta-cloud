@@ -50,7 +50,7 @@ Route::prefix('dosen')->name('dosen.')->middleware(['auth', 'role:dosen'])->grou
 
         $stats = [
             ['label' => 'Tugas Akhir Aktif', 'value' => (string) $activeSkripsiCount, 'hint' => 'Tugas aktif Anda', 'href' => null, 'featured' => true],
-            ['label' => 'Total Bimbingan', 'value' => (string) $bimbinganCount, 'hint' => 'Sebagai pembimbing', 'href' => route('dosen.skripsi.index')],
+            ['label' => 'Total Bimbingan', 'value' => (string) $bimbinganCount, 'hint' => 'Sebagai pembimbing', 'href' => route('dosen.tugas-akhir.index')],
             ['label' => 'Menunggu Nilai', 'value' => (string) $gradingAssignments->count(), 'hint' => 'Sidang perlu dinilai', 'href' => route('dosen.penilaian.index')],
             ['label' => 'Pengajuan Sidang', 'value' => (string) $sidangRequestCount, 'hint' => 'Total pengajuan Anda', 'href' => route('dosen.sidang-request.index')],
         ];
@@ -71,6 +71,7 @@ Route::prefix('dosen')->name('dosen.')->middleware(['auth', 'role:dosen'])->grou
     })->name('dashboard');
 
     Route::get('/proposal', [TugasAkhirViewController::class, 'proposals'])->name('proposal.index');
+    Route::get('/tugas-akhir', [TugasAkhirViewController::class, 'index'])->name('tugas-akhir.index');
     $registerTugasAkhirRoutes = function (string $slug, string $namespace): void {
         Route::prefix($slug)->name($namespace.'.')->middleware(EnsureTugasAkhirRouteType::class)->group(function (): void {
             Route::get('/search', [TugasAkhirViewController::class, 'search'])->name('search');

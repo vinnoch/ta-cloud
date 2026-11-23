@@ -2,7 +2,7 @@
     $mobilePrimaryLabels = match ($navRole ?? 'global') {
         'superadmin' => ['Dashboard', 'Users', 'Pendaftaran'],
         'kaprodi' => ['Dashboard', 'Monitoring', 'Master Mahasiswa'],
-        'dosen' => ['Dashboard', 'Skripsi', 'Non-Skripsi'],
+        'dosen' => ['Dashboard', 'Tugas Akhir', 'Proposal'],
         'mahasiswa' => ['Skripsi', 'Non-Skripsi', 'Bimbingan'],
         default => collect($navItems ?? [])->pluck('label')->take(3)->all(),
     };

@@ -3,8 +3,7 @@
     $direction = $direction ?? 'asc';
     $nextDirection = fn (string $column) => $sort === $column && $direction === 'asc' ? 'desc' : 'asc';
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
-    $taType = $taType ?? (request()->routeIs('dosen.non-skripsi.*') ? 'non_skripsi' : 'skripsi');
-    $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+    $taLabel = $tugasAkhirLabel ?? 'Tugas Akhir';
 @endphp
 <div class="table-shell pilot-table pilot-table--dosen-skripsi">
     @if (count($skripsis) > 0)

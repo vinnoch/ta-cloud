@@ -27,6 +27,47 @@ it('can view assigned skripsi', function () {
     $this->actingAs($this->dosen)->get(route('dosen.skripsi.show', $this->skripsi))->assertOk();
 });
 
+it('merges both types in one tugas akhir menu with a type filter', function () {
+    $nonSkripsi = TugasAkhir::query()->create([
+        'student_id' => User::factory()->mahasiswa()->create()->id,
+        'periode_id' => 1,
+        'title' => 'Proyek Terapan',
+        'type' => 'non_skripsi',
+        'current_phase' => 'bimbingan_skripsi',
+    ]);
+    ReviewerAssignment::query()->create([
+        'tugas_akhir_id' => $nonSkripsi->id,
+        'lecturer_id' => $this->dosen->id,
+        'role_type' => 'pembimbing_1',
+    ]);
+
+    $page = $this->actingAs($this->dosen)->get(route('dosen.tugas-akhir.index'));
+
+    $page
+        ->assertOk()
+        ->assertSee('Tugas Akhir Mahasiswa Bimbingan')
+        ->assertSee('name="type"', false)
+        ->assertSee('TA')
+        ->assertSee('Proyek Terapan')
+        ->assertDontSee('>Skripsi</a>', false)
+        ->assertDontSee('>Non-Skripsi</a>', false);
+
+    $filtered = $this->actingAs($this->dosen)
+        ->withHeader('X-Requested-With', 'XMLHttpRequest')
+        ->get(route('dosen.tugas-akhir.index', ['type' => 'non_skripsi']));
+
+    $filtered->assertOk()->assertJsonPath('count_text', '1 tugas akhir ditemukan.');
+    expect($filtered->json('table_html'))
+        ->toContain('Proyek Terapan')
+        ->not->toContain('>TA<');
+});
+
+it('rejects an unknown tugas akhir type', function () {
+    $this->actingAs($this->dosen)
+        ->get(route('dosen.tugas-akhir.index', ['type' => 'unknown']))
+        ->assertSessionHasErrors('type');
+});
+
 it('cannot view unassigned skripsi', function () {
     $this->actingAs($this->otherDosen)->get(route('dosen.skripsi.show', $this->skripsi))->assertForbidden();
 });
@@ -37,7 +78,22 @@ it('includes final document review in the summary cards', function () {
     $this->actingAs($this->dosen)
         ->get(route('dosen.skripsi.index'))
         ->assertOk()
-        ->assertSeeInOrder(['Review Dokumen Final', '1']);
+        ->assertSeeInOrder(['Dokumen Final', '1'])
+        ->assertSee('data-filter-status="review_dokumen_final"', false);
+});
+
+it('keeps type-specific copy in legacy ajax responses', function () {
+    $skripsi = $this->actingAs($this->dosen)
+        ->withHeader('X-Requested-With', 'XMLHttpRequest')
+        ->get(route('dosen.skripsi.index'));
+
+    expect($skripsi->json('table_html'))->toContain('Judul Skripsi');
+
+    $nonSkripsi = $this->actingAs($this->dosen)
+        ->withHeader('X-Requested-With', 'XMLHttpRequest')
+        ->get(route('dosen.non-skripsi.index'));
+
+    expect($nonSkripsi->json('table_html'))->toContain('Belum ada non-skripsi bimbingan.');
 });
 
 it('merges proposal phases in one summary card', function () {

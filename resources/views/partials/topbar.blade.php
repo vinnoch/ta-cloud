@@ -108,6 +108,7 @@
                     ->map(fn ($part) => mb_substr($part, 0, 1))
                     ->take(2)
                     ->implode('');
+                $userAvatar = auth()->user()->google_avatar;
             @endphp
             <div class="notification-shell" data-notification-shell>
                 <button
@@ -139,7 +140,13 @@
             
             <div class="acss-relative" data-user-menu-shell>
                 <button class="user-chip acss-reset-button" type="button" aria-haspopup="true" aria-expanded="false" data-user-menu-trigger>
-                    <span class="avatar-chip" aria-hidden="true">{{ $userInitials }}</span>
+                    <span class="avatar-chip" aria-hidden="true">
+                        @if (filled($userAvatar))
+                            <img src="{{ $userAvatar }}" alt="" referrerpolicy="no-referrer">
+                        @else
+                            {{ $userInitials }}
+                        @endif
+                    </span>
                     <span class="acss-text-left">
                         <strong>{{ collect(preg_split('/\s+/', trim(auth()->user()->name)))->take(2)->implode(' ') }}</strong>
                         <small>{{ strtoupper(auth()->user()->role) }}</small>

@@ -25,7 +25,7 @@ it('renders the mobile shell for each authenticated role', function (string $rol
 })->with([
     'superadmin' => ['superadmin', 'superadmin.dashboard', ['Dashboard', 'Users', 'Pendaftaran']],
     'kaprodi' => ['kaprodi', 'kaprodi.dashboard', ['Dashboard', 'Monitoring', 'Master Mahasiswa']],
-    'dosen' => ['dosen', 'dosen.dashboard', ['Dashboard', 'Skripsi', 'Penilaian & Revisi']],
+    'dosen' => ['dosen', 'dosen.dashboard', ['Dashboard', 'Tugas Akhir', 'Proposal']],
     'mahasiswa' => ['mahasiswa', 'mahasiswa.skripsi.index', ['Tugas Akhir']],
 ]);
 

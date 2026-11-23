@@ -70,8 +70,7 @@ class RoleNavigationService
         return [
             ['label' => 'Dashboard', 'href' => route('dosen.dashboard'), 'active' => 'dosen.dashboard', 'icon' => 'partials.icons.dashboard-monitor'],
             ['label' => 'Proposal', 'href' => route('dosen.proposal.index'), 'active' => 'dosen.proposal.*', 'icon' => 'partials.icons.clipboard'],
-            ['label' => 'Skripsi', 'href' => route('dosen.skripsi.index'), 'active' => 'dosen.skripsi.*', 'icon' => 'partials.icons.file'],
-            ['label' => 'Non-Skripsi', 'href' => route('dosen.non-skripsi.index'), 'active' => 'dosen.non-skripsi.*', 'icon' => 'partials.icons.file-plain'],
+            ['label' => 'Tugas Akhir', 'href' => route('dosen.tugas-akhir.index'), 'active' => ['dosen.tugas-akhir.*', 'dosen.skripsi.*', 'dosen.non-skripsi.*'], 'icon' => 'partials.icons.file'],
             ['label' => 'Pengajuan Sidang', 'href' => route('dosen.sidang-request.index'), 'active' => 'dosen.sidang-request.*', 'icon' => 'partials.icons.phase-flag'],
             ['label' => 'Penilaian & Revisi', 'href' => route('dosen.penilaian.index'), 'active' => 'dosen.penilaian.*', 'icon' => 'partials.icons.clipboard'],
         ];

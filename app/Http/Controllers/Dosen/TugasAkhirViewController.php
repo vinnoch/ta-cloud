@@ -10,6 +10,7 @@ use App\Services\RoleNavigationService;
 use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TugasAkhirViewController extends Controller
@@ -18,8 +19,16 @@ class TugasAkhirViewController extends Controller
 
     public function index(Request $request): View|JsonResponse
     {
-        $type = $this->tugasAkhirRoutes->typeFromRequest($request);
-        $label = $this->tugasAkhirRoutes->label($type);
+        $unified = $request->routeIs('dosen.tugas-akhir.index');
+        $validated = $unified
+            ? $request->validate([
+                'type' => ['nullable', Rule::in([TugasAkhirRouteService::SKRIPSI, TugasAkhirRouteService::NON_SKRIPSI])],
+            ])
+            : [];
+        $type = $unified
+            ? (string) ($validated['type'] ?? '')
+            : $this->tugasAkhirRoutes->typeFromRequest($request);
+        $label = $unified ? 'Tugas Akhir' : $this->tugasAkhirRoutes->label($type);
         $search = (string) $request->query('q', '');
         $fase = (string) $request->query('fase', 'all');
         $sort = (string) $request->query('sort', 'nim');
@@ -34,7 +43,7 @@ class TugasAkhirViewController extends Controller
             ->join('reviewer_assignments as ra_summary', 'ra_summary.tugas_akhir_id', '=', 'tugas_akhirs.id')
             ->leftJoin('users as students_summary', 'students_summary.id', '=', 'tugas_akhirs.student_id')
             ->where('ra_summary.lecturer_id', $request->user()->id)
-            ->where('tugas_akhirs.type', $type)
+            ->when($type !== '', fn ($query) => $query->where('tugas_akhirs.type', $type))
             ->when($search !== '', function ($q) use ($search): void {
                 $q->where(function ($inner) use ($search): void {
                     $inner->where('students_summary.name', 'like', "%{$search}%")
@@ -49,7 +58,7 @@ class TugasAkhirViewController extends Controller
             ->join('reviewer_assignments as ra_sort', 'ra_sort.tugas_akhir_id', '=', 'tugas_akhirs.id')
             ->leftJoin('users as students_sort', 'students_sort.id', '=', 'tugas_akhirs.student_id')
             ->where('ra_sort.lecturer_id', $request->user()->id)
-            ->where('tugas_akhirs.type', $type)
+            ->when($type !== '', fn ($query) => $query->where('tugas_akhirs.type', $type))
             ->with(['student', 'periode'])
             ->when($fase !== 'all', function ($q) use ($fase): void {
                 $q->where('tugas_akhirs.current_phase', $fase);
@@ -85,11 +94,12 @@ class TugasAkhirViewController extends Controller
             });
 
         $chartData = [
-            ['label' => 'Proposal', 'value' => $summarySource->whereIn('current_phase', ['proposal', 'sidang proposal'])->count()],
-            ['label' => 'Bimbingan Skripsi', 'value' => $summarySource->where('current_phase', 'bimbingan skripsi')->count()],
-            ['label' => 'Sidang Skripsi', 'value' => $summarySource->whereIn('current_phase', ['sidang skripsi', 'revisi sidang skripsi'])->count()],
-            ['label' => 'Review Dokumen Final', 'value' => $summarySource->where('current_phase', 'review dokumen final')->count()],
-            ['label' => 'Skripsi Selesai', 'value' => $summarySource->where('current_phase', 'skripsi selesai')->count()],
+            ['label' => 'Proposal', 'filter' => 'proposal', 'value' => $summarySource->whereIn('current_phase', ['proposal', 'sidang proposal'])->count()],
+            ['label' => 'Bimbingan', 'filter' => 'bimbingan_skripsi', 'value' => $summarySource->where('current_phase', 'bimbingan skripsi')->count()],
+            ['label' => 'Sidang', 'filter' => 'sidang_skripsi', 'value' => $summarySource->where('current_phase', 'sidang skripsi')->count()],
+            ['label' => 'Revisi Sidang', 'filter' => 'revisi_sidang_skripsi', 'value' => $summarySource->where('current_phase', 'revisi sidang skripsi')->count()],
+            ['label' => 'Dokumen Final', 'filter' => 'review_dokumen_final', 'value' => $summarySource->where('current_phase', 'review dokumen final')->count()],
+            ['label' => 'Tugas Akhir Selesai', 'filter' => 'skripsi_selesai', 'value' => $summarySource->where('current_phase', 'skripsi selesai')->count()],
         ];
 
         if ($request->ajax() || $request->expectsJson()) {
@@ -107,7 +117,7 @@ class TugasAkhirViewController extends Controller
                 ->values();
 
             return response()->json([
-                'table_html' => view('dosen.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort, 'direction' => $direction])->render(),
+                'table_html' => view('dosen.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort, 'direction' => $direction, 'tugasAkhirLabel' => $label])->render(),
                 'pagination_html' => view('dosen.skripsi.partials.pagination', ['skripsis' => $skripsis])->render(),
                 'stats_html' => view('dosen.skripsi.partials.stats', ['chartData' => $chartData])->render(),
                 'count_text' => $skripsis->total().' '.strtolower($label).' ditemukan.',
