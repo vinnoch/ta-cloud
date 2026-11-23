@@ -73,31 +73,24 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
             ->when($selectedPeriodeId > 0, fn ($query) => $query->where('periode_id', $selectedPeriodeId))
             ->get(['type', 'current_phase']);
         $distributionPhases = [
-            'proposal' => ['label' => 'Proposal', 'values' => ['proposal', 'sidang_proposal']],
+            'proposal' => ['label' => 'Proposal', 'values' => ['proposal']],
+            'sidang_proposal' => ['label' => 'Sidang Proposal', 'values' => ['sidang_proposal']],
             'bimbingan' => ['label' => 'Bimbingan', 'values' => ['bimbingan_skripsi']],
             'sidang' => ['label' => 'Sidang', 'values' => ['sidang_skripsi']],
-            'review_final' => ['label' => 'Review Dokumen Final', 'values' => ['review_dokumen_final']],
-            'selesai' => ['label' => 'Selesai', 'values' => ['skripsi_selesai']],
+            'revisi_sidang' => ['label' => 'Revisi Sidang', 'values' => ['revisi_sidang_skripsi']],
+            'review_final' => ['label' => 'Dokumen Final', 'values' => ['review_dokumen_final']],
+            'selesai' => ['label' => 'Tugas Akhir Selesai', 'values' => ['skripsi_selesai']],
         ];
         $chartData = collect(['skripsi' => 'Skripsi', 'non_skripsi' => 'Non-Skripsi'])
             ->flatMap(function (string $typeLabel, string $type) use ($distributionItems, $distributionPhases, $selectedPeriodeId): array {
-                $routePrefix = $type === 'non_skripsi' ? 'kaprodi.non-skripsi.index' : 'kaprodi.skripsi.index';
-
-                return collect($distributionPhases)->map(function (array $phase, string $phaseKey) use ($distributionItems, $selectedPeriodeId, $type, $typeLabel, $routePrefix): array {
-                    $status = match ($phaseKey) {
-                        'bimbingan' => $type === 'non_skripsi' ? 'Bimbingan Non-Skripsi' : 'Bimbingan Skripsi',
-                        'sidang' => $type === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi',
-                        'selesai' => $type === 'non_skripsi' ? 'Non-Skripsi Selesai' : 'Skripsi Selesai',
-                        default => $phase['label'],
-                    };
-
+                return collect($distributionPhases)->map(function (array $phase, string $phaseKey) use ($distributionItems, $selectedPeriodeId, $type, $typeLabel): array {
                     return [
                         'key' => $type.':'.$phaseKey,
                         'label' => $phase['label'],
                         'type' => $type,
                         'type_label' => $typeLabel,
                         'value' => $distributionItems->where('type', $type)->whereIn('current_phase', $phase['values'])->count(),
-                        'href' => route($routePrefix, array_filter(['status' => $status, 'periode_id' => $selectedPeriodeId ?: null])),
+                        'href' => route('kaprodi.tugas-akhir.index', array_filter(['type' => $type, 'status' => $phase['label'], 'periode_id' => $selectedPeriodeId ?: null])),
                     ];
                 })->values()->all();
             })
@@ -117,6 +110,8 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
             'chartData' => $chartData,
         ]));
     })->name('dashboard');
+
+    Route::match(['GET', 'POST'], '/tugas-akhir', [TugasAkhirController::class, 'index'])->name('tugas-akhir.index');
 
     $registerTugasAkhirRoutes = function (string $slug, string $namespace): void {
         Route::middleware(EnsureTugasAkhirRouteType::class)->group(function () use ($slug, $namespace): void {

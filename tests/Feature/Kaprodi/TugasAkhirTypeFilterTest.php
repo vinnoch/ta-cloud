@@ -107,17 +107,17 @@ it('filters grades with the same assessment types as format penilaian', function
         ->assertDontSee('Penelitian Prediksi');
 });
 
-it('renders non skripsi choices across kaprodi filters and phase controls', function () {
+it('renders shared phase choices across kaprodi filters and phase controls', function () {
     $this->actingAs($this->kaprodi)
         ->get(route('kaprodi.non-skripsi.index'))
         ->assertOk()
-        ->assertSee('Bimbingan Non-Skripsi')
-        ->assertSee('Sidang Non-Skripsi')
-        ->assertSee('Non-Skripsi Selesai')
-        ->assertDontSee('BIMBINGAN SKRIPSI')
-        ->assertDontSee('SIDANG SKRIPSI')
-        ->assertDontSee('SKRIPSI SELESAI')
-        ->assertSee('Edit Fase Non-Skripsi');
+        ->assertSee('Bimbingan')
+        ->assertSee('Sidang')
+        ->assertSee('Tugas Akhir Selesai')
+        ->assertDontSee('Bimbingan Non-Skripsi')
+        ->assertDontSee('Sidang Non-Skripsi')
+        ->assertDontSee('Non-Skripsi Selesai')
+        ->assertSee('Edit Fase Tugas Akhir');
 
     $this->actingAs($this->kaprodi)
         ->get(route('kaprodi.proposal-submissions.index'))
@@ -183,4 +183,89 @@ it('filters every non skripsi phase card through the ajax endpoint', function (s
     'bimbingan non skripsi' => ['Bimbingan Non-Skripsi', 'bimbingan_skripsi'],
     'sidang non skripsi' => ['Sidang Non-Skripsi', 'sidang_skripsi'],
     'non skripsi selesai' => ['Non-Skripsi Selesai', 'skripsi_selesai'],
+]);
+
+it('merges monitoring types and supports the shared type and phase filters', function () {
+    $page = $this->actingAs($this->kaprodi)
+        ->get(route('kaprodi.tugas-akhir.index'));
+
+    $page
+        ->assertOk()
+        ->assertSee('Monitoring Tugas Akhir')
+        ->assertSee('name="type"', false)
+        ->assertSee('value="skripsi"', false)
+        ->assertSee('value="non_skripsi"', false)
+        ->assertSee('Tugas Akhir')
+        ->assertDontSee('>Skripsi</a>', false)
+        ->assertDontSee('>Non-Skripsi</a>', false);
+
+    $response = $this->actingAs($this->kaprodi)
+        ->withHeader('X-Requested-With', 'XMLHttpRequest')
+        ->get(route('kaprodi.tugas-akhir.index'));
+
+    $response->assertOk();
+    expect($response->json('table_html'))
+        ->toContain('Penelitian Prediksi')
+        ->toContain('Proyek Dasbor');
+
+    $filtered = $this->actingAs($this->kaprodi)
+        ->withHeader('X-Requested-With', 'XMLHttpRequest')
+        ->get(route('kaprodi.tugas-akhir.index', [
+            'type' => 'non_skripsi',
+            'status' => 'Sidang',
+        ]));
+
+    $filtered
+        ->assertOk()
+        ->assertJsonPath('count_text', '1 tugas akhir ditemukan.');
+    expect($filtered->json('table_html'))
+        ->toContain('Proyek Dasbor')
+        ->not->toContain('Penelitian Prediksi');
+
+    foreach (['Proposal', 'Sidang Proposal', 'Bimbingan', 'Sidang', 'Revisi Sidang', 'Dokumen Final', 'Tugas Akhir Selesai'] as $phase) {
+        expect($filtered->json('stats_html'))->toContain($phase);
+    }
+});
+
+it('rejects an unknown monitoring type', function () {
+    $this->actingAs($this->kaprodi)
+        ->get(route('kaprodi.tugas-akhir.index', ['type' => 'unknown']))
+        ->assertSessionHasErrors('type');
+});
+
+it('filters every shared phase without leaking another type or phase', function (string $status, string $phase) {
+    $this->nonSkripsi->update(['current_phase' => $phase]);
+    $this->skripsi->update(['current_phase' => $phase]);
+
+    TugasAkhir::query()->create([
+        'student_id' => User::factory()->mahasiswa()->create()->id,
+        'periode_id' => $this->periode->id,
+        'title' => 'Proyek Fase Berbeda',
+        'type' => 'non_skripsi',
+        'current_phase' => $phase === 'proposal' ? 'sidang_proposal' : 'proposal',
+    ]);
+
+    $response = $this->actingAs($this->kaprodi)
+        ->withHeader('X-Requested-With', 'XMLHttpRequest')
+        ->get(route('kaprodi.tugas-akhir.index', [
+            'type' => 'non_skripsi',
+            'status' => $status,
+        ]));
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('count_text', '1 tugas akhir ditemukan.');
+
+    expect($response->json('table_html'))
+        ->toContain('Proyek Dasbor')
+        ->not->toContain('Penelitian Prediksi')
+        ->not->toContain('Proyek Fase Berbeda');
+})->with([
+    'proposal' => ['Proposal', 'proposal'],
+    'sidang proposal' => ['Sidang Proposal', 'sidang_proposal'],
+    'bimbingan' => ['Bimbingan', 'bimbingan_skripsi'],
+    'sidang' => ['Sidang', 'sidang_skripsi'],
+    'revisi sidang' => ['Revisi Sidang', 'revisi_sidang_skripsi'],
+    'dokumen final' => ['Dokumen Final', 'review_dokumen_final'],
+    'tugas akhir selesai' => ['Tugas Akhir Selesai', 'skripsi_selesai'],
 ]);

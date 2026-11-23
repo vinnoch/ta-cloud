@@ -3241,8 +3241,19 @@ button[data-sidang-create-modal-open]:hover {
     gap: 1rem;
 }
 .stat-card.acss-stat-card-inline {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-height: 8.75rem;
     cursor: pointer;
     transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.stat-card.acss-stat-card-inline .stat-card__label {
+    min-height: 2.5rem;
+    line-height: 1.25rem;
+}
+.stat-card.acss-stat-card-inline .stat-card__value {
+    margin-top: auto;
 }
 .stat-card.acss-stat-card-inline:hover,
 .stat-card.acss-stat-card-inline.is-active {

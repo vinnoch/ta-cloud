@@ -34,12 +34,11 @@ class RoleNavigationService
             ['label' => 'Pendaftaran', 'href' => route('registrations.index'), 'active' => 'registrations.*', 'icon' => 'partials.icons.clipboard'],
             [
                 'label' => 'Monitoring',
-                'href' => route('kaprodi.skripsi.index'),
-                'active' => ['kaprodi.skripsi.*', 'kaprodi.non-skripsi.*', 'kaprodi.proposal-submissions.*', 'kaprodi.sidang-requests.*', 'kaprodi.final-reviews.*'],
+                'href' => route('kaprodi.tugas-akhir.index'),
+                'active' => ['kaprodi.tugas-akhir.*', 'kaprodi.skripsi.*', 'kaprodi.non-skripsi.*', 'kaprodi.proposal-submissions.*', 'kaprodi.sidang-requests.*', 'kaprodi.final-reviews.*'],
                 'icon' => 'partials.icons.eye',
                 'children' => [
-                    ['label' => 'Skripsi', 'href' => route('kaprodi.skripsi.index'), 'active' => 'kaprodi.skripsi.*', 'icon' => 'partials.icons.file'],
-                    ['label' => 'Non-Skripsi', 'href' => route('kaprodi.non-skripsi.index'), 'active' => 'kaprodi.non-skripsi.*', 'icon' => 'partials.icons.file-plain'],
+                    ['label' => 'Tugas Akhir', 'href' => route('kaprodi.tugas-akhir.index'), 'active' => ['kaprodi.tugas-akhir.*', 'kaprodi.skripsi.*', 'kaprodi.non-skripsi.*'], 'icon' => 'partials.icons.file'],
                     ['label' => 'Pengajuan Proposal', 'href' => route('kaprodi.proposal-submissions.index'), 'active' => 'kaprodi.proposal-submissions.*', 'icon' => 'partials.icons.clipboard'],
                     ['label' => 'Permohonan Sidang', 'href' => route('kaprodi.sidang-requests.index'), 'active' => 'kaprodi.sidang-requests.*', 'icon' => 'partials.icons.phase-flag'],
                     ['label' => 'Dokumen Final', 'href' => route('kaprodi.final-reviews.index'), 'active' => 'kaprodi.final-reviews.*', 'icon' => 'partials.icons.phase-flag'],

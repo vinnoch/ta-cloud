@@ -55,8 +55,16 @@ class TugasAkhirController extends Controller
 
     public function index(Request $request)
     {
-        $type = $this->tugasAkhirRoutes->typeFromRequest($request);
-        $label = $this->tugasAkhirRoutes->label($type);
+        $unified = $request->routeIs('kaprodi.tugas-akhir.index');
+        $validated = $unified
+            ? $request->validate([
+                'type' => ['nullable', Rule::in([TugasAkhirRouteService::SKRIPSI, TugasAkhirRouteService::NON_SKRIPSI])],
+            ])
+            : [];
+        $type = $unified
+            ? (string) ($validated['type'] ?? '')
+            : $this->tugasAkhirRoutes->typeFromRequest($request);
+        $label = $unified ? 'Tugas Akhir' : $this->tugasAkhirRoutes->label($type);
         $scope = trim((string) $request->query('scope', ''));
         if (($request->ajax() || $request->expectsJson()) && $scope === 'reviewer') {
             $query = trim((string) $request->query('q', ''));
@@ -89,7 +97,7 @@ class TugasAkhirController extends Controller
         $phaseFilterMap = $this->skripsiPhaseFilterMap();
 
         $summaryBaseQuery = TugasAkhir::query()
-            ->where('type', $type)
+            ->when($type !== '', fn ($query) => $query->where('type', $type))
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('title', 'like', "%{$search}%")
@@ -101,7 +109,7 @@ class TugasAkhirController extends Controller
             });
 
         $baseQuery = TugasAkhir::query()
-            ->where('type', $type)
+            ->when($type !== '', fn ($query) => $query->where('type', $type))
             ->with(['student.level', 'periode', 'assignments.lecturer'])
             ->when($status !== '', function ($query) use ($status, $phaseFilterMap) {
                 if (isset($phaseFilterMap[$status])) {
@@ -142,12 +150,18 @@ class TugasAkhirController extends Controller
                 return $item;
             });
 
-        $chartData = [
-            ['label' => 'Proposal', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Proposal'])->count()],
-            ['label' => $type === 'non_skripsi' ? 'Bimbingan Non-Skripsi' : 'Bimbingan Skripsi', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Bimbingan Skripsi'])->count()],
-            ['label' => $type === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Sidang Skripsi'])->count()],
-            ['label' => $type === 'non_skripsi' ? 'Non-Skripsi Selesai' : 'Skripsi Selesai', 'value' => $summarySource->whereIn('current_phase', $phaseFilterMap['Skripsi Selesai'])->count()],
-        ];
+        $chartData = collect([
+            'Proposal',
+            'Sidang Proposal',
+            'Bimbingan',
+            'Sidang',
+            'Revisi Sidang',
+            'Dokumen Final',
+            'Tugas Akhir Selesai',
+        ])->map(fn (string $phase): array => [
+            'label' => $phase,
+            'value' => $summarySource->whereIn('current_phase', $phaseFilterMap[$phase])->count(),
+        ])->all();
 
         if ($request->ajax() || $request->expectsJson()) {
             $suggestions = (clone $baseQuery)
@@ -653,15 +667,20 @@ class TugasAkhirController extends Controller
     private function skripsiPhaseFilterMap(): array
     {
         return [
-            'Proposal' => ['proposal', 'sidang proposal', 'sidang_proposal'],
+            'Proposal' => ['proposal'],
             'Sidang Proposal' => ['sidang proposal', 'sidang_proposal'],
+            'Bimbingan' => ['bimbingan skripsi', 'bimbingan_skripsi'],
             'Bimbingan Skripsi' => ['bimbingan skripsi', 'bimbingan_skripsi'],
             'Bimbingan Non-Skripsi' => ['bimbingan skripsi', 'bimbingan_skripsi'],
-            'Sidang Skripsi' => ['sidang skripsi', 'sidang_skripsi', 'revisi sidang skripsi', 'revisi_sidang_skripsi', 'review dokumen final', 'review_dokumen_final'],
-            'Sidang Non-Skripsi' => ['sidang skripsi', 'sidang_skripsi', 'revisi sidang skripsi', 'revisi_sidang_skripsi', 'review dokumen final', 'review_dokumen_final'],
+            'Sidang' => ['sidang skripsi', 'sidang_skripsi'],
+            'Sidang Skripsi' => ['sidang skripsi', 'sidang_skripsi'],
+            'Sidang Non-Skripsi' => ['sidang skripsi', 'sidang_skripsi'],
+            'Revisi Sidang' => ['revisi sidang skripsi', 'revisi_sidang_skripsi'],
             'Revisi Sidang Skripsi' => ['revisi sidang skripsi', 'revisi_sidang_skripsi'],
             'Revisi Sidang Non-Skripsi' => ['revisi sidang skripsi', 'revisi_sidang_skripsi'],
+            'Dokumen Final' => ['review dokumen final', 'review_dokumen_final'],
             'Review Dokumen Final' => ['review dokumen final', 'review_dokumen_final'],
+            'Tugas Akhir Selesai' => ['skripsi selesai', 'skripsi_selesai'],
             'Skripsi Selesai' => ['skripsi selesai', 'skripsi_selesai'],
             'Non-Skripsi Selesai' => ['skripsi selesai', 'skripsi_selesai'],
         ];

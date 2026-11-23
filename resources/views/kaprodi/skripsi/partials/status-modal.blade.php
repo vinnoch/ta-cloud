@@ -4,7 +4,6 @@
     $statusUpdateUrl = $statusUpdateUrl ?? null;
     $triggerLabel = $triggerLabel ?? 'Edit Fase';
     $triggerClass = $triggerClass ?? 'text-link';
-    $tugasAkhirLabel = $skripsiItem?->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
     $rawPhaseValue = old('current_phase', $skripsiItem?->current_phase);
     $currentPhaseValue = match (str((string) $rawPhaseValue)->lower()->replace(['-', ' '], '_')->toString()) {
         'proposal', 'pengajuan_proposal' => 'proposal',
@@ -19,11 +18,11 @@
     $phaseOptions = [
         'proposal' => 'Proposal',
         'sidang_proposal' => 'Sidang Proposal',
-        'bimbingan_skripsi' => 'Bimbingan '.$tugasAkhirLabel,
-        'sidang_skripsi' => 'Sidang '.$tugasAkhirLabel,
-        'revisi_sidang_skripsi' => 'Revisi Sidang '.$tugasAkhirLabel,
-        'review_dokumen_final' => 'Review Dokumen Final',
-        'skripsi_selesai' => $tugasAkhirLabel.' Selesai',
+        'bimbingan_skripsi' => 'Bimbingan',
+        'sidang_skripsi' => 'Sidang',
+        'revisi_sidang_skripsi' => 'Revisi Sidang',
+        'review_dokumen_final' => 'Dokumen Final',
+        'skripsi_selesai' => 'Tugas Akhir Selesai',
     ];
 @endphp
 
@@ -40,8 +39,8 @@
         <div class="acss-modal__dialog acss-modal__dialog--master">
             <div class="acss-modal__head">
                 <div>
-                    <h3 class="acss-card-title" id="{{ $modalId }}-title">Edit Fase {{ $tugasAkhirLabel }}</h3>
-                    <p class="acss-muted">Perbarui fase {{ $tugasAkhirLabel }} mahasiswa.</p>
+                    <h3 class="acss-card-title" id="{{ $modalId }}-title">Edit Fase Tugas Akhir</h3>
+                    <p class="acss-muted">Perbarui fase tugas akhir mahasiswa.</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-status-modal-close aria-label="Tutup">×</button>
             </div>

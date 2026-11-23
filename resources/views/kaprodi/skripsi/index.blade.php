@@ -2,26 +2,26 @@
 
 @section('content')
     @php
-        $taType = $taType ?? (request()->routeIs('kaprodi.non-skripsi.*') ? 'non_skripsi' : 'skripsi');
-        $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
-        $taRoutePrefix = $taType === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi';
-    @endphp
-    @php
+        $taType = $tugasAkhirType ?? '';
+        $taLabel = $tugasAkhirLabel ?? 'Tugas Akhir';
+        $taIndexRoute = request()->routeIs('kaprodi.tugas-akhir.index')
+            ? 'kaprodi.tugas-akhir.index'
+            : ($taType === 'non_skripsi' ? 'kaprodi.non-skripsi.index' : 'kaprodi.skripsi.index');
         $phaseLabels = [
             'proposal' => 'Proposal',
             'sidang_proposal' => 'Sidang Proposal',
-            'bimbingan_skripsi' => $taType === 'non_skripsi' ? 'Bimbingan Non-Skripsi' : 'Bimbingan Skripsi',
-            'sidang_skripsi' => $taType === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi',
-            'revisi_sidang_skripsi' => $taType === 'non_skripsi' ? 'Revisi Sidang Non-Skripsi' : 'Revisi Sidang Skripsi',
-            'review_dokumen_final' => 'Review Dokumen Final',
-            'skripsi_selesai' => $taType === 'non_skripsi' ? 'Non-Skripsi Selesai' : 'Skripsi Selesai',
+            'bimbingan_skripsi' => 'Bimbingan',
+            'sidang_skripsi' => 'Sidang',
+            'revisi_sidang_skripsi' => 'Revisi Sidang',
+            'review_dokumen_final' => 'Dokumen Final',
+            'skripsi_selesai' => 'Tugas Akhir Selesai',
         ];
     @endphp
     @if (session('success'))
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="card" id="list-root" data-endpoint="{{ route($taRoutePrefix.'.index') }}">
+    <section class="card" id="list-root" data-endpoint="{{ route($taIndexRoute) }}">
         <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Monitoring {{ $taLabel }}</h1>
@@ -32,7 +32,7 @@
         
         <div id="stats-wrapper">@include('kaprodi.skripsi.partials.stats', ['chartData' => $chartData])</div>
 
-        <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route($taRoutePrefix.'.index') }}" autocomplete="off">
+        <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route($taIndexRoute) }}" autocomplete="off">
                     <input type="hidden" id="sort-input" name="sort" value="{{ $sort ?? '' }}">
                     <input type="hidden" id="direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
             
@@ -40,6 +40,14 @@
                 <span>Pencarian</span>
                 <input type="search" id="search-input" class="ta-search" name="q" value="{{ $search }}" placeholder="Cari judul TA, nama, atau NIM">
                             </label>
+            <label class="form-field">
+                <span>Tipe</span>
+                <select name="type" id="type-select">
+                    <option value="">Semua</option>
+                    <option value="skripsi" {{ $taType === 'skripsi' ? 'selected' : '' }}>Skripsi</option>
+                    <option value="non_skripsi" {{ $taType === 'non_skripsi' ? 'selected' : '' }}>Non-Skripsi</option>
+                </select>
+            </label>
             <label class="form-field">
                 <span>Fase</span>
                 <select name="status" id="status-select">

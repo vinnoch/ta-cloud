@@ -3,20 +3,27 @@
     $direction = $direction ?? 'desc';
     $nextDirection = fn (string $column) => $sort === $column && $direction === 'asc' ? 'desc' : 'asc';
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
-    $taType = $taType ?? (request()->routeIs('kaprodi.non-skripsi.*') ? 'non_skripsi' : 'skripsi');
-    $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
 @endphp
 <div class="table-shell pilot-table pilot-table--kaprodi-skripsi">
     @if (count($skripsis) > 0)
         <div class="table-shell__head table-shell__grid acss-table-cols-skripsi">
-            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul {{ $taLabel }} <span>{{ $indicator('judul') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Tugas Akhir <span>{{ $indicator('judul') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="fase" data-sort-direction="{{ $nextDirection('fase') }}">Fase <span>{{ $indicator('fase') }}</span></button>
         </div>
     @endif
     @forelse ($skripsis as $item)
         @php
-            $displayPhase = str($item->current_phase ?: 'N/A')->replace(['_', '-'], ' ')->title()->toString();
+            $displayPhase = match ($item->current_phase) {
+                'proposal' => 'Proposal',
+                'sidang_proposal' => 'Sidang Proposal',
+                'bimbingan_skripsi' => 'Bimbingan',
+                'sidang_skripsi' => 'Sidang',
+                'revisi_sidang_skripsi' => 'Revisi Sidang',
+                'review_dokumen_final' => 'Dokumen Final',
+                'skripsi_selesai' => 'Tugas Akhir Selesai',
+                default => str($item->current_phase ?: 'N/A')->replace(['_', '-'], ' ')->title()->toString(),
+            };
             $itemRoutePrefix = $item->type === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi';
         @endphp
         <article class="table-shell__row table-shell__grid acss-table-cols-skripsi-row acss-hover-row-group pilot-record-card pilot-record-card--kaprodi-skripsi">
@@ -51,6 +58,6 @@
             </div>
         </article>
     @empty
-        <div class="empty-state">Belum ada data {{ str($taLabel)->lower() }}.</div>
+        <div class="empty-state">Belum ada data tugas akhir.</div>
     @endforelse
 </div>

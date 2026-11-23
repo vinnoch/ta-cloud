@@ -31,16 +31,16 @@ class CardPresenter
 
         $periodeName = $activePeriode?->name ?? 'Tidak ada';
 
-        $skripsiStats = DB::table('tugas_akhirs')
+        $tugasAkhirStats = DB::table('tugas_akhirs')
             ->select('current_phase', DB::raw('count(*) as total'))
             ->when($activePeriode, fn ($q) => $q->where('periode_id', $activePeriode->id))
             ->groupBy('current_phase')
             ->pluck('total', 'current_phase')
             ->toArray();
 
-        $totalSkripsi = array_sum($skripsiStats);
-        $activeCount = $skripsiStats['proposal'] ?? 0;
-        $sidangCount = ($skripsiStats['sidang_proposal'] ?? 0) + ($skripsiStats['sidang_skripsi'] ?? 0);
+        $totalTugasAkhir = array_sum($tugasAkhirStats);
+        $activeCount = $tugasAkhirStats['proposal'] ?? 0;
+        $sidangCount = ($tugasAkhirStats['sidang_proposal'] ?? 0) + ($tugasAkhirStats['sidang_skripsi'] ?? 0);
 
         return [
             [
@@ -52,11 +52,11 @@ class CardPresenter
                 'href' => route('kaprodi.periode.index'),
             ],
             [
-                'eyebrow' => 'Statistik Skripsi',
-                'title' => "{$totalSkripsi} Skripsi",
+                'eyebrow' => 'Statistik Tugas Akhir',
+                'title' => "{$totalTugasAkhir} Tugas Akhir",
                 'subtitle' => "{$activeCount} proposal, {$sidangCount} sidang",
                 'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-                'href' => route('kaprodi.skripsi.index'),
+                'href' => route('kaprodi.tugas-akhir.index'),
             ],
             [
                 'eyebrow' => 'Dosen',
