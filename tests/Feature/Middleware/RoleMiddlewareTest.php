@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\UserLevel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -72,7 +73,7 @@ it('allows mahasiswa on mahasiswa route', function () {
     $user = User::factory()->mahasiswa()->create();
 
     $this->actingAs($user)
-        ->get(route('mahasiswa.non-skripsi.index'))
+        ->get(route('mahasiswa.skripsi.index'))
         ->assertOk();
 });
 
@@ -121,7 +122,7 @@ it('rechecks the current database role for an existing authenticated session', f
 
 it('uses only an assigned active role from the session', function () {
     $user = User::factory()->state(['role' => 'superadmin'])->create();
-    $dosenLevel = \App\Models\UserLevel::query()->firstOrCreate(['users_level' => 'dosen']);
+    $dosenLevel = UserLevel::query()->firstOrCreate(['users_level' => 'dosen']);
     $user->assignedRoles()->syncWithoutDetaching([$user->users_id, $dosenLevel->users_id]);
 
     $this->actingAs($user)

@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $taType = $taType ?? (request()->routeIs('mahasiswa.non-skripsi.*') ? 'non_skripsi' : 'skripsi');
+        $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+        $taRoutePrefix = $taType === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi';
+    @endphp
     @if (session('success'))
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
@@ -50,6 +55,7 @@
                             <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) $activeSkripsi->title) }}</div>
                         </div>
                         <div class="acss-profile-badges">
+                            <span class="pill">{{ $activeSkripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span>
                             <span class="status-pill">{{ str($activeSkripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                         </div>
                     </div>
@@ -58,10 +64,10 @@
         </section>
 
         @if (! $isProposalPhase)
-            @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $activeSkripsi, 'timelineTitle' => 'Timeline Skripsi'])
+            @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $activeSkripsi, 'timelineTitle' => 'Timeline Tugas Akhir'])
         @endif
 
-        @if (!empty($needsProposalUpload) && !empty(route('mahasiswa.skripsi.show', $activeSkripsi)))
+        @if (!empty($needsProposalUpload))
             <section class="acss-section-card">
                 <div class="acss-section-card__head">
                     <div>
@@ -69,7 +75,7 @@
                         <p class="acss-muted">{{ $needsProposalRevision ? 'Upload revisi proposal terbaru agar proses review dapat dilanjutkan.' : ($isDraftProposal ? 'Publikasikan untuk mengirim ke Kaprodi.' : 'Upload sekarang agar proses review bisa dimulai.') }}</p>
                     </div>
                     @if (! $isDraftProposal)
-                        <a href="{{ route('mahasiswa.skripsi.show', ['skripsi' => $activeSkripsi, 'openProposalUpload' => '1']) }}" class="button button--inline">{{ $needsProposalRevision ? 'Upload Revisi Proposal' : 'Upload Proposal' }}</a>
+                        <a href="{{ route($taRoutePrefix.'.show', ['skripsi' => $activeSkripsi, 'openProposalUpload' => '1']) }}" class="button button--inline">{{ $needsProposalRevision ? 'Upload Revisi Proposal' : 'Upload Proposal' }}</a>
                     @endif
                 </div>
             </section>
@@ -78,11 +84,11 @@
         <section class="acss-crud-card" id="proposal-skripsi">
             <div class="acss-crud-head acss-crud-head--inline">
                 <div>
-                    <h3 class="acss-card-title">Proposal Skripsi</h3>
+                    <h3 class="acss-card-title">Proposal Tugas Akhir</h3>
                 </div>
                 @if ($needsProposalRevision)
                     <div class="acss-crud-head__actions">
-                        <a href="{{ route('mahasiswa.skripsi.show', ['skripsi' => $activeSkripsi, 'openProposalUpload' => '1']) }}" class="button button--inline">Upload Revisi Proposal</a>
+                        <a href="{{ route($taRoutePrefix.'.show', ['skripsi' => $activeSkripsi, 'openProposalUpload' => '1']) }}" class="button button--inline">Upload Revisi Proposal</a>
                     </div>
                 @endif
             </div>
@@ -106,7 +112,7 @@
                         <div class="table-shell__cell"><span class="pill">V{{ $document->version_number }}</span></div>
                         <div class="table-shell__cell">{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
                         <div class="table-shell__cell table-shell__cell--action">
-                            @php $fileUrl = route('mahasiswa.skripsi.proposal.file', [$activeSkripsi, $document]); @endphp
+                            @php $fileUrl = route($taRoutePrefix.'.proposal.file', [$activeSkripsi, $document]); @endphp
                             <button type="button" class="text-link acss-action-link" data-preview-open data-preview-url="{{ $fileUrl }}" data-preview-title="Proposal v{{ $document->version_number }}">
                                 @include('partials.icons.eye')<span>File PDF</span>
                             </button>
@@ -123,8 +129,9 @@
                         <span class="dosen-btn-icon">@include('partials.icons.edit')</span>
                         <span>Edit Proposal</span>
                     </button>
-                    <form action="{{ route('mahasiswa.skripsi.publish', $activeSkripsi) }}" method="POST">
+                    <form class="ta-publish-form" action="{{ route($taRoutePrefix.'.publish', $activeSkripsi) }}" method="POST">
                         @csrf
+                        @include('mahasiswa.skripsi.partials.type-understanding', ['required' => true])
                         <button type="submit" class="button button--inline">
                             <span class="dosen-btn-icon">@include('partials.icons.send')</span>
                             <span>Ajukan Proposal</span>
@@ -153,7 +160,7 @@
                                 <div class="table-shell__cell">
                                     <strong>{{ str($assignment->role_type)->replace('_', ' ')->title() }}</strong>
                                     <div class="acss-row-actions">
-                                        <a href="{{ route('mahasiswa.skripsi.bimbingan.index', ['skripsi' => $activeSkripsi->id, 'reviewer_id' => $assignment->lecturer_id]) }}" class="acss-action-link">
+                                        <a href="{{ route($taRoutePrefix.'.bimbingan.index', ['skripsi' => $activeSkripsi->id, 'reviewer_id' => $assignment->lecturer_id]) }}" class="acss-action-link">
                                             @include('partials.icons.eye')
                                             <span>Histori Bimbingan</span>
                                         </a>
@@ -174,7 +181,7 @@
             <section class="acss-crud-card {{ $isProposalPhase ? 'acss-section-card--inactive' : '' }}">
                 <div class="acss-crud-head acss-crud-head--inline">
                     <div><h3 class="acss-card-title">Histori Bimbingan</h3></div>
-                    <a href="{{ route('mahasiswa.skripsi.bimbingan.index', $activeSkripsi) }}" class="acss-link-subtle">Lihat Histori</a>
+                    <a href="{{ route($taRoutePrefix.'.bimbingan.index', $activeSkripsi) }}" class="acss-link-subtle">Lihat Histori</a>
                 </div>
                 <div class="acss-crud-body">
                     <div class="table-shell">
@@ -204,7 +211,7 @@
         @endif
     @else
         @if (isset($completedSkripsi) && $completedSkripsi)
-            <div class="notice notice--success">Selamat! Skripsi Anda telah selesai.</div>
+            <div class="notice notice--success">Selamat! Tugas akhir Anda telah selesai.</div>
 
             <section class="card card--profile">
                 <div class="profile-card">
@@ -217,6 +224,7 @@
                                 <div class="acss-quote-title">{{ $completedSkripsi->title }}</div>
                             </div>
                             <div class="acss-profile-badges">
+                                <span class="pill">{{ $completedSkripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span>
                                 <span class="status-pill">{{ str($completedSkripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                             </div>
                         </div>
@@ -225,19 +233,19 @@
             </section>
 
             <div class="acss-form-actions">
-                <a href="{{ route('mahasiswa.skripsi.show', $completedSkripsi) }}" class="button button--primary button--inline">Lihat Detail Skripsi</a>
+                <a href="{{ route($taRoutePrefix.'.show', $completedSkripsi) }}" class="button button--primary button--inline">Lihat Detail {{ $taLabel }}</a>
             </div>
         @else
             <section class="acss-section-card">
                 <div class="acss-section-card__head">
                     <div>
-                        <h1 class="acss-page-title">Skripsi Tidak Ditemukan</h1>
-                        <p class="acss-muted">Silakan buat pengajuan skripsi baru untuk memulai.</p>
+                        <h1 class="acss-page-title">Tugas Akhir Tidak Ditemukan</h1>
+                        <p class="acss-muted">Silakan buat pengajuan tugas akhir baru untuk memulai.</p>
                     </div>
                 </div>
                 <div class="acss-section-card__body">
                     <div class="acss-form-actions">
-                        <a href="{{ route('mahasiswa.skripsi.create') }}" class="button button--success button--inline">Ajukan Skripsi Baru</a>
+                        <a href="{{ route($taRoutePrefix.'.create') }}" class="button button--success button--inline">Ajukan {{ $taLabel }} Baru</a>
                     </div>
                 </div>
             </section>
@@ -258,7 +266,7 @@
                     </div>
                     <button type="button" class="acss-modal__close" data-draft-edit-modal-close aria-label="Tutup">×</button>
                 </div>
-                <form class="acss-form-stack-tight" method="POST" action="{{ route('mahasiswa.skripsi.update', $activeSkripsi) }}" enctype="multipart/form-data" style="display: flex; flex-direction: column; flex: 1 1 auto; height: 100%;">
+                <form class="acss-form-stack-tight" method="POST" action="{{ route($taRoutePrefix.'.update', $activeSkripsi) }}" enctype="multipart/form-data" style="display: flex; flex-direction: column; flex: 1 1 auto; height: 100%;">
                     @csrf
                     @method('PUT')
                     @php
@@ -271,10 +279,8 @@
                         </label>
                         <label class="form-field">
                             <span>Tipe</span>
-                            <select name="type" required>
-                                <option value="skripsi" @selected(old('type', $activeSkripsi->type) === 'skripsi')>Skripsi</option>
-                                <option value="non_skripsi" @selected(old('type', $activeSkripsi->type) === 'non_skripsi')>Non Skripsi</option>
-                            </select>
+                            <input type="hidden" name="type" value="{{ $taType }}">
+                            <input type="text" value="{{ $taLabel }}" readonly aria-readonly="true">
                         </label>
                         <label class="form-field form-field--upload">
                             <span>Dokumen Proposal</span>
@@ -287,6 +293,7 @@
                                 <small class="acss-muted block" style="margin-top: 0.5rem; display: block;">Proposal harus dalam format PDF.</small>
                             </div>
                         </label>
+                        @include('mahasiswa.skripsi.partials.type-understanding')
                     </div>
                     <div class="acss-submission-footer">
                         <div class="acss-status-label" aria-label="Status pengajuan">

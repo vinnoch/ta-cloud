@@ -2,8 +2,8 @@
 
 use App\Models\DocumentVersion;
 use App\Models\Periode;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -23,7 +23,7 @@ it('escapes stored user content in the public library', function () {
         'is_aktif' => true,
         'status' => 'active',
     ]);
-    $skripsi = Skripsi::query()->create([
+    $skripsi = TugasAkhir::query()->create([
         'student_id' => $student->id,
         'periode_id' => $periode->id,
         'title' => $payload,
@@ -31,7 +31,7 @@ it('escapes stored user content in the public library', function () {
         'current_phase' => 'skripsi_selesai',
     ]);
     DocumentVersion::query()->create([
-        'skripsi_id' => $skripsi->id,
+        'tugas_akhir_id' => $skripsi->id,
         'phase' => 'skripsi_final',
         'version_number' => 1,
         'file_path' => 'documents/final.pdf',
@@ -42,6 +42,9 @@ it('escapes stored user content in the public library', function () {
 
     $this->get(route('library.index'))
         ->assertOk()
+        ->assertSee('Library Tugas Akhir')
+        ->assertSee('Judul Tugas Akhir')
+        ->assertSee('Tipe')
         ->assertDontSee($payload, false)
         ->assertSee($payload);
 });

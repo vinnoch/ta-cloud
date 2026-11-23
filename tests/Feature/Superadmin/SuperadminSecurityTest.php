@@ -230,8 +230,8 @@ it('blocks permanent deletion for every academic user reference without deleting
         'tgl_mulai' => '2026-08-01',
         'tgl_selesai' => '2026-12-31',
     ]);
-    $skripsiId = DB::table('skripsis')->insertGetId([
-        'student_id' => $table === 'skripsis' ? $target->id : $student->id,
+    $tugasAkhirId = DB::table('tugas_akhirs')->insertGetId([
+        'student_id' => $table === 'tugas_akhirs' ? $target->id : $student->id,
         'periode_id' => $periodeId,
         'title' => 'Deletion guard',
         'type' => 'skripsi',
@@ -241,25 +241,25 @@ it('blocks permanent deletion for every academic user reference without deleting
     ]);
 
     match ([$table, $column]) {
-        ['skripsis', 'student_id'] => null,
+        ['tugas_akhirs', 'student_id'] => null,
         ['reviewer_assignments', 'lecturer_id'] => DB::table($table)->insert([
-            'skripsi_id' => $skripsiId, $column => $target->id, 'role_type' => 'pembimbing_1',
+            'tugas_akhir_id' => $tugasAkhirId, $column => $target->id, 'role_type' => 'pembimbing_1',
         ]),
         ['grades', 'reviewer_id'] => DB::table($table)->insert([
-            'skripsi_id' => $skripsiId,
+            'tugas_akhir_id' => $tugasAkhirId,
             'format_penilaian_id' => DB::table('format_penilaians')->insertGetId(['nama' => 'Guard']),
             $column => $target->id,
             'role_type' => 'penguji_1',
             'grade_event' => 'sidang_skripsi',
         ]),
         ['bimbingans', 'reviewer_id'] => DB::table($table)->insert([
-            'skripsi_id' => $skripsiId,
+            'tugas_akhir_id' => $tugasAkhirId,
             $column => $target->id,
             'phase' => 'proposal',
             'meeting_date' => now()->toDateString(),
         ]),
         ['document_versions', 'uploaded_by'] => DB::table($table)->insert([
-            'skripsi_id' => $skripsiId,
+            'tugas_akhir_id' => $tugasAkhirId,
             'phase' => 'proposal',
             'version_number' => 1,
             'file_path' => 'guard.pdf',
@@ -268,12 +268,12 @@ it('blocks permanent deletion for every academic user reference without deleting
             $column => $target->id,
         ]),
         ['sidang_requests', 'lecturer_id'] => DB::table($table)->insert([
-            'skripsi_id' => $skripsiId,
+            'tugas_akhir_id' => $tugasAkhirId,
             $column => $target->id,
             'role_type' => 'pembimbing_1',
         ]),
         ['sidang_requests', 'approved_by'] => DB::table($table)->insert([
-            'skripsi_id' => $skripsiId,
+            'tugas_akhir_id' => $tugasAkhirId,
             'lecturer_id' => User::factory()->dosen()->create()->id,
             'approved_by' => $target->id,
             'role_type' => 'pembimbing_1',
@@ -289,7 +289,7 @@ it('blocks permanent deletion for every academic user reference without deleting
     $this->assertSoftDeleted($target);
     expect(DB::table($table)->where($column, $target->id)->exists())->toBeTrue();
 })->with([
-    ['skripsis', 'student_id'],
+    ['tugas_akhirs', 'student_id'],
     ['reviewer_assignments', 'lecturer_id'],
     ['grades', 'reviewer_id'],
     ['bimbingans', 'reviewer_id'],

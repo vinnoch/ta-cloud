@@ -63,7 +63,7 @@ class AuthenticatedSessionController extends Controller
         return match ($role) {
             'superadmin' => route('superadmin.dashboard'),
             'admin' => route('admin.dashboard'),
-            'mahasiswa' => route('mahasiswa.skripsi.index'),
+            'mahasiswa' => route('mahasiswa.pendaftaran.create'),
             'dosen' => route('dosen.dashboard'),
             'kaprodi' => route('kaprodi.dashboard'),
             default => route('dashboard.index'),

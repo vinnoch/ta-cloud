@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DocumentSubmission;
 use App\Models\DocumentTemplate;
 use App\Models\Periode;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -129,11 +129,11 @@ class DocumentTemplateController extends Controller
         $assignedSort = (string) $request->query('assigned_sort', 'mahasiswa');
         $assignedDirection = strtolower((string) $request->query('assigned_direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $assignedSkripsis = Skripsi::query()
+        $assignedSkripsis = TugasAkhir::query()
             ->with(['student', 'periode.tahunAkademik'])
-            ->whereIn('skripsis.id', DocumentSubmission::query()
+            ->whereIn('tugas_akhirs.id', DocumentSubmission::query()
                 ->whereIn('document_template_item_id', $documentTemplate->items->pluck('id'))
-                ->select('skripsi_id'))
+                ->select('tugas_akhir_id'))
             ->when($assignedPeriodeId > 0, fn ($query) => $query->where('periode_id', $assignedPeriodeId))
             ->when($assignedSearch !== '', function ($query) use ($assignedSearch): void {
                 $query->where(function ($inner) use ($assignedSearch): void {
@@ -144,13 +144,13 @@ class DocumentTemplateController extends Controller
                 });
             })
             ->when($assignedSort === 'mahasiswa', fn ($query) => $query
-                ->join('users as student_sort', 'student_sort.id', '=', 'skripsis.student_id')
-                ->select('skripsis.*')
+                ->join('users as student_sort', 'student_sort.id', '=', 'tugas_akhirs.student_id')
+                ->select('tugas_akhirs.*')
                 ->orderBy('student_sort.name', $assignedDirection))
             ->when($assignedSort === 'judul', fn ($query) => $query->orderBy('title', $assignedDirection))
             ->when($assignedSort === 'periode', fn ($query) => $query
-                ->join('periodes as periode_sort', 'periode_sort.id', '=', 'skripsis.periode_id')
-                ->select('skripsis.*')
+                ->join('periodes as periode_sort', 'periode_sort.id', '=', 'tugas_akhirs.periode_id')
+                ->select('tugas_akhirs.*')
                 ->orderBy('periode_sort.kode_periode', $assignedDirection))
             ->when(! in_array($assignedSort, ['mahasiswa', 'judul', 'periode'], true), fn ($query) => $query->latest('id'))
             ->paginate(10)
@@ -167,15 +167,15 @@ class DocumentTemplateController extends Controller
                 'pagination_html' => view('kaprodi.document-templates.partials.assigned-pagination', [
                     'assignedSkripsis' => $assignedSkripsis,
                 ])->render(),
-                'count_text' => $assignedSkripsis->total().' skripsi terhubung.',
+                'count_text' => $assignedSkripsis->total().' tugas akhir terhubung.',
             ]);
         }
 
         $periodeIdsWithSubmissions = DocumentSubmission::query()
-            ->join('skripsis', 'skripsis.id', '=', 'document_submissions.skripsi_id')
+            ->join('tugas_akhirs', 'tugas_akhirs.id', '=', 'document_submissions.tugas_akhir_id')
             ->whereIn('document_submissions.document_template_item_id', $documentTemplate->items->pluck('id'))
             ->distinct()
-            ->pluck('skripsis.periode_id')
+            ->pluck('tugas_akhirs.periode_id')
             ->toArray();
 
         return view('kaprodi.document-templates.show', $this->kaprodiPage('Detail Dokumen Final', 'KAPRODI • DOKUMEN FINAL', [
@@ -335,7 +335,7 @@ class DocumentTemplateController extends Controller
 
         // Check if there is any student document submitted using this template under this period
         $hasStudentData = $documentTemplate->items()->whereHas('studentDocuments', function ($query) use ($periode) {
-            $query->whereHas('skripsi', function ($q) use ($periode) {
+            $query->whereHas('tugasAkhir', function ($q) use ($periode) {
                 $q->where('periode_id', $periode->id);
             });
         })->exists();

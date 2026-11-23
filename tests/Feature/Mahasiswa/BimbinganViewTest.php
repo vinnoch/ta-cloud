@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Bimbingan;
-use App\Models\Skripsi;
+use App\Models\Periode;
+use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -13,22 +15,22 @@ beforeEach(function () {
     $this->mahasiswa = User::factory()->mahasiswa()->create();
     $this->otherMahasiswa = User::factory()->mahasiswa()->create();
     $this->dosen = User::factory()->dosen()->create();
-    $tahun = \App\Models\TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
-    $this->periode = \App\Models\Periode::query()->create([
+    $tahun = TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
+    $this->periode = Periode::query()->create([
         'id' => 1, 'tahun_akademik_id' => $tahun->id, 'kode_periode' => '20251',
         'semester' => 1, 'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01',
         'tgl_selesai' => '2026-01-31', 'is_aktif' => true, 'status' => 'active',
     ]);
-    $this->skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'proposal']);
+    $this->skripsi = TugasAkhir::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'proposal']);
 });
 
 it('can view own bimbingan list', function () {
     Bimbingan::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'reviewer_id' => $this->dosen->id,
         'phase' => 'proposal',
         'meeting_date' => now(),
-        'student_notes' => 'Some notes'
+        'student_notes' => 'Some notes',
     ]);
 
     $this->actingAs($this->mahasiswa)
@@ -43,16 +45,15 @@ it('blocks other mahasiswa from bimbingan', function () {
         ->assertForbidden();
 });
 
-
 it('can update own student notes and upload revision file', function () {
     Storage::fake();
 
     $bimbingan = Bimbingan::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'reviewer_id' => $this->dosen->id,
         'phase' => 'proposal',
         'meeting_date' => now(),
-        'student_notes' => 'Old notes'
+        'student_notes' => 'Old notes',
     ]);
 
     $file = UploadedFile::fake()->create('revisi.docx', 500, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -62,7 +63,7 @@ it('can update own student notes and upload revision file', function () {
             'student_notes' => 'Updated notes',
             'revision_file' => $file,
         ])
-        ->assertRedirect(route('mahasiswa.skripsi.bimbingan.index', $this->skripsi) . '#bimbingan-' . $bimbingan->id);
+        ->assertRedirect(route('mahasiswa.skripsi.bimbingan.index', $this->skripsi).'#bimbingan-'.$bimbingan->id);
 
     $bimbingan->refresh();
 
@@ -74,7 +75,7 @@ it('rejects oversize or invalid revision file type', function () {
     Storage::fake();
 
     $bimbingan = Bimbingan::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'reviewer_id' => $this->dosen->id,
         'phase' => 'proposal',
         'meeting_date' => now(),

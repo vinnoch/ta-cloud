@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Dosen;
 use App\Http\Controllers\Controller;
 use App\Models\Bimbingan;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Services\NotificationService;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class BimbinganController extends Controller
 {
-    public function store(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse
+    public function store(Request $request, TugasAkhir $skripsi, NotificationService $notifications): RedirectResponse
     {
         $this->ensureAssigned($request, $skripsi);
 
@@ -22,7 +23,7 @@ class BimbinganController extends Controller
         ]);
 
         Bimbingan::query()->create([
-            'skripsi_id' => $skripsi->id,
+            'tugas_akhir_id' => $skripsi->id,
             'reviewer_id' => $request->user()->id,
             'phase' => $skripsi->current_phase,
             'meeting_date' => $validated['meeting_date'],
@@ -33,17 +34,17 @@ class BimbinganController extends Controller
             'type' => 'bimbingan_note_added',
             'title' => 'Catatan bimbingan baru',
             'message' => $request->user()->name.' menambahkan catatan bimbingan untuk '.$skripsi->title,
-            'url' => route('mahasiswa.skripsi.bimbingan.index', $skripsi, false),
+            'url' => app(TugasAkhirRouteService::class)->route('mahasiswa', $skripsi, 'bimbingan.index', $skripsi, false),
             'actor' => $request->user()->name,
-            'meta' => ['skripsi_id' => $skripsi->id],
+            'meta' => ['tugas_akhir_id' => $skripsi->id],
         ]);
 
-        return redirect()->route('dosen.skripsi.show', $skripsi)->with('success', 'Catatan bimbingan berhasil disimpan.');
+        return redirect()->to(app(TugasAkhirRouteService::class)->route('dosen', $skripsi, 'show', $skripsi))->with('success', 'Catatan bimbingan berhasil disimpan.');
     }
 
     public function update(Request $request, Bimbingan $bimbingan): RedirectResponse
     {
-        $this->ensureAssigned($request, $bimbingan->skripsi);
+        $this->ensureAssigned($request, $bimbingan->tugasAkhir);
         abort_unless($bimbingan->reviewer_id === $request->user()->id, 403);
         $validated = $request->validate([
             'meeting_date' => ['required', 'date'],
@@ -51,23 +52,24 @@ class BimbinganController extends Controller
         ]);
         $bimbingan->update($validated);
 
-        return redirect()->route('dosen.skripsi.show', $bimbingan->skripsi)->with('success', 'Catatan bimbingan berhasil diperbarui.');
+        return redirect()->to(app(TugasAkhirRouteService::class)->route('dosen', $bimbingan->tugasAkhir, 'show', $bimbingan->tugasAkhir))->with('success', 'Catatan bimbingan berhasil diperbarui.');
     }
 
     public function destroy(Request $request, Bimbingan $bimbingan): RedirectResponse
     {
-        $this->ensureAssigned($request, $bimbingan->skripsi);
+        $this->ensureAssigned($request, $bimbingan->tugasAkhir);
         abort_unless($bimbingan->reviewer_id === $request->user()->id, 403);
         $bimbingan->delete();
 
-        return redirect()->route('dosen.skripsi.show', $bimbingan->skripsi)->with('success', 'Catatan bimbingan berhasil dihapus.');
+        return redirect()->to(app(TugasAkhirRouteService::class)->route('dosen', $bimbingan->tugasAkhir, 'show', $bimbingan->tugasAkhir))->with('success', 'Catatan bimbingan berhasil dihapus.');
     }
 
-    private function ensureAssigned(Request $request, Skripsi $skripsi): void
+    private function ensureAssigned(Request $request, TugasAkhir $skripsi): void
     {
         $assigned = ReviewerAssignment::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('lecturer_id', $request->user()->id)
+            ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
             ->exists();
 
         if (! $assigned) {

@@ -49,9 +49,9 @@ class Periode extends Model
             ->withTimestamps();
     }
 
-    public function skripsis(): HasMany
+    public function tugasAkhirs(): HasMany
     {
-        return $this->hasMany(Skripsi::class, 'periode_id');
+        return $this->hasMany(TugasAkhir::class, 'periode_id');
     }
 
     public function getNameAttribute(): string

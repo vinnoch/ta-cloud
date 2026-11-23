@@ -25,18 +25,19 @@ test('global routes stay registered after route split', function () {
 
     $this->get(route('library.index'))
         ->assertOk()
-        ->assertSee('Library Skripsi');
+        ->assertSee('Library Tugas Akhir');
 
     $this->get(route('library.show', 'arsitektur-microservices-cloud'))
         ->assertNotFound();
 });
 
 test('workspace route files load for each role', function () {
+    $admin = routeUser('admin');
     $kaprodi = routeUser('kaprodi');
     $dosen = routeUser('dosen');
     $mahasiswa = routeUser('mahasiswa', ['nim' => '2021004592']);
 
-    $this->actingAs($kaprodi)
+    $this->actingAs($admin)
         ->get(route('admin.dashboard'))
         ->assertOk()
         ->assertSee('Dashboard Admin');
@@ -54,7 +55,7 @@ test('workspace route files load for each role', function () {
     $this->actingAs($mahasiswa)
         ->get(route('mahasiswa.skripsi.index'))
         ->assertOk()
-        ->assertSee('Skripsi Tidak Ditemukan');
+        ->assertSee('Tugas Akhir Tidak Ditemukan');
 });
 
 test('named routes are unique for production route caching', function () {

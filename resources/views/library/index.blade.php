@@ -2,7 +2,7 @@
 
 @section('content')
     @include('partials.page-header', [
-        'title' => 'Library Skripsi',
+        'title' => 'Library Tugas Akhir',
         'eyebrow' => 'Common Module',
         'description' => 'Koleksi read-only dokumen final yang telah dipublikasikan oleh prodi. Layar ini menampilkan eksplorasi karya, metadata, dan akses ringkas ke detail.',
     ])
@@ -21,8 +21,8 @@
                 </div>
             </div>
             @include('partials.tables.data-table', [
-                'cols' => '1.4fr 1.2fr 0.8fr 0.8fr',
-                'columns' => ['Judul', 'Mahasiswa', 'Program', 'Aksi'],
+                'cols' => '1.4fr 1.2fr 0.8fr 0.8fr 0.8fr',
+                'columns' => ['Judul Tugas Akhir', 'Mahasiswa', 'Tipe', 'Program', 'Aksi'],
                 'rows' => $rows,
             ])
         </article>

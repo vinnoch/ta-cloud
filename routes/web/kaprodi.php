@@ -7,15 +7,15 @@ use App\Http\Controllers\Kaprodi\FormatPenilaianController;
 use App\Http\Controllers\Kaprodi\ImportUserController;
 use App\Http\Controllers\Kaprodi\MahasiswaController;
 use App\Http\Controllers\Kaprodi\NilaiController;
-use App\Http\Controllers\Kaprodi\NonSkripsiController;
 use App\Http\Controllers\Kaprodi\PeriodeController;
 use App\Http\Controllers\Kaprodi\ProposalSubmissionController;
 use App\Http\Controllers\Kaprodi\SidangRequestController;
-use App\Http\Controllers\Kaprodi\SkripsiController;
 use App\Http\Controllers\Kaprodi\TahunAkademikController;
+use App\Http\Controllers\Kaprodi\TugasAkhirController;
+use App\Http\Middleware\EnsureTugasAkhirRouteType;
 use App\Models\Periode;
 use App\Models\SidangRequest;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,17 +25,9 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
         $defaultPeriodeId = (int) ($periodes->firstWhere('is_aktif', true)?->id ?? $periodes->first()?->id ?? 0);
         $selectedPeriodeId = (int) $request->query('periode_id', $defaultPeriodeId);
 
-        $baseSkripsiQuery = Skripsi::query()
+        $baseSkripsiQuery = TugasAkhir::query()
             ->where('type', 'skripsi')
             ->when($selectedPeriodeId > 0, fn ($query) => $query->where('periode_id', $selectedPeriodeId));
-
-        $allSkripsi = (clone $baseSkripsiQuery)->get(['id', 'current_phase']);
-        $skripsiIds = $allSkripsi->pluck('id');
-        $phaseValues = $allSkripsi->map(fn ($item) => strtolower(str_replace(['-', '_'], ' ', (string) $item->current_phase)));
-
-        $totalAktif = (clone $baseSkripsiQuery)
-            ->where('current_phase', '!=', 'skripsi_selesai')
-            ->count();
 
         $menungguAssign = (clone $baseSkripsiQuery)
             ->where('current_phase', 'sidang_proposal')
@@ -48,28 +40,15 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
         $pendingSidangRequests = SidangRequest::query()
             ->where('status', 'submitted')
             ->where('role_type', '!=', 'mahasiswa')
-            ->whereHas('skripsi', function ($query) use ($selectedPeriodeId) {
+            ->whereHas('tugasAkhir', function ($query) use ($selectedPeriodeId) {
                 $query->where('type', 'skripsi')
                     ->when($selectedPeriodeId > 0, fn ($inner) => $inner->where('periode_id', $selectedPeriodeId));
             })
             ->count();
 
-        $proposalCount = (clone $baseSkripsiQuery)
-            ->whereIn('current_phase', ['proposal', 'sidang_proposal'])
-            ->whereHas('documentVersions', fn ($query) => $query->where('phase', 'proposal'))
-            ->count();
-
         $proposalSubmittedCount = (clone $baseSkripsiQuery)
             ->whereIn('current_phase', ['proposal', 'sidang_proposal'])
             ->whereHas('documentVersions', fn ($query) => $query->where('phase', 'proposal'))
-            ->count();
-
-        $bimbinganCount = (clone $baseSkripsiQuery)
-            ->whereIn('current_phase', ['bimbingan_skripsi'])
-            ->count();
-
-        $sidangSkripsiCount = (clone $baseSkripsiQuery)
-            ->where('current_phase', 'sidang_skripsi')
             ->count();
 
         $reviewFinalCount = (clone $baseSkripsiQuery)
@@ -79,7 +58,7 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
                 $assignmentQuery->whereNotExists(function ($gradeQuery) {
                     $gradeQuery->selectRaw('1')
                         ->from('grades')
-                        ->whereColumn('grades.skripsi_id', 'skripsis.id')
+                        ->whereColumn('grades.tugas_akhir_id', 'tugas_akhirs.id')
                         ->whereColumn('grades.reviewer_id', 'reviewer_assignments.lecturer_id')
                         ->whereColumn('grades.role_type', 'reviewer_assignments.role_type')
                         ->where('grades.grade_event', 'sidang_skripsi')
@@ -89,11 +68,41 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
             ->whereHas('documentVersions', fn ($query) => $query->where('phase', 'skripsi_final'))
             ->count();
 
-        $finalCount = (clone $baseSkripsiQuery)
-            ->where('current_phase', 'skripsi_selesai')
-            ->count();
-
         $periodQuery = $selectedPeriodeId > 0 ? ['periode_id' => $selectedPeriodeId] : [];
+        $distributionItems = TugasAkhir::query()
+            ->when($selectedPeriodeId > 0, fn ($query) => $query->where('periode_id', $selectedPeriodeId))
+            ->get(['type', 'current_phase']);
+        $distributionPhases = [
+            'proposal' => ['label' => 'Proposal', 'values' => ['proposal', 'sidang_proposal']],
+            'bimbingan' => ['label' => 'Bimbingan', 'values' => ['bimbingan_skripsi']],
+            'sidang' => ['label' => 'Sidang', 'values' => ['sidang_skripsi']],
+            'review_final' => ['label' => 'Review Dokumen Final', 'values' => ['review_dokumen_final']],
+            'selesai' => ['label' => 'Selesai', 'values' => ['skripsi_selesai']],
+        ];
+        $chartData = collect(['skripsi' => 'Skripsi', 'non_skripsi' => 'Non-Skripsi'])
+            ->flatMap(function (string $typeLabel, string $type) use ($distributionItems, $distributionPhases, $selectedPeriodeId): array {
+                $routePrefix = $type === 'non_skripsi' ? 'kaprodi.non-skripsi.index' : 'kaprodi.skripsi.index';
+
+                return collect($distributionPhases)->map(function (array $phase, string $phaseKey) use ($distributionItems, $selectedPeriodeId, $type, $typeLabel, $routePrefix): array {
+                    $status = match ($phaseKey) {
+                        'bimbingan' => $type === 'non_skripsi' ? 'Bimbingan Non-Skripsi' : 'Bimbingan Skripsi',
+                        'sidang' => $type === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi',
+                        'selesai' => $type === 'non_skripsi' ? 'Non-Skripsi Selesai' : 'Skripsi Selesai',
+                        default => $phase['label'],
+                    };
+
+                    return [
+                        'key' => $type.':'.$phaseKey,
+                        'label' => $phase['label'],
+                        'type' => $type,
+                        'type_label' => $typeLabel,
+                        'value' => $distributionItems->where('type', $type)->whereIn('current_phase', $phase['values'])->count(),
+                        'href' => route($routePrefix, array_filter(['status' => $status, 'periode_id' => $selectedPeriodeId ?: null])),
+                    ];
+                })->values()->all();
+            })
+            ->values()
+            ->all();
 
         return view('kaprodi.dashboard', $page('kaprodi', 'Dashboard Kaprodi', 'KAPRODI • DASHBOARD', [
             'title' => 'Dashboard Kaprodi',
@@ -105,41 +114,40 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
                 ['label' => 'Permohonan Sidang', 'value' => (string) $pendingSidangRequests, 'hint' => 'Menunggu persetujuan Kaprodi', 'href' => route('kaprodi.sidang-requests.index', array_merge($periodQuery, ['approval_status' => 'pending_approval', 'sidang_type' => 'skripsi']))],
                 ['label' => 'Review Dokumen Final', 'value' => (string) $reviewFinalCount, 'hint' => 'Menunggu validasi dokumen akhir', 'href' => route('kaprodi.final-reviews.index', array_merge($periodQuery, ['approval_status' => 'pending_approval']))],
             ],
-            'chartData' => [
-                ['label' => 'Proposal', 'value' => $proposalCount],
-                ['label' => 'Bimbingan Skripsi', 'value' => $bimbinganCount],
-                ['label' => 'Sidang Skripsi', 'value' => $sidangSkripsiCount],
-                ['label' => 'Review Dokumen Final', 'value' => $reviewFinalCount],
-                ['label' => 'Skripsi Selesai', 'value' => $finalCount],
-            ],
+            'chartData' => $chartData,
         ]));
     })->name('dashboard');
 
-    Route::match(['GET', 'POST'], '/skripsi', [SkripsiController::class, 'index'])->name('skripsi.index');
-    Route::get('/non-skripsi', [NonSkripsiController::class, 'index'])->name('non-skripsi.index');
-    Route::get('/non-skripsi/{skripsi}', [NonSkripsiController::class, 'show'])->name('non-skripsi.show');
-    Route::get('/skripsi/{skripsi}/proposal', [SkripsiController::class, 'showProposal'])->name('skripsi.proposal');
-    Route::get('/skripsi/{skripsi}/bimbingan', [SkripsiController::class, 'showBimbingan'])->name('skripsi.bimbingan');
-    Route::get('/skripsi/{skripsi}/bimbingan/{bimbingan}', [SkripsiController::class, 'showBimbinganItem'])->name('skripsi.bimbingan.show');
-    Route::get('/skripsi/{skripsi}/reviewers/search', [SkripsiController::class, 'searchReviewers'])->name('skripsi.reviewers.search');
-    Route::post('/skripsi/{skripsi}/reviewers', [SkripsiController::class, 'storeReviewer'])->name('skripsi.reviewers.store');
-    Route::post('/skripsi/{skripsi}/pembimbing', [SkripsiController::class, 'assignPembimbing'])->name('skripsi.assign.pembimbing');
-    Route::post('/skripsi/{skripsi}/penguji', [SkripsiController::class, 'assignPenguji'])->name('skripsi.assign.penguji');
-    Route::post('/skripsi/{skripsi}/permohonan-sidang/{sidangRequest}/approve', [SidangRequestController::class, 'approve'])->name('skripsi.sidang-request.approve');
-    Route::post('/skripsi/{skripsi}/permohonan-sidang/{sidangRequest}/reject', [SidangRequestController::class, 'reject'])->name('skripsi.sidang-request.reject');
-    Route::get('/skripsi/{skripsi}/logbook', [SkripsiController::class, 'downloadLogbook'])->name('skripsi.logbook');
-    Route::get('/skripsi/{skripsi}/documents/{document}', [SkripsiController::class, 'downloadDocument'])->name('skripsi.documents.download');
-    Route::post('/skripsi/{skripsi}/proposal/approve', [ProposalSubmissionController::class, 'approve'])->name('skripsi.proposal.approve');
-    Route::post('/skripsi/{skripsi}/proposal/reject', [ProposalSubmissionController::class, 'reject'])->name('skripsi.proposal.reject');
-    Route::post('/skripsi/{skripsi}/final-review/approve', [FinalReviewController::class, 'approve'])->name('skripsi.final-review.approve');
-    Route::post('/skripsi/{skripsi}/final-review/legacy-complete', [FinalReviewController::class, 'completeLegacy'])->name('skripsi.final-review.legacy-complete');
-    Route::delete('/skripsi/{skripsi}/reviewers/{assignment}', [SkripsiController::class, 'unassignReviewer'])->name('skripsi.reviewers.destroy');
-    Route::get('/export-skripsi', [SkripsiController::class, 'exportPage'])->name('skripsi.export.page');
-    Route::get('/skripsi/export/csv', [SkripsiController::class, 'exportCsv'])->name('skripsi.export.csv');
-    Route::put('/skripsi/{skripsi}/status', [SkripsiController::class, 'updateStatus'])->name('skripsi.status.update');
-    Route::put('/skripsi/{skripsi}/sidang-proposal-schedule', [SkripsiController::class, 'updateSidangProposalSchedule'])->name('skripsi.sidang-proposal-schedule.update');
-    Route::put('/skripsi/{skripsi}/sidang-schedule', [SkripsiController::class, 'updateSidangSchedule'])->name('skripsi.sidang-schedule.update');
-    Route::get('/skripsi/{skripsi}', [SkripsiController::class, 'show'])->name('skripsi.show');
+    $registerTugasAkhirRoutes = function (string $slug, string $namespace): void {
+        Route::middleware(EnsureTugasAkhirRouteType::class)->group(function () use ($slug, $namespace): void {
+            Route::match(['GET', 'POST'], "/{$slug}", [TugasAkhirController::class, 'index'])->name("{$namespace}.index");
+            Route::get("/{$slug}/{skripsi}/proposal", [TugasAkhirController::class, 'showProposal'])->name("{$namespace}.proposal");
+            Route::get("/{$slug}/{skripsi}/bimbingan", [TugasAkhirController::class, 'showBimbingan'])->name("{$namespace}.bimbingan");
+            Route::get("/{$slug}/{skripsi}/bimbingan/{bimbingan}", [TugasAkhirController::class, 'showBimbinganItem'])->name("{$namespace}.bimbingan.show");
+            Route::get("/{$slug}/{skripsi}/reviewers/search", [TugasAkhirController::class, 'searchReviewers'])->name("{$namespace}.reviewers.search");
+            Route::post("/{$slug}/{skripsi}/reviewers", [TugasAkhirController::class, 'storeReviewer'])->name("{$namespace}.reviewers.store");
+            Route::post("/{$slug}/{skripsi}/pembimbing", [TugasAkhirController::class, 'assignPembimbing'])->name("{$namespace}.assign.pembimbing");
+            Route::post("/{$slug}/{skripsi}/penguji", [TugasAkhirController::class, 'assignPenguji'])->name("{$namespace}.assign.penguji");
+            Route::post("/{$slug}/{skripsi}/permohonan-sidang/{sidangRequest}/approve", [SidangRequestController::class, 'approve'])->name("{$namespace}.sidang-request.approve");
+            Route::post("/{$slug}/{skripsi}/permohonan-sidang/{sidangRequest}/reject", [SidangRequestController::class, 'reject'])->name("{$namespace}.sidang-request.reject");
+            Route::get("/{$slug}/{skripsi}/logbook", [TugasAkhirController::class, 'downloadLogbook'])->name("{$namespace}.logbook");
+            Route::get("/{$slug}/{skripsi}/documents/{document}", [TugasAkhirController::class, 'downloadDocument'])->name("{$namespace}.documents.download");
+            Route::post("/{$slug}/{skripsi}/proposal/approve", [ProposalSubmissionController::class, 'approve'])->name("{$namespace}.proposal.approve");
+            Route::post("/{$slug}/{skripsi}/proposal/reject", [ProposalSubmissionController::class, 'reject'])->name("{$namespace}.proposal.reject");
+            Route::post("/{$slug}/{skripsi}/final-review/approve", [FinalReviewController::class, 'approve'])->name("{$namespace}.final-review.approve");
+            Route::post("/{$slug}/{skripsi}/final-review/legacy-complete", [FinalReviewController::class, 'completeLegacy'])->name("{$namespace}.final-review.legacy-complete");
+            Route::delete("/{$slug}/{skripsi}/reviewers/{assignment}", [TugasAkhirController::class, 'unassignReviewer'])->name("{$namespace}.reviewers.destroy");
+            Route::get('/export-'.$slug, [TugasAkhirController::class, 'exportPage'])->name("{$namespace}.export.page");
+            Route::get("/{$slug}/export/csv", [TugasAkhirController::class, 'exportCsv'])->name("{$namespace}.export.csv");
+            Route::put("/{$slug}/{skripsi}/status", [TugasAkhirController::class, 'updateStatus'])->name("{$namespace}.status.update");
+            Route::put("/{$slug}/{skripsi}/sidang-proposal-schedule", [TugasAkhirController::class, 'updateSidangProposalSchedule'])->name("{$namespace}.sidang-proposal-schedule.update");
+            Route::put("/{$slug}/{skripsi}/sidang-schedule", [TugasAkhirController::class, 'updateSidangSchedule'])->name("{$namespace}.sidang-schedule.update");
+            Route::get("/{$slug}/{skripsi}", [TugasAkhirController::class, 'show'])->name("{$namespace}.show");
+        });
+    };
+
+    $registerTugasAkhirRoutes('skripsi', 'skripsi');
+    $registerTugasAkhirRoutes('non-skripsi', 'non-skripsi');
 
     Route::get('/dosen', [DosenController::class, 'index'])->name('dosen.index');
     Route::post('/dosen', [DosenController::class, 'store'])->name('dosen.store');
@@ -228,8 +236,8 @@ Route::prefix('kaprodi')->name('kaprodi.')->middleware(['auth', 'role:kaprodi'])
     Route::get('/library', function () use ($page) {
         return view('kaprodi.library.index', $page('kaprodi', 'Publish to Library', 'KAPRODI • LIBRARY CONTROL', [
             'items' => [
-                ['student' => 'Arya Wiguna Saputra', 'title' => 'Implementasi Arsitektur Microservices', 'document' => 'final_microservices_arya.pdf', 'status' => 'Siap Publish'],
-                ['student' => 'Nadya Putri', 'title' => 'Perancangan Sistem Monitoring PKL', 'document' => 'final_monitoring_pkl.pdf', 'status' => 'Butuh Verifikasi'],
+                ['student' => 'Arya Wiguna Saputra', 'title' => 'Implementasi Arsitektur Microservices', 'type' => 'Skripsi', 'document' => 'final_microservices_arya.pdf', 'status' => 'Siap Publish'],
+                ['student' => 'Nadya Putri', 'title' => 'Perancangan Sistem Monitoring PKL', 'type' => 'Non-Skripsi', 'document' => 'final_monitoring_pkl.pdf', 'status' => 'Butuh Verifikasi'],
             ],
         ]));
     })->name('library.index');

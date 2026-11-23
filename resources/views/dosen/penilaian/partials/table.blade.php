@@ -9,7 +9,7 @@
         <div class="table-shell__head table-shell__grid acss-table-cols-dosen-grade">
             <button type="button" class="acss-sort-button" data-sort-column="tanggal" data-sort-direction="{{ $nextDirection('tanggal') }}">Tanggal <span>{{ $indicator('tanggal') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
-            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Tugas Akhir <span>{{ $indicator('judul') }}</span></button>
             <span>Nilai Sidang</span>
             <button type="button" class="acss-sort-button" data-sort-column="peran" data-sort-direction="{{ $nextDirection('peran') }}">Peran <span>{{ $indicator('peran') }}</span></button>
         </div>
@@ -31,7 +31,10 @@
                 </div>
             </div>
             <div class="table-shell__cell"><strong>{{ $item['student'] }}</strong></div>
-            <div class="table-shell__cell table-shell__cell--title"><a class="text-link acss-title-link" href="{{ $item['skripsi_href'] }}">{{ $item['title'] }}</a></div>
+            <div class="table-shell__cell table-shell__cell--title">
+                <a class="text-link acss-title-link" href="{{ $item['skripsi_href'] }}">{{ $item['title'] }}</a>
+                <div><span class="pill">{{ $item['type_label'] }}</span></div>
+            </div>
             <div class="table-shell__cell"><span class="pill">{{ $item['fase'] }}</span></div>
             <div class="table-shell__cell"><span class="pill pill--blue">{{ $item['role'] }}</span></div>
         </div>

@@ -1,22 +1,38 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $taType = $taType ?? (request()->routeIs('kaprodi.non-skripsi.*') ? 'non_skripsi' : 'skripsi');
+        $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+        $taRoutePrefix = $taType === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi';
+    @endphp
+    @php
+        $phaseLabels = [
+            'proposal' => 'Proposal',
+            'sidang_proposal' => 'Sidang Proposal',
+            'bimbingan_skripsi' => $taType === 'non_skripsi' ? 'Bimbingan Non-Skripsi' : 'Bimbingan Skripsi',
+            'sidang_skripsi' => $taType === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi',
+            'revisi_sidang_skripsi' => $taType === 'non_skripsi' ? 'Revisi Sidang Non-Skripsi' : 'Revisi Sidang Skripsi',
+            'review_dokumen_final' => 'Review Dokumen Final',
+            'skripsi_selesai' => $taType === 'non_skripsi' ? 'Non-Skripsi Selesai' : 'Skripsi Selesai',
+        ];
+    @endphp
     @if (session('success'))
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
 
-    <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.skripsi.index') }}">
+    <section class="card" id="list-root" data-endpoint="{{ route($taRoutePrefix.'.index') }}">
         <div class="section-heading">
             <div>
-                <h1 class="acss-page-title">Monitoring Skripsi</h1>
-                <p class="acss-muted " id="count-text">{{ $skripsis->total() }} skripsi ditemukan.</p>
+                <h1 class="acss-page-title">Monitoring {{ $taLabel }}</h1>
+                <p class="acss-muted " id="count-text">{{ $skripsis->total() }} {{ str($taLabel)->lower() }} ditemukan.</p>
             </div>
         </div>
 
         
         <div id="stats-wrapper">@include('kaprodi.skripsi.partials.stats', ['chartData' => $chartData])</div>
 
-        <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route('kaprodi.skripsi.index') }}" autocomplete="off">
+        <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route($taRoutePrefix.'.index') }}" autocomplete="off">
                     <input type="hidden" id="sort-input" name="sort" value="{{ $sort ?? '' }}">
                     <input type="hidden" id="direction-input" name="direction" value="{{ $direction ?? 'desc' }}">
             
@@ -28,15 +44,15 @@
                 <span>Fase</span>
                 <select name="status" id="status-select">
                     <option value="">Semua</option>
-                    @foreach (['Proposal','Sidang Proposal','Bimbingan Skripsi','Sidang Skripsi','Revisi Sidang Skripsi','Review Dokumen Final','Skripsi Selesai'] as $option)
-                        <option value="{{ $option }}" {{ $status === $option ? 'selected' : '' }}>{{ $option }}</option>
+                    @foreach ($phaseLabels as $value => $label)
+                        <option value="{{ $label }}" {{ in_array($status, [$value, $label], true) ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </label>
             
         </form>
 
-        <div id="table-wrapper">@include('kaprodi.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc'])</div>
+        <div id="table-wrapper">@include('kaprodi.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort ?? '', 'direction' => $direction ?? 'desc', 'taType' => $taType])</div>
         <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.skripsi.partials.pagination', ['skripsis' => $skripsis])</div>
     </section>
 

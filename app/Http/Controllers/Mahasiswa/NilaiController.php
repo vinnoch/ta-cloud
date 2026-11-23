@@ -3,22 +3,21 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Mahasiswa\FinalSubmissionController;
 use App\Models\Grade;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class NilaiController extends Controller
 {
-    public function index(Request $request, Skripsi $skripsi): View
+    public function index(Request $request, TugasAkhir $skripsi): View
     {
         if ($skripsi->student_id !== $request->user()->id) {
             abort(403);
         }
 
         $grades = Grade::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->with(['template', 'reviewer', 'items.itemPenilaian'])
             ->orderByDesc('id')
             ->get();

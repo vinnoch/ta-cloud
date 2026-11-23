@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\FormatPenilaian;
 use App\Models\Grade;
 use App\Models\Periode;
-use App\Models\Skripsi;
-use App\Models\StudyProgram;
+use App\Models\TugasAkhir;
 use App\Services\NotificationService;
+use App\Services\RoleNavigationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,7 @@ use Illuminate\View\View;
 
 class FormatPenilaianController extends Controller
 {
-    public function index(Request $request): View|\Illuminate\Http\JsonResponse
+    public function index(Request $request): View|JsonResponse
     {
         $search = $request->query('q');
         $jenis = $request->query('jenis', '');
@@ -52,7 +53,7 @@ class FormatPenilaianController extends Controller
                 'pagination_html' => view('kaprodi.format-penilaian.partials.pagination', [
                     'formats' => $formats,
                 ])->render(),
-                'count_text' => $formats->total() . ' format ditemukan.',
+                'count_text' => $formats->total().' format ditemukan.',
             ]);
         }
 
@@ -84,7 +85,7 @@ class FormatPenilaianController extends Controller
             'studyProgram' => Auth::user()->studyProgram,
             'activePeriodeId' => $activePeriodeId,
             'occupiedPeriodeIds' => $occupiedPeriodeIds,
-            'format' => new \App\Models\FormatPenilaian(),
+            'format' => new FormatPenilaian,
         ]));
     }
 
@@ -121,7 +122,7 @@ class FormatPenilaianController extends Controller
             ->with('success', 'Format penilaian berhasil dibuat.');
     }
 
-    public function show(FormatPenilaian $format, Request $request): View|\Illuminate\Http\JsonResponse
+    public function show(FormatPenilaian $format, Request $request): View|JsonResponse
     {
         $format->loadMissing(['items', 'periodes']);
 
@@ -130,9 +131,9 @@ class FormatPenilaianController extends Controller
         $assignedDirection = strtolower((string) $request->query('assigned_direction', $request->query('direction', 'asc'))) === 'desc' ? 'desc' : 'asc';
         $assignedPeriodeId = $request->query('assigned_periode_id');
 
-        $assignedSkripsis = Skripsi::query()
-            ->whereIn('skripsis.id', Grade::query()
-                ->select('skripsi_id')
+        $assignedSkripsis = TugasAkhir::query()
+            ->whereIn('tugas_akhirs.id', Grade::query()
+                ->select('tugas_akhir_id')
                 ->where('format_penilaian_id', $format->id)
                 ->distinct())
             ->with(['student', 'periode'])
@@ -144,15 +145,15 @@ class FormatPenilaianController extends Controller
                     })->orWhere('title', 'like', "%{$assignedSearch}%");
                 });
             })
-            ->when($assignedPeriodeId, fn ($query) => $query->where('skripsis.periode_id', $assignedPeriodeId))
-            ->when($assignedSort === 'nim', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')->orderBy('students_sort.nim', $assignedDirection))
-            ->when($assignedSort === 'mahasiswa', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')->orderBy('students_sort.name', $assignedDirection))
+            ->when($assignedPeriodeId, fn ($query) => $query->where('tugas_akhirs.periode_id', $assignedPeriodeId))
+            ->when($assignedSort === 'nim', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'tugas_akhirs.student_id')->orderBy('students_sort.nim', $assignedDirection))
+            ->when($assignedSort === 'mahasiswa', fn ($q) => $q->join('users as students_sort', 'students_sort.id', '=', 'tugas_akhirs.student_id')->orderBy('students_sort.name', $assignedDirection))
             ->when($assignedSort === 'judul', fn ($q) => $q->orderBy('title', $assignedDirection))
-            ->select('skripsis.*')
+            ->select('tugas_akhirs.*')
             ->selectSub(
                 Grade::query()
                     ->selectRaw('AVG(score)')
-                    ->whereColumn('grades.skripsi_id', 'skripsis.id')
+                    ->whereColumn('grades.tugas_akhir_id', 'tugas_akhirs.id')
                     ->where('format_penilaian_id', $format->id)
                     ->whereNotNull('score'),
                 'format_average_score'
@@ -172,11 +173,10 @@ class FormatPenilaianController extends Controller
                 'pagination_html' => view('kaprodi.format-penilaian.partials.assigned-pagination', [
                     'assignedSkripsis' => $assignedSkripsis,
                 ])->render(),
-                'count_text' => $assignedSkripsis->total() . ' skripsi terhubung.',
+                'count_text' => $assignedSkripsis->total().' tugas akhir terhubung.',
             ]);
         }
 
-        
         $identity = [
             'name' => $format->nama,
             'avatar' => mb_substr($format->nama, 0, 1),
@@ -193,10 +193,10 @@ class FormatPenilaianController extends Controller
 
         $periodeIdsWithGrades = Grade::query()
             ->where('format_penilaian_id', $format->id)
-            ->whereHas('skripsi', fn ($query) => $query->whereNotNull('periode_id'))
-            ->with('skripsi:id,periode_id')
+            ->whereHas('tugasAkhir', fn ($query) => $query->whereNotNull('periode_id'))
+            ->with('tugasAkhir:id,periode_id')
             ->get()
-            ->pluck('skripsi.periode_id')
+            ->pluck('tugasAkhir.periode_id')
             ->filter()
             ->unique()
             ->values()
@@ -300,7 +300,7 @@ class FormatPenilaianController extends Controller
         return back()->with('success', 'Periode berhasil ditambahkan ke format penilaian ini.');
     }
 
-    public function removePeriode(FormatPenilaian $format, \App\Models\Periode $periode): RedirectResponse
+    public function removePeriode(FormatPenilaian $format, Periode $periode): RedirectResponse
     {
         if (! $this->isFormatLocked($format)) {
             return back()->with('error', 'Hapus periode hanya tersedia untuk format nilai yang sudah terkunci.');
@@ -312,7 +312,7 @@ class FormatPenilaianController extends Controller
 
         $hasGrades = Grade::query()
             ->where('format_penilaian_id', $format->id)
-            ->whereHas('skripsi', fn ($query) => $query->where('periode_id', $periode->id))
+            ->whereHas('tugasAkhir', fn ($query) => $query->where('periode_id', $periode->id))
             ->exists();
 
         if ($hasGrades) {
@@ -346,16 +346,16 @@ class FormatPenilaianController extends Controller
             ->with('success', 'Format penilaian berhasil diduplikasi.');
     }
 
-    public function showGrades(FormatPenilaian $format, Skripsi $skripsi): View
+    public function showGrades(FormatPenilaian $format, TugasAkhir $skripsi): View
     {
         return $this->grades($format, $skripsi);
     }
 
-    public function grades(FormatPenilaian $format, Skripsi $skripsi): View
+    public function grades(FormatPenilaian $format, TugasAkhir $skripsi): View
     {
         $grades = Grade::query()
             ->where('format_penilaian_id', $format->id)
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->with('reviewer')
             ->latest()
             ->get();
@@ -371,10 +371,10 @@ class FormatPenilaianController extends Controller
         ]));
     }
 
-    public function unlockGrade(FormatPenilaian $format, Skripsi $skripsi, Grade $grade, NotificationService $notifications): RedirectResponse
+    public function unlockGrade(FormatPenilaian $format, TugasAkhir $skripsi, Grade $grade, NotificationService $notifications): RedirectResponse
     {
         abort_unless(
-            (int) $grade->format_penilaian_id === (int) $format->id && (int) $grade->skripsi_id === (int) $skripsi->id,
+            (int) $grade->format_penilaian_id === (int) $format->id && (int) $grade->tugas_akhir_id === (int) $skripsi->id,
             404
         );
 
@@ -407,7 +407,7 @@ class FormatPenilaianController extends Controller
         $rules = [
             'name' => ['nullable', 'string', 'max:255'],
             'nama' => ['nullable', 'string', 'max:255'],
-            'format_type' => ['required', 'in:sidang_proposal,sidang_skripsi'],
+            'format_type' => ['required', 'in:sidang_proposal,sidang_skripsi,sidang_non_skripsi'],
             'status' => ['required', 'in:draft,published'],
             'periode_ids' => ['required', 'array', 'min:1'],
             'periode_ids.*' => ['required', 'exists:periodes,id'],
@@ -433,7 +433,7 @@ class FormatPenilaianController extends Controller
                 ->replaceMatches('/[^a-z0-9_]/', '')
                 ->toString();
 
-            $generatedCode = $generatedCode !== '' ? $generatedCode : 'item_penilaian_' . ($index + 1);
+            $generatedCode = $generatedCode !== '' ? $generatedCode : 'item_penilaian_'.($index + 1);
 
             $validated['items'][$index]['code'] = $generatedCode;
             $normalizedCodes[] = $generatedCode;
@@ -462,7 +462,7 @@ class FormatPenilaianController extends Controller
 
         if ($conflictingPeriods->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'periode_ids' => 'Beberapa periode sudah memakai format nilai dengan jenis yang sama: ' . $conflictingPeriods->implode(', ') . '.',
+                'periode_ids' => 'Beberapa periode sudah memakai format nilai dengan jenis yang sama: '.$conflictingPeriods->implode(', ').'.',
             ]);
         }
 
@@ -515,11 +515,11 @@ class FormatPenilaianController extends Controller
     private function duplicateName(string $name): string
     {
         $baseName = trim($name) !== '' ? trim($name) : 'Format Baru';
-        $candidate = $baseName . ' (Copy)';
+        $candidate = $baseName.' (Copy)';
         $counter = 2;
 
         while (FormatPenilaian::query()->where('nama', $candidate)->exists()) {
-            $candidate = $baseName . ' (Copy ' . $counter . ')';
+            $candidate = $baseName.' (Copy '.$counter.')';
             $counter++;
         }
 
@@ -539,8 +539,8 @@ class FormatPenilaianController extends Controller
 
     private function page(string $title, string $subtitle, array $data = []): array
     {
-        $navigation = app(\App\Services\RoleNavigationService::class);
-        
+        $navigation = app(RoleNavigationService::class);
+
         return array_merge([
             'title' => $title,
             'heading' => $title,

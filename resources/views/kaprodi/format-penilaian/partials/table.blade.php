@@ -40,7 +40,7 @@
                     @endif
                 </div>
             </div>
-            <div class="table-shell__cell"><span class="pill">{{ $item->format_type === 'sidang_proposal' ? 'Proposal' : 'Skripsi' }}</span></div>
+            <div class="table-shell__cell"><span class="pill">{{ match ($item->format_type) { 'sidang_non_skripsi' => 'Non-Skripsi', 'sidang_skripsi' => 'Skripsi', default => 'Proposal' } }}</span></div>
             <div class="table-shell__cell acss-format-period-cell">@forelse ($item->periods as $period)<span class="badge badge--info">{{ $period->name }}</span>@empty - @endforelse</div>
             <div class="table-shell__cell"><strong>{{ $item->items->count() }} item</strong><small>Total {{ $item->items->sum('weight') }}%</small></div>
         </div>

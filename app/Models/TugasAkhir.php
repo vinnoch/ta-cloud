@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Skripsi extends Model
+class TugasAkhir extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'skripsis';
+    protected $table = 'tugas_akhirs';
 
     protected $casts = [
         'final_submitted_at' => 'datetime',
@@ -21,8 +21,8 @@ class Skripsi extends Model
         'proposal_rejected_at' => 'datetime',
         'sidang_proposal_datetime' => 'datetime',
         'sidang_proposal_grade_notified_at' => 'datetime',
-        'sidang_skripsi_datetime' => 'datetime',
-        'sidang_skripsi_grade_notified_at' => 'datetime',
+        'sidang_tugas_akhir_datetime' => 'datetime',
+        'sidang_tugas_akhir_grade_notified_at' => 'datetime',
     ];
 
     protected $fillable = [
@@ -38,9 +38,19 @@ class Skripsi extends Model
         'journal_article_url',
         'sidang_proposal_datetime',
         'sidang_proposal_grade_notified_at',
-        'sidang_skripsi_datetime',
-        'sidang_skripsi_grade_notified_at',
+        'sidang_tugas_akhir_datetime',
+        'sidang_tugas_akhir_grade_notified_at',
     ];
+
+    public function scopeSkripsi(Builder $query): Builder
+    {
+        return $query->where($query->qualifyColumn('type'), 'skripsi');
+    }
+
+    public function scopeNonSkripsi(Builder $query): Builder
+    {
+        return $query->where($query->qualifyColumn('type'), 'non_skripsi');
+    }
 
     public function student(): BelongsTo
     {
@@ -59,7 +69,7 @@ class Skripsi extends Model
 
     public function reviewers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'reviewer_assignments', 'skripsi_id', 'lecturer_id')
+        return $this->belongsToMany(User::class, 'reviewer_assignments', 'tugas_akhir_id', 'lecturer_id')
             ->withPivot('role_type')
             ->withTimestamps();
     }
@@ -87,11 +97,6 @@ class Skripsi extends Model
     public function sidangRequests(): HasMany
     {
         return $this->hasMany(SidangRequest::class);
-    }
-
-    public function nonSkripsiRecord(): HasOne
-    {
-        return $this->hasOne(NonSkripsiRecord::class, 'skripsi_id');
     }
 
     public function isProposalPhase(): bool

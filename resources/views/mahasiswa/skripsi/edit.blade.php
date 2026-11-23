@@ -1,15 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $taType = $skripsi->type;
+        $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+        $taRoutePrefix = $taType === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi';
+    @endphp
     @include('partials.page-header', [
-        'title' => 'Edit Skripsi',
+        'title' => 'Edit '.$taLabel,
         'eyebrow' => 'Mahasiswa • Edit',
-        'description' => 'Perbarui judul, tipe, link artikel jurnal.',
+        'description' => 'Perbarui judul dan tipe tugas akhir.',
     ])
 
     <section class="panel-grid">
         <article class="acss-crud-card">
-            <form class="acss-crud-body form-grid" method="POST" action="{{ route('mahasiswa.skripsi.update', $skripsi) }}">
+            <form class="acss-crud-body form-grid" method="POST" action="{{ route($taRoutePrefix.'.update', $skripsi) }}">
                 @csrf
                 @method('PUT')
                 <label class="form-field">
@@ -18,18 +23,12 @@
                 </label>
                 <label class="form-field">
                     <span>Tipe</span>
-                    <select name="type" required>
-                        <option value="skripsi" @selected(old('type', $skripsi->type) === 'skripsi')>Skripsi</option>
-                        <option value="non_skripsi" @selected(old('type', $skripsi->type) === 'non_skripsi')>Non Skripsi</option>
-                    </select>
-                </label>
-                <label class="form-field">
-                    <span>Link Artikel Jurnal (opsional)</span>
-                    <input type="url" name="journal_article_url" value="{{ old('journal_article_url', $skripsi->journal_article_url) }}">
+                    <input type="hidden" name="type" value="{{ $taType }}">
+                    <input type="text" value="{{ $taLabel }}" readonly aria-readonly="true">
                 </label>
                 <div class="form-actions">
                     <button class="button" type="submit">Simpan Perubahan</button>
-                    <a class="button button--muted" href="{{ route('mahasiswa.skripsi.show', $skripsi) }}">Batal</a>
+                    <a class="button button--muted" href="{{ route($taRoutePrefix.'.show', $skripsi) }}">Batal</a>
                 </div>
             </form>
         </article>

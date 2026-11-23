@@ -180,7 +180,7 @@
         <section class="acss-crud-card" id="assigned-list-root" data-endpoint="{{ route('kaprodi.document-templates.show', $template) }}">
             <div class="acss-crud-head">
                 <div>
-                    <h3 class="acss-card-title">Skripsi Terhubung</h3>
+                    <h3 class="acss-card-title">Tugas Akhir Terhubung</h3>
                 </div>
             </div>
             <div class="acss-crud-body">
@@ -188,7 +188,7 @@
                     <input type="hidden" name="assigned_sort" id="assigned-sort-input" value="{{ $assignedSort }}">
                     <input type="hidden" name="assigned_direction" id="assigned-direction-input" value="{{ $assignedDirection }}">
                     <label class="form-field acss-search-field">
-                        <span>Cari Skripsi</span>
+                        <span>Cari Tugas Akhir</span>
                         <input type="search" id="assigned-search-input" name="assigned_q" value="{{ $assignedSearch }}" placeholder="Cari mahasiswa atau judul...">
                     </label>
                     <label class="form-field acss-field-tight">
@@ -202,7 +202,7 @@
                     </label>
                 </form>
 
-                <p id="assigned-count-text" class="acss-muted">{{ $assignedSkripsis->total() }} skripsi terhubung.</p>
+                <p id="assigned-count-text" class="acss-muted">{{ $assignedSkripsis->total() }} tugas akhir terhubung.</p>
 
                 <div id="assigned-table-wrapper">@include('kaprodi.document-templates.partials.assigned-table', ['template' => $template, 'assignedSkripsis' => $assignedSkripsis, 'assignedSort' => $assignedSort, 'assignedDirection' => $assignedDirection])</div>
                 <div id="assigned-pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.document-templates.partials.assigned-pagination', ['assignedSkripsis' => $assignedSkripsis])</div>

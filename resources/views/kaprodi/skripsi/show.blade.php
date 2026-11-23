@@ -2,6 +2,10 @@
 
 @section('content')
     @php
+        $taRoutePrefix = $skripsi->type === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi';
+        $taLabel = $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+    @endphp
+    @php
         $isProposalPhase = $skripsi->isProposalPhase();
         $hideSkripsiDefenseCards = in_array($skripsi->current_phase, ['proposal', 'sidang_proposal'], true);
         $advisorAssignments = $skripsi->assignments
@@ -63,7 +67,7 @@
                             <div class="">Proposal mahasiswa ini menunggu persetujuan Anda untuk lanjut ke fase Sidang Proposal.</div>
                         </div>
                         <div class="flex gap-2">
-                            <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}" onsubmit="return confirm('Setujui proposal ini?')">
+                            <form method="POST" action="{{ route($taRoutePrefix.'.proposal.approve', $skripsi) }}" onsubmit="return confirm('Setujui proposal ini?')">
                                 @csrf
                                 <button class="button button--small button--success acss-proposal-approve-button" type="submit"><span class="dosen-btn-icon">@include('partials.icons.check')</span><span>Setujui Proposal</span></button>
                             </form>
@@ -75,10 +79,10 @@
             @if ($pendingSidangRequest)
                 <div class="notice notice--warning ">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <strong>{{ $pendingSidangRequest->lecturer?->name ?? '-' }} ({{ str($pendingSidangRequest->role_type)->replace('_', ' ')->title() }}) telah mengajukan permohonan sidang untuk skripsi ini.</strong>
+                        <strong>{{ $pendingSidangRequest->lecturer?->name ?? '-' }} ({{ str($pendingSidangRequest->role_type)->replace('_', ' ')->title() }}) telah mengajukan permohonan sidang untuk tugas akhir ini.</strong>
                         <div class="flex gap-2">
                             @if ($hasAllAdvisorSidangRequests)
-                                <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
+                                <form method="POST" action="{{ route($taRoutePrefix.'.sidang-request.approve', [$skripsi, $pendingSidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
                                     @csrf
                                     <button class="button button--small button--success acss-sidang-approve-button" type="submit">Setujui Sidang</button>
                                 </form>
@@ -103,7 +107,7 @@
                     </div>
                     <button type="button" class="acss-modal__close" onclick="this.closest('[data-sidang-reject-modal]').hidden = true" aria-label="Tutup">×</button>
                 </div>
-                <form class="acss-form-stack-tight" method="POST" action="{{ route('kaprodi.skripsi.sidang-request.reject', [$skripsi, $pendingSidangRequest]) }}">
+                <form class="acss-form-stack-tight" method="POST" action="{{ route($taRoutePrefix.'.sidang-request.reject', [$skripsi, $pendingSidangRequest]) }}">
                     @csrf
                     <div class="acss-master-form-shell">
                         <label class="form-field">
@@ -140,14 +144,17 @@
                             {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
                         <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) $skripsi->title) }}</div>
                     </div>
-                    <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    <div class="acss-profile-badges">
+                        <span class="pill">{{ $taLabel }}</span>
+                        <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    </div>
                 </div>
             </div>
         </div>
 
     </section>
 
-    @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Skripsi'])
+    @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Tugas Akhir'])
 
     @if ($isProposalPhase)
         <div class="acss-detail-pair-grid">
@@ -156,7 +163,7 @@
                     <div>
                         <h3 class="acss-card-title">Riwayat Proposal</h3>
                     </div>
-                    <a href="{{ route('kaprodi.skripsi.proposal', $skripsi) }}" class="acss-link-subtle acss-link-subtle--icon" target="_blank" rel="noopener noreferrer">
+                    <a href="{{ route($taRoutePrefix.'.proposal', $skripsi) }}" class="acss-link-subtle acss-link-subtle--icon" target="_blank" rel="noopener noreferrer">
                         <span class="acss-link-subtle__icon">@include('partials.icons.file')</span>
                         <span>Lihat Proposal</span>
                     </a>
@@ -203,11 +210,11 @@
 
     @if ($skripsi->periode && ! $skripsi->periode->is_aktif && $skripsi->periode->status !== 'active')
         <section class="card card--notice">
-            <div class="section-heading"><div><h3>Penyelesaian Skripsi Historis</h3></div></div>
-            <p class="acss-muted">Khusus pencatatan dokumen final mahasiswa yang telah lulus dari periode lama. Tindakan ini langsung menyelesaikan arsip skripsi.</p>
-            <form method="POST" action="{{ route('kaprodi.skripsi.final-review.legacy-complete', $skripsi) }}" enctype="multipart/form-data" onsubmit="return confirm('Simpan dokumen final historis dan tandai skripsi selesai?')">
+            <div class="section-heading"><div><h3>Penyelesaian Tugas Akhir Historis</h3></div></div>
+            <p class="acss-muted">Khusus pencatatan dokumen final mahasiswa yang telah lulus dari periode lama. Tindakan ini langsung menyelesaikan arsip tugas akhir.</p>
+            <form method="POST" action="{{ route($taRoutePrefix.'.final-review.legacy-complete', $skripsi) }}" enctype="multipart/form-data" onsubmit="return confirm('Simpan dokumen final historis dan tandai tugas akhir selesai?')">
                 @csrf
-                <label class="form-field"><span>Dokumen Final Skripsi</span><input type="file" name="file" accept=".pdf,.doc,.docx" required></label>
+                <label class="form-field"><span>Dokumen Final Tugas Akhir</span><input type="file" name="file" accept=".pdf,.doc,.docx" required></label>
                 @error('file')<small class="form-error">{{ $message }}</small>@enderror
                 <button class="button button--small" type="submit">Simpan Arsip & Selesaikan</button>
             </form>
@@ -225,11 +232,11 @@
                 </div>
                 <div class="acss-final-review-card__body acss-final-review-card__body--split">
                     <div class="acss-final-review-card__content">
-                        <p class="acss-final-review-card__intro">Seluruh reviewer telah menyetujui dokumen final. Lakukan validasi akhir untuk menyatakan skripsi selesai.</p>
+                        <p class="acss-final-review-card__intro">Seluruh reviewer telah menyetujui dokumen final. Lakukan validasi akhir untuk menyatakan tugas akhir selesai.</p>
                         <div class="flex gap-2">
-                            <form method="POST" action="{{ route('kaprodi.skripsi.final-review.approve', $skripsi) }}" onsubmit="return confirm('Validasi dokumen final dan selesaikan skripsi?')">
+                            <form method="POST" action="{{ route($taRoutePrefix.'.final-review.approve', $skripsi) }}" onsubmit="return confirm('Validasi dokumen final dan selesaikan tugas akhir?')">
                                 @csrf
-                                <button class="button button--small acss-final-review-card__button" type="submit">Validasi & Selesaikan Skripsi</button>
+                                <button class="button button--small acss-final-review-card__button" type="submit">Validasi & Selesaikan Tugas Akhir</button>
                             </form>
                         </div>
                     </div>
@@ -284,8 +291,8 @@
                         <h3>Bimbingan</h3>
                     </div>
                     <div class="acss-inline-actions">
-                        <a class="acss-link-subtle" href="{{ route('kaprodi.skripsi.bimbingan', $skripsi) }}">Lihat Histori</a>
-                        <a class="acss-link-subtle" href="{{ route('kaprodi.skripsi.logbook', $skripsi) }}">Download Logbook</a>
+                        <a class="acss-link-subtle" href="{{ route($taRoutePrefix.'.bimbingan', $skripsi) }}">Lihat Histori</a>
+                        <a class="acss-link-subtle" href="{{ route($taRoutePrefix.'.logbook', $skripsi) }}">Download Logbook</a>
                     </div>
                 </div>
                 <div class="table-shell">
@@ -336,7 +343,7 @@
                                 <div class="acss-muted text-xs">{{ str($sidangRequest->role_type)->replace('_', ' ')->title() }}</div>
                                 @if ($sidangRequest->status !== 'approved' && $hasAllAdvisorSidangRequests)
                                     <div class="acss-row-actions acss-row-actions--always acss-row-actions--compact">
-                                        <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$skripsi, $sidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
+                                        <form method="POST" action="{{ route($taRoutePrefix.'.sidang-request.approve', [$skripsi, $sidangRequest]) }}" onsubmit="return confirm('Setujui permohonan sidang ini?')">
                                             @csrf
                                             <button class="button button--small button--success" type="submit">Approve</button>
                                         </form>
@@ -363,12 +370,12 @@
             </div>
             @php
                 $isProposalSchedule = $skripsi->current_phase === 'sidang_proposal';
-                $scheduleField = $isProposalSchedule ? 'sidang_proposal_datetime' : 'sidang_skripsi_datetime';
+                $scheduleField = $isProposalSchedule ? 'sidang_proposal_datetime' : 'sidang_tugas_akhir_datetime';
                 $activeSchedule = $isProposalSchedule ? ($sidangProposalSchedule ?? null) : ($sidangSkripsiSchedule ?? null);
                 $scheduleRoute = $isProposalSchedule
-                    ? route('kaprodi.skripsi.sidang-proposal-schedule.update', $skripsi)
-                    : route('kaprodi.skripsi.sidang-schedule.update', $skripsi);
-                $scheduleLabel = $isProposalSchedule ? 'Sidang Proposal' : 'Sidang Skripsi';
+                    ? route($taRoutePrefix.'.sidang-proposal-schedule.update', $skripsi)
+                    : route($taRoutePrefix.'.sidang-schedule.update', $skripsi);
+                $scheduleLabel = $isProposalSchedule ? 'Sidang Proposal' : 'Sidang '.$taLabel;
                 $defaultSidangSchedule = $activeSchedule
                     ? $activeSchedule->format('Y-m-d\TH:i')
                     : now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
@@ -422,9 +429,9 @@
         <section class="card">
             <div class="section-heading acss-crud-head--inline">
                 <div>
-                    <h3>Penilaian Sidang Skripsi</h3>
+                    <h3>Penilaian Sidang {{ $taLabel }}</h3>
                 </div>
-                <a class="acss-link-subtle" href="{{ route('kaprodi.nilai.index', ['skripsi_id' => $skripsi->id]) }}">Lihat Semua Nilai</a>
+                <a class="acss-link-subtle" href="{{ route('kaprodi.nilai.index', ['tugas_akhir_id' => $skripsi->id]) }}">Lihat Semua Nilai</a>
             </div>
             <div class="acss-grading-progress-grid">
                 <div class="acss-grading-progress-card acss-grading-progress-card--stacked">
@@ -745,7 +752,7 @@
                 </div>
                 <button type="button" class="acss-modal__close" onclick="this.closest('[data-proposal-reject-modal]').hidden = true" aria-label="Tutup">×</button>
             </div>
-            <form class="acss-form-stack-tight" method="POST" action="{{ route('kaprodi.skripsi.proposal.reject', $skripsi) }}">
+            <form class="acss-form-stack-tight" method="POST" action="{{ route($taRoutePrefix.'.proposal.reject', $skripsi) }}">
                 @csrf
                 <div class="acss-master-form-shell">
                     <label class="form-field">

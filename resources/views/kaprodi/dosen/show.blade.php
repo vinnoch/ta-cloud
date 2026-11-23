@@ -80,16 +80,16 @@
             <form class="filter-bar" method="GET" action="{{ route('kaprodi.dosen.show', $dosen) }}">
                 <label class="form-field acss-search-field">
                     <span>Cari Mahasiswa</span>
-                    <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Cari nama, NIM, atau judul skripsi">
+                    <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Cari nama, NIM, atau judul tugas akhir">
                 </label>
                 <label class="form-field acss-field-tight">
                     <span>Filter Status</span>
                     <select name="status" onchange="this.form.submit()">
                         <option value="" {{ ($statusFilter ?? '') === '' ? 'selected' : '' }}>Semua Status</option>
                         <option value="sidang_proposal" {{ ($statusFilter ?? '') === 'sidang_proposal' ? 'selected' : '' }}>Sidang Proposal</option>
-                        <option value="bimbingan_skripsi" {{ ($statusFilter ?? '') === 'bimbingan_skripsi' ? 'selected' : '' }}>Bimbingan Skripsi</option>
-                        <option value="revisi_sidang_skripsi" {{ ($statusFilter ?? '') === 'revisi_sidang_skripsi' ? 'selected' : '' }}>Revisi Sidang Skripsi</option>
-                        <option value="sidang_skripsi" {{ ($statusFilter ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Sidang Skripsi</option>
+                        <option value="bimbingan_skripsi" {{ ($statusFilter ?? '') === 'bimbingan_skripsi' ? 'selected' : '' }}>Bimbingan Tugas Akhir</option>
+                        <option value="revisi_sidang_skripsi" {{ ($statusFilter ?? '') === 'revisi_sidang_skripsi' ? 'selected' : '' }}>Revisi Sidang Tugas Akhir</option>
+                        <option value="sidang_skripsi" {{ ($statusFilter ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Sidang Tugas Akhir</option>
                         <option value="review_dokumen_final" {{ ($statusFilter ?? '') === 'review_dokumen_final' ? 'selected' : '' }}>Review Dokumen Final</option>
                     </select>
                 </label>
@@ -97,7 +97,7 @@
             <div class="table-shell">
                 <div class="table-shell__head table-shell__grid acss-table-cols-kaprodi-dosen-bimb">
                     <span>Mahasiswa</span>
-                    <span>Judul Skripsi</span>
+                    <span>Judul Tugas Akhir</span>
                     <span>Bimbingan</span>
                     <span>Status</span>
                 </div>
@@ -112,7 +112,7 @@
                                     <a class="text-link acss-action-link" href="{{ route('kaprodi.mahasiswa.show', $item['student']) }}">@include('partials.icons.eye')<span>Detail</span></a>
                                     @if (!empty($item['skripsi_url']))
                                         <span class="acss-action-separator">|</span>
-                                        <a class="text-link acss-action-link" href="{{ $item['skripsi_url'] }}">@include('partials.icons.eye')<span>Skripsi</span></a>
+                                        <a class="text-link acss-action-link" href="{{ $item['skripsi_url'] }}">@include('partials.icons.eye')<span>Tugas Akhir</span></a>
                                     @endif
                                 </div>
                             @endif
@@ -120,8 +120,9 @@
                         <div class="table-shell__cell table-shell__cell--title">
                             {{ $item['skripsi_topic'] ?: '-' }}
                             @if (!empty($item['skripsi']))
+                                <div><span class="pill">{{ $item['skripsi']->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span></div>
                                 <div class="acss-row-actions">
-                                    <a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.show', $item['skripsi']) }}">@include('partials.icons.eye')<span>Monitoring</span></a>
+                                    <a class="text-link acss-action-link" href="{{ app(\App\Services\TugasAkhirRouteService::class)->route('kaprodi', $item['skripsi'], 'show', $item['skripsi']) }}">@include('partials.icons.eye')<span>Monitoring</span></a>
                                 </div>
                             @endif
                         </div>

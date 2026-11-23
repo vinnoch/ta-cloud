@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $taRoutePrefix = $skripsi->type === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi';
+        $taLabel = $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+    @endphp
 @if (session('success'))
     <div class="notice notice--success">{{ session('success') }}</div>
 @endif
@@ -30,9 +34,12 @@
                     <div>
                         <h2>{{ \Illuminate\Support\Str::title((string) ($skripsi->student->name ?? '-')) }}</h2>
                         <p>{{ $skripsi->student->nim ?? '-' }} • {{ $skripsi->periode?->name ?? ($skripsi->periode?->kode_periode ?? '-') }}</p>
-                        <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) ($skripsi->title ?: 'Proposal Skripsi')) }}</div>
+                        <div class="acss-quote-title">{{ \Illuminate\Support\Str::title((string) ($skripsi->title ?: 'Proposal Tugas Akhir')) }}</div>
                     </div>
-                    <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    <div class="acss-profile-badges">
+                        <span class="pill">{{ $taLabel }}</span>
+                        <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,10 +50,10 @@
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <strong>Konfirmasi Pengajuan Proposal</strong>
-                    <p class="">Mahasiswa mengajukan proposal skripsi. Silakan tinjau dokumen sebelum memberikan persetujuan.</p>
+                    <p>Mahasiswa mengajukan proposal tugas akhir. Silakan tinjau dokumen sebelum memberikan persetujuan.</p>
                 </div>
                 <div class="flex gap-2">
-                    <form method="POST" action="{{ route('kaprodi.skripsi.proposal.approve', $skripsi) }}">
+                    <form method="POST" action="{{ route($taRoutePrefix.'.proposal.approve', $skripsi) }}">
                         @csrf
                         <button class="button button--success button--inline" type="submit"><span class="dosen-btn-icon">@include('partials.icons.check')</span><span>Setujui Proposal</span></button>
                     </form>
@@ -109,7 +116,7 @@
                 </div>
                 <button type="button" class="acss-modal__close" onclick="this.closest('[data-proposal-reject-modal]').hidden = true">×</button>
             </div>
-            <form class="acss-form-stack-tight" method="POST" action="{{ route('kaprodi.skripsi.proposal.reject', $skripsi) }}">
+            <form class="acss-form-stack-tight" method="POST" action="{{ route($taRoutePrefix.'.proposal.reject', $skripsi) }}">
                 @csrf
                 <div class="acss-master-form-shell">
                     <div class="form-field">

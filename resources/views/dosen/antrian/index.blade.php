@@ -4,7 +4,7 @@
     @include('partials.page-header', [
         'title' => 'Antrian Tugas Akhir',
         'eyebrow' => 'Dosen • Queue',
-        'description' => 'Daftar skripsi yang ditugaskan kepada dosen sebagai pembimbing atau penguji.',
+        'description' => 'Daftar tugas akhir yang ditugaskan kepada dosen sebagai pembimbing atau penguji.',
     ])
 
     <section class="acss-crud-card">

@@ -72,7 +72,7 @@
     <section class="acss-crud-card">
         <div class="acss-crud-head">
             <div>
-                <h3 class="acss-card-title">Skripsi Aktif</h3>
+                <h3 class="acss-card-title">Tugas Akhir Aktif</h3>
             </div>
         </div>
 
@@ -80,7 +80,7 @@
             <div class="table-shell table-shell--mahasiswa-skripsi{{ $skripsiData['record'] ? '' : ' table-shell--empty' }}">
                 @if ($skripsiData['record'])
                 <div class="table-shell__head table-shell__grid table-shell__grid--mahasiswa-skripsi">
-                    <span>Judul Skripsi</span>
+                    <span>Judul Tugas Akhir</span>
                     <span>Pembimbing</span>
                     <span>Bimbingan Terakhir</span>
                     <span>Fase</span>
@@ -88,13 +88,14 @@
                 <div class="table-shell__row table-shell__grid table-shell__grid--mahasiswa-skripsi acss-hover-row-group">
                     <div class="table-shell__cell table-shell__cell--title">
                         <strong>{{ $skripsiData['topic'] }}</strong>
+                        <div><span class="pill">{{ $skripsiData['record']->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span></div>
                         <div class="acss-row-actions">
-                                <a href="{{ route('kaprodi.skripsi.show', $skripsiData['record']) }}" class="text-link acss-action-link">@include('partials.icons.eye')<span>Skripsi</span></a>
+                                <a href="{{ app(\App\Services\TugasAkhirRouteService::class)->route('kaprodi', $skripsiData['record'], 'show', $skripsiData['record']) }}" class="text-link acss-action-link">@include('partials.icons.eye')<span>Detail</span></a>
                                 <span class="acss-action-separator">|</span>
                                 @include('kaprodi.skripsi.partials.status-modal', [
                                     'modalId' => 'mahasiswa-skripsi-status-' . $skripsiData['record']->id,
                                     'skripsiItem' => $skripsiData['record'],
-                                    'statusUpdateUrl' => route('kaprodi.skripsi.status.update', $skripsiData['record']),
+                                    'statusUpdateUrl' => app(\App\Services\TugasAkhirRouteService::class)->route('kaprodi', $skripsiData['record'], 'status.update', $skripsiData['record']),
                                     'triggerLabel' => 'Edit Fase',
                                     'triggerClass' => 'text-link acss-action-link',
                                 ])
@@ -112,7 +113,7 @@
                     </div>
                 </div>
                 @else
-                    <div class="empty-state">Belum ada skripsi aktif.</div>
+                    <div class="empty-state">Belum ada tugas akhir aktif.</div>
                 @endif
             </div>
         </div>

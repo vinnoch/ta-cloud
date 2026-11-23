@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DocumentVersion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentAccessController extends Controller
 {
@@ -17,7 +17,7 @@ class DocumentAccessController extends Controller
 
         return response()->file(Storage::disk('local')->path($document->file_path), [
             'Content-Type' => $document->mime_type ?: 'application/octet-stream',
-            'Content-Disposition' => 'inline; filename="' . basename($document->file_path) . '"',
+            'Content-Disposition' => 'inline; filename="'.basename($document->file_path).'"',
         ]);
     }
 
@@ -32,8 +32,8 @@ class DocumentAccessController extends Controller
     private function authorizeDocument(Request $request, DocumentVersion $document): void
     {
         $user = $request->user();
-        $document->loadMissing(['skripsi.assignments']);
-        $skripsi = $document->skripsi;
+        $document->loadMissing(['tugasAkhir.assignments']);
+        $skripsi = $document->tugasAkhir;
 
         if (! $skripsi) {
             abort(404);

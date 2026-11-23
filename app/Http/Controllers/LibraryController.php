@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\HtmlString;
@@ -15,7 +15,7 @@ class LibraryController extends Controller
     {
         $search = trim((string) $request->query('q', ''));
 
-        $skripsis = Skripsi::query()
+        $skripsis = TugasAkhir::query()
             ->with([
                 'student:id,name',
                 'student.level:id,name',
@@ -43,21 +43,22 @@ class LibraryController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $rows = $skripsis->getCollection()->map(function (Skripsi $skripsi) {
+        $rows = $skripsis->getCollection()->map(function (TugasAkhir $skripsi) {
             return [
                 $skripsi->title,
                 $skripsi->student?->name ?? '-',
+                $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi',
                 $skripsi->student?->level?->name ?? 'Sistem Informasi',
                 new HtmlString('<a class="text-link" href="'.route('library.show', $skripsi->id.'-'.Str::slug($skripsi->title), false).'">Detail</a>'),
             ];
         })->all();
 
         return view('library.index', [
-            'title' => 'Library Skripsi',
-            'heading' => 'Library Skripsi',
+            'title' => 'Library Tugas Akhir',
+            'heading' => 'Library Tugas Akhir',
             'crumbs' => 'LIBRARY • INDEX',
             'libraryStats' => [
-                ['label' => 'Total Skripsi', 'value' => (string) $skripsis->total()],
+                ['label' => 'Total Tugas Akhir', 'value' => (string) $skripsis->total()],
                 ['label' => 'Tersedia', 'value' => (string) $skripsis->count()],
             ],
             'rows' => $rows,
@@ -73,7 +74,7 @@ class LibraryController extends Controller
     {
         $id = (int) Str::before($slug, '-');
 
-        $skripsi = Skripsi::query()
+        $skripsi = TugasAkhir::query()
             ->with([
                 'student:id,name,nim',
                 'student.level:id,name',
@@ -110,8 +111,8 @@ class LibraryController extends Controller
         abort_if(! $finalDocument && $libraryDocuments->isEmpty(), 404);
 
         return view('library.show', [
-            'title' => 'Detail Library Skripsi',
-            'heading' => 'Detail Library Skripsi',
+            'title' => 'Detail Library Tugas Akhir',
+            'heading' => 'Detail Library Tugas Akhir',
             'crumbs' => 'LIBRARY • DETAIL',
             'skripsi' => $skripsi,
             'finalDocument' => $finalDocument,

@@ -19,7 +19,7 @@
                 <input type="hidden" name="periode_id" value="{{ ($periodeId ?? 0) > 0 ? $periodeId : "" }}">
                 <label class="form-field acss-search-field">
                     <span>Cari Permohonan</span>
-                    <input id="sidang-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari mahasiswa atau judul skripsi">
+                    <input id="sidang-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari mahasiswa atau judul tugas akhir">
                 </label>
                 <label class="form-field acss-field-tight">
                     <span>Tipe Sidang</span>
@@ -27,6 +27,7 @@
                         <option value="all" {{ ($sidangType ?? 'all') === 'all' ? 'selected' : '' }}>Semua</option>
                         <option value="proposal" {{ ($sidangType ?? 'all') === 'proposal' ? 'selected' : '' }}>Proposal</option>
                         <option value="skripsi" {{ ($sidangType ?? 'all') === 'skripsi' ? 'selected' : '' }}>Skripsi</option>
+                        <option value="non_skripsi" {{ ($sidangType ?? 'all') === 'non_skripsi' ? 'selected' : '' }}>Non-Skripsi</option>
                     </select>
                 </label>
                 <label class="form-field acss-field-tight">

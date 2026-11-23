@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Mahasiswa;
 use App\Http\Controllers\Controller;
 use App\Models\Bimbingan;
 use App\Models\DocumentVersion;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Services\NotificationService;
 use App\Services\StudentDocumentPathService;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BimbinganController extends Controller
 {
-    public function index(Request $request, Skripsi $skripsi): View
+    public function __construct(private readonly TugasAkhirRouteService $tugasAkhirRoutes) {}
+
+    public function index(Request $request, TugasAkhir $skripsi): View
     {
         if ($skripsi->student_id !== $request->user()->id) {
             abort(403);
@@ -36,7 +39,7 @@ class BimbinganController extends Controller
             ->values();
 
         $bimbingans = Bimbingan::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->when($reviewerId > 0, fn ($query) => $query->where('reviewer_id', $reviewerId))
             ->with(['reviewer', 'reviewedVersion'])
             ->orderByDesc('meeting_date')
@@ -57,8 +60,8 @@ class BimbinganController extends Controller
                 'has_revision' => ! empty($b->reviewedVersion),
                 'revision_url' => $b->revision_file_url,
                 'revision_name' => $revisionName,
-                'upload_url' => route('mahasiswa.skripsi.bimbingan.update', [$skripsi, $b]),
-                'remove_url' => route('mahasiswa.skripsi.bimbingan.revision.destroy', [$skripsi, $b]),
+                'upload_url' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'bimbingan.update', [$skripsi, $b]),
+                'remove_url' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'bimbingan.revision.destroy', [$skripsi, $b]),
             ];
         })->all();
 
@@ -76,7 +79,7 @@ class BimbinganController extends Controller
         ]);
     }
 
-    public function exportCsv(Request $request, Skripsi $skripsi): StreamedResponse
+    public function exportCsv(Request $request, TugasAkhir $skripsi): StreamedResponse
     {
         if ($skripsi->student_id !== $request->user()->id) {
             abort(403);
@@ -95,13 +98,13 @@ class BimbinganController extends Controller
                 ->firstWhere('id', $reviewerId)?->name;
 
             if ($reviewerName) {
-                $reviewerSuffix = '_dosen_' . Str::slug($reviewerName, '_');
+                $reviewerSuffix = '_dosen_'.Str::slug($reviewerName, '_');
             }
         }
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="logbook_' . Str::slug($studentLabel, '_') . $reviewerSuffix . '.csv"',
+            'Content-Disposition' => 'attachment; filename="logbook_'.Str::slug($studentLabel, '_').$reviewerSuffix.'.csv"',
         ];
 
         $callback = function () use ($skripsi, $reviewerId) {
@@ -109,7 +112,7 @@ class BimbinganController extends Controller
             fputcsv($handle, ['Tanggal', 'Dosen', 'Catatan', 'Dokumen']);
 
             $rows = Bimbingan::query()
-                ->where('skripsi_id', $skripsi->id)
+                ->where('tugas_akhir_id', $skripsi->id)
                 ->when($reviewerId > 0, fn ($query) => $query->where('reviewer_id', $reviewerId))
                 ->with(['reviewer', 'reviewedVersion'])
                 ->orderByDesc('meeting_date')
@@ -130,7 +133,7 @@ class BimbinganController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function exportPdf(Request $request, Skripsi $skripsi): View
+    public function exportPdf(Request $request, TugasAkhir $skripsi): View
     {
         if ($skripsi->student_id !== $request->user()->id) {
             abort(403);
@@ -139,7 +142,7 @@ class BimbinganController extends Controller
         $reviewerId = (int) $request->query('reviewer_id', 0);
         $reviewer = $reviewerId > 0 ? $skripsi->assignments()->with('lecturer:id,name')->get()->pluck('lecturer')->firstWhere('id', $reviewerId) : null;
         $rows = Bimbingan::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->when($reviewerId > 0, fn ($query) => $query->where('reviewer_id', $reviewerId))
             ->with(['reviewer', 'reviewedVersion'])
             ->orderByDesc('meeting_date')
@@ -152,9 +155,9 @@ class BimbinganController extends Controller
         ]);
     }
 
-    public function update(Request $request, Skripsi $skripsi, Bimbingan $bimbingan, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse|JsonResponse
+    public function update(Request $request, TugasAkhir $skripsi, Bimbingan $bimbingan, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse|JsonResponse
     {
-        if ($skripsi->student_id !== $request->user()->id || $bimbingan->skripsi_id !== $skripsi->id) {
+        if ($skripsi->student_id !== $request->user()->id || $bimbingan->tugas_akhir_id !== $skripsi->id) {
             abort(403);
         }
 
@@ -169,15 +172,15 @@ class BimbinganController extends Controller
         if ($request->hasFile('revision_file')) {
             $file = $request->file('revision_file');
             $nextVersion = DocumentVersion::query()
-                ->where('skripsi_id', $skripsi->id)
+                ->where('tugas_akhir_id', $skripsi->id)
                 ->where('phase', $bimbingan->phase)
                 ->max('version_number');
 
             $nextVersion = ((int) $nextVersion) + 1;
-            $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), $bimbingan->phase . '_revision', $nextVersion, $file), 'local');
+            $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), $bimbingan->phase.'_revision', $nextVersion, $file), 'local');
 
             $document = DocumentVersion::query()->create([
-                'skripsi_id' => $skripsi->id,
+                'tugas_akhir_id' => $skripsi->id,
                 'phase' => $bimbingan->phase,
                 'version_number' => $nextVersion,
                 'file_path' => $path,
@@ -197,11 +200,11 @@ class BimbinganController extends Controller
             $notifications->send([$bimbingan->reviewer], [
                 'type' => 'bimbingan_revision_uploaded',
                 'title' => 'Revisi bimbingan baru',
-                'message' => ($skripsi->student?->name ?? 'Mahasiswa') . ' mengunggah revisi bimbingan untuk ' . str($bimbingan->phase)->replace('_', ' ')->title() . '.',
-                'url' => route('dosen.skripsi.show', $skripsi, false) . '#bimbingan-' . $bimbingan->id,
+                'message' => ($skripsi->student?->name ?? 'Mahasiswa').' mengunggah revisi bimbingan untuk '.str($bimbingan->phase)->replace('_', ' ')->title().'.',
+                'url' => $this->tugasAkhirRoutes->route('dosen', $skripsi, 'show', $skripsi, false).'#bimbingan-'.$bimbingan->id,
                 'actor' => $request->user()->name,
                 'meta' => [
-                    'skripsi_id' => $skripsi->id,
+                    'tugas_akhir_id' => $skripsi->id,
                     'bimbingan_id' => $bimbingan->id,
                     'phase' => $bimbingan->phase,
                     'student_name' => $skripsi->student?->name,
@@ -216,19 +219,19 @@ class BimbinganController extends Controller
                 'message' => 'Catatan dan revisi bimbingan berhasil diperbarui.',
                 'filename' => $document ? basename((string) $document->file_path) : null,
                 'url' => $bimbingan->revision_file_url,
-                'remove_url' => route('mahasiswa.skripsi.bimbingan.revision.destroy', [$skripsi, $bimbingan]),
-                'upload_url' => route('mahasiswa.skripsi.bimbingan.update', [$skripsi, $bimbingan]),
+                'remove_url' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'bimbingan.revision.destroy', [$skripsi, $bimbingan]),
+                'upload_url' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'bimbingan.update', [$skripsi, $bimbingan]),
             ]);
         }
 
         return redirect()
-            ->to(route('mahasiswa.skripsi.bimbingan.index', $skripsi, false) . '#bimbingan-' . $bimbingan->id)
+            ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'bimbingan.index', $skripsi, false).'#bimbingan-'.$bimbingan->id)
             ->with('success', 'Catatan dan revisi bimbingan berhasil diperbarui.');
     }
 
-    public function destroyRevision(Request $request, Skripsi $skripsi, Bimbingan $bimbingan): RedirectResponse|JsonResponse
+    public function destroyRevision(Request $request, TugasAkhir $skripsi, Bimbingan $bimbingan): RedirectResponse|JsonResponse
     {
-        if ($skripsi->student_id !== $request->user()->id || $bimbingan->skripsi_id !== $skripsi->id) {
+        if ($skripsi->student_id !== $request->user()->id || $bimbingan->tugas_akhir_id !== $skripsi->id) {
             abort(403);
         }
 

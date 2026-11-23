@@ -6,7 +6,7 @@ use App\Models\DocumentVersion;
 use App\Models\Grade;
 use App\Models\Periode;
 use App\Models\SidangRequest;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use App\Services\AuditLogPresenter;
 
@@ -76,7 +76,7 @@ it('presents representative topics and titles across every role workflow', funct
 })->with([
     'akun kaprodi' => ['kaprodi.mahasiswa.update', User::class, 'Akun', 'Akun diubah'],
     'keamanan superadmin' => ['superadmin.reauthenticated', User::class, 'Keamanan', 'Verifikasi ulang berhasil'],
-    'skripsi mahasiswa' => ['model.created', Skripsi::class, 'Skripsi', 'Skripsi disimpan'],
+    'tugas akhir mahasiswa' => ['model.created', TugasAkhir::class, 'Tugas Akhir', 'Tugas Akhir disimpan'],
     'bimbingan dosen' => ['model.updated', Bimbingan::class, 'Bimbingan', 'Bimbingan diubah'],
     'dokumen mahasiswa' => ['model.created', DocumentVersion::class, 'Dokumen', 'Versi dokumen disimpan'],
     'penilaian dosen' => ['model.updated', Grade::class, 'Penilaian', 'Penilaian diubah'],

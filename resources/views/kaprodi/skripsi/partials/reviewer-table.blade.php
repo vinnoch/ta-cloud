@@ -12,7 +12,7 @@
                     <button
                         class="text-link text-link--danger reviewer-remove-button acss-action-link"
                         type="button"
-                        data-url="{{ route('kaprodi.skripsi.reviewers.destroy', [$skripsi, $assignment]) }}"
+                        data-url="{{ app(\App\Services\TugasAkhirRouteService::class)->route('kaprodi', $skripsi, 'reviewers.destroy', [$skripsi, $assignment]) }}"
                     >
                         @include('partials.icons.x')<span>Remove</span>
                     </button>

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php $taRoutePrefix = $skripsi->type === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi'; @endphp
     @if (session('success'))
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
@@ -20,6 +21,7 @@
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
                     </div>
                     <div class="acss-profile-badges">
+                        <span class="pill">{{ $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span>
                         <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                     </div>
                 </div>
@@ -91,7 +93,7 @@
                 </div>
             </div>
             <div class="acss-crud-body">
-                <form method="POST" action="{{ route('mahasiswa.skripsi.final.skripsi.store', $skripsi) }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route($taRoutePrefix.'.final.skripsi.store', $skripsi) }}" enctype="multipart/form-data">
                     @csrf
                     <div class="rubric-list">
                         @foreach (($templateItems ?? collect()) as $item)
@@ -167,7 +169,7 @@
                         @endforeach
                     </div>
                     <div class="acss-form-actions" style="margin-top:1rem;">
-                        <a class="button button--muted button--inline" href="{{ route('mahasiswa.skripsi.show', $skripsi) }}">Batal</a>
+                        <a class="button button--muted button--inline" href="{{ route($taRoutePrefix.'.show', $skripsi) }}">Batal</a>
                         <button class="button button--primary button--inline" type="submit" @if(!($canUpload ?? false)) disabled @endif>Kirim Dokumen Final</button>
                     </div>
                 </form>

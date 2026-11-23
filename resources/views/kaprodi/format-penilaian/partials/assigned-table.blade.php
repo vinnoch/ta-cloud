@@ -13,7 +13,7 @@
 <div class="table-shell table-shell--format-assigned">
     <div class="table-shell__head table-shell__grid table-shell__grid--format-assigned">
         <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
-        <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
+        <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Tugas Akhir <span>{{ $indicator('judul') }}</span></button>
         <span>Nilai</span>
     </div>
     @forelse ($assignedSkripsis as $skripsi)
@@ -22,9 +22,9 @@
                 <strong>{{ $skripsi->student?->name ?? '-' }}</strong>
                 <small>{{ $skripsi->student?->nim ?? '-' }}</small>
                 <div class="acss-row-actions">
-                    <a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.show', $skripsi) }}" aria-label="Skripsi">
+                    <a class="text-link acss-action-link" href="{{ app(\App\Services\TugasAkhirRouteService::class)->route('kaprodi', $skripsi, 'show', $skripsi) }}" aria-label="Detail tugas akhir">
                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4.5C5.5 4.5 2.43 8.11 1.5 10c.93 1.89 4 5.5 8.5 5.5s7.57-3.61 8.5-5.5c-.93-1.89-4-5.5-8.5-5.5Z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Skripsi</span>
+                        <span>Tugas Akhir</span>
                     </a>
                     <span class="acss-action-separator">|</span>
                     <a class="text-link acss-action-link" href="{{ route('kaprodi.formats.grades.show', [$format, $skripsi]) }}" aria-label="Nilai">
@@ -33,7 +33,10 @@
                     </a>
                 </div>
             </div>
-            <div class="table-shell__cell table-shell__cell--title">{{ $skripsi->title ?: '-' }}</div>
+            <div class="table-shell__cell table-shell__cell--title">
+                <div>{{ $skripsi->title ?: '-' }}</div>
+                <div><span class="pill">{{ $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span></div>
+            </div>
             <div class="table-shell__cell">
                 <strong>{{ !is_null($skripsi->format_average_score) ? number_format((float) $skripsi->format_average_score, 2) : '-' }}</strong>
             </div>

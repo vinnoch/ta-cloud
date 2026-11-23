@@ -9,15 +9,16 @@
         <div class="table-shell__head table-shell__grid acss-table-cols-sidang-reqs">
             <button type="button" class="acss-sort-button" data-sort-column="tanggal" data-sort-direction="{{ $nextDirection('tanggal') }}">Tanggal <span>{{ $indicator('tanggal') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="mahasiswa" data-sort-direction="{{ $nextDirection('mahasiswa') }}">Mahasiswa <span>{{ $indicator('mahasiswa') }}</span></button>
-            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Skripsi <span>{{ $indicator('judul') }}</span></button>
+            <button type="button" class="acss-sort-button" data-sort-column="judul" data-sort-direction="{{ $nextDirection('judul') }}">Judul Tugas Akhir <span>{{ $indicator('judul') }}</span></button>
             <button type="button" class="acss-sort-button" data-sort-column="fase" data-sort-direction="{{ $nextDirection('fase') }}">Fase <span>{{ $indicator('fase') }}</span></button>
             <span>Status</span>
         </div>
     @endif
     @forelse ($requests as $item)
         @php
-            $advisorIds = $item->skripsi->assignments->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->pluck('lecturer_id')->unique();
-            $submittedAdvisorIds = $item->skripsi->sidangRequests->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->whereIn('status', ['submitted', 'approved'])->pluck('lecturer_id')->unique();
+            $itemRoutePrefix = $item->tugasAkhir->type === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi';
+            $advisorIds = $item->tugasAkhir->assignments->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->pluck('lecturer_id')->unique();
+            $submittedAdvisorIds = $item->tugasAkhir->sidangRequests->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])->whereIn('status', ['submitted', 'approved'])->pluck('lecturer_id')->unique();
             $canApprove = $item->role_type === 'mahasiswa' || ($advisorIds->isNotEmpty() && $submittedAdvisorIds->intersect($advisorIds)->count() === $advisorIds->count());
         @endphp
         <div class="table-shell__row table-shell__grid acss-table-cols-sidang-reqs acss-hover-row-group">
@@ -26,13 +27,13 @@
                 <div class="text-[10px] acss-muted">{{ $item->submitted_at?->format('H:i') ?? '' }}</div>
                 @if ($item->status !== 'approved')
                 <div class="acss-row-actions">
-                    <a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.show', $item->skripsi) }}">@include('partials.icons.eye')<span>Permohonan Sidang</span></a>
+                    <a class="text-link acss-action-link" href="{{ route($itemRoutePrefix.'.show', $item->tugasAkhir) }}">@include('partials.icons.eye')<span>Permohonan Sidang</span></a>
                     @if ($item->status === 'submitted' && $canApprove)
-                        <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.approve', [$item->skripsi, $item]) }}">
+                        <form method="POST" action="{{ route($itemRoutePrefix.'.sidang-request.approve', [$item->tugasAkhir, $item]) }}">
                             @csrf
                             <button class="button button--small button--success" type="submit">Setujui</button>
                         </form>
-                        <form method="POST" action="{{ route('kaprodi.skripsi.sidang-request.reject', [$item->skripsi, $item]) }}">
+                        <form method="POST" action="{{ route($itemRoutePrefix.'.sidang-request.reject', [$item->tugasAkhir, $item]) }}">
                             @csrf
                             <button class="button button--small button--danger" type="submit">Tolak</button>
                         </form>
@@ -40,10 +41,13 @@
                 </div>
                 @endif
             </div>
-            <div class="table-shell__cell"><strong>{{ $item->skripsi?->student?->name ?? '-' }}</strong><small>{{ $item->skripsi?->student?->nim ?? '-' }}</small></div>
-            <div class="table-shell__cell table-shell__cell--title">{{ $item->skripsi?->title ?: '-' }}</div>
+            <div class="table-shell__cell"><strong>{{ $item->tugasAkhir?->student?->name ?? '-' }}</strong><small>{{ $item->tugasAkhir?->student?->nim ?? '-' }}</small></div>
+            <div class="table-shell__cell table-shell__cell--title">
+                <div>{{ $item->tugasAkhir?->title ?: '-' }}</div>
+                <div><span class="pill">{{ $item->tugasAkhir?->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span></div>
+            </div>
             <div class="table-shell__cell">
-                <span class="pill">{{ $item->role_type === 'mahasiswa' ? 'Sidang Proposal' : 'Sidang Skripsi' }}</span>
+                <span class="pill">{{ $item->role_type === 'mahasiswa' ? 'Sidang Proposal' : ($item->tugasAkhir?->type === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi') }}</span>
                 @if($item->role_type !== 'mahasiswa')
                     <div class=""><small>Dosen: {{ $item->lecturer?->name ?? '-' }}</small></div>
                 @endif

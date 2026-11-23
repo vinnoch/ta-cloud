@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Kaprodi;
 
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Services\RoleNavigationService;
 
 trait BuildsKaprodiPage
 {
     /**
-    * @param  array<string, mixed>  $extra
-    * @return array<string, mixed>
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
      */
     protected function kaprodiPage(string $heading, string|array $crumbs, array $extra = []): array
     {
@@ -26,7 +26,7 @@ trait BuildsKaprodiPage
         ], $extra);
     }
 
-    protected function skripsiBreadcrumbs(Skripsi $skripsi, string $contextLabel): array
+    protected function skripsiBreadcrumbs(TugasAkhir $skripsi, string $contextLabel): array
     {
         $nim = (string) ($skripsi->student?->nim ?? '-');
 

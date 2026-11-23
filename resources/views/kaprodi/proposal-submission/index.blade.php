@@ -24,6 +24,14 @@
                     <input id="proposal-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari NIM, nama, atau judul proposal">
                 </label>
                 <label class="form-field acss-field-tight">
+                    <span>Tipe Tugas Akhir</span>
+                    <select name="tugas_akhir_type" id="proposal-type-input">
+                        <option value="all" {{ ($tugasAkhirType ?? 'all') === 'all' ? 'selected' : '' }}>Semua Tipe</option>
+                        <option value="skripsi" {{ ($tugasAkhirType ?? 'all') === 'skripsi' ? 'selected' : '' }}>Skripsi</option>
+                        <option value="non_skripsi" {{ ($tugasAkhirType ?? 'all') === 'non_skripsi' ? 'selected' : '' }}>Non-Skripsi</option>
+                    </select>
+                </label>
+                <label class="form-field acss-field-tight">
                     <span>Status</span>
                     <select name="status" id="proposal-status-input">
                         <option value="all" {{ ($statusFilter ?? 'all') === 'all' ? 'selected' : '' }}>Semua</option>

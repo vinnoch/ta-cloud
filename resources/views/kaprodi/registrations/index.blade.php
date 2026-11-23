@@ -9,52 +9,46 @@
         <div class="notice notice--danger" role="alert">{{ $errors->first() }}</div>
     @endif
 
-    <section class="card registration-review-card">
+    <section class="card registration-review-card" id="registration-list-root" data-endpoint="{{ route('registrations.index') }}">
         <div class="section-heading acss-crud-head--inline">
             <div class="acss-crud-head__title-group">
-                <p class="registration-eyebrow">Master Mahasiswa</p>
-                <h1 class="acss-page-title">Pendaftaran mahasiswa</h1>
-                <p class="acss-muted">Tinjau identitas dan kecocokan data sebelum mengaktifkan akun.</p>
+                <p class="registration-eyebrow">Manajemen Akun</p>
+                <h1 class="acss-page-title">Pendaftaran pengguna</h1>
+                <p class="acss-muted" id="count-text">{{ $registrations->total() }} pendaftaran ditemukan.</p>
             </div>
             <a class="button button--muted button--inline" href="{{ route('home') }}">Kembali</a>
         </div>
 
-        <div class="registration-review-filters" role="group" aria-label="Filter status pendaftaran">
-            @foreach (['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'] as $value => $label)
-                <a class="registration-filter {{ ($status ?? 'pending') === $value ? 'is-active' : '' }}" href="{{ request()->fullUrlWithQuery(['status' => $value]) }}">{{ $label }}</a>
-            @endforeach
-        </div>
+        <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route('registrations.index') }}" autocomplete="off">
+            <label class="form-field">
+                <span>Status</span>
+                <select name="status" id="status-select">
+                    @foreach (['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'] as $value => $statusLabel)
+                        <option value="{{ $value }}" @selected(($status ?? 'pending') === $value)>{{ $statusLabel }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="form-field">
+                <span>User Level</span>
+                <select name="role" id="role-select">
+                    <option value="">Semua User Level</option>
+                    @foreach (($reviewableRoles ?? []) as $roleValue)
+                        <option value="{{ $roleValue }}" @selected(($role ?? '') === $roleValue)>{{ str($roleValue)->title() }}</option>
+                    @endforeach
+                </select>
+            </label>
+        </form>
 
-        <div class="registration-review-list">
-            @forelse ($registrations as $registration)
-                @php
-                    $approveRoute = route('registrations.approve', $registration);
-                    $rejectRoute = route('registrations.reject', $registration);
-                @endphp
-                <article class="registration-review-item">
-                    <div class="registration-review-item__identity">
-                        <span class="registration-identity__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($registration->name, 0, 1)) }}</span>
-                        <div><strong>{{ $registration->name }}</strong><span>{{ $registration->nim }} · {{ $registration->email }}</span></div>
-                    </div>
-                    <dl class="registration-evidence">
-                        <div><dt>Metode</dt><dd>{{ ucfirst($registration->registration_method ?? 'email') }}</dd></div>
-                        <div><dt>Program studi</dt><dd>{{ $registration->studyProgram?->name ?? '-' }}</dd></div>
-                        <div><dt>Data master</dt><dd><span class="status-pill {{ ($registration->master_data_matches ?? false) ? 'status-pill--active' : 'status-pill--locked' }}">{{ ($registration->master_data_matches ?? false) ? 'Cocok' : 'Perlu diperiksa' }}</span></dd></div>
-                        <div><dt>Dikirim</dt><dd>{{ optional($registration->created_at)->diffForHumans() ?? '-' }}</dd></div>
-                    </dl>
-                    @if ($registration->account_status === 'pending')
-                        <div class="registration-review-actions">
-                            <form method="POST" action="{{ $approveRoute }}">@csrf @method('PATCH')<button class="button button--inline" type="submit" @disabled($approveRoute === '#')>Setujui</button></form>
-                            <details class="registration-reject">
-                                <summary class="button button--muted button--inline">Tolak</summary>
-                                <form method="POST" action="{{ $rejectRoute }}">@csrf @method('PATCH')<label for="rejection_reason_{{ $registration->id }}">Alasan penolakan</label><textarea id="rejection_reason_{{ $registration->id }}" name="rejection_reason" required maxlength="500"></textarea><button class="button button--danger button--inline" type="submit" @disabled($rejectRoute === '#')>Konfirmasi penolakan</button></form>
-                            </details>
-                        </div>
-                    @endif
-                </article>
-            @empty
-                <div class="empty-state registration-empty"><strong>Tidak ada pendaftaran pada status ini.</strong><span>Pendaftaran baru akan muncul setelah mahasiswa mengirim dan memverifikasi email.</span></div>
-            @endforelse
-        </div>
+        <div id="table-wrapper">@include('kaprodi.registrations.partials.list')</div>
+        <div id="pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.registrations.partials.pagination')</div>
     </section>
+
+    @include('partials.ajax-list-script', [
+        'rootId' => 'registration-list-root',
+        'formId' => 'filter-form',
+        'statusSelectId' => 'status-select',
+        'tableWrapperId' => 'table-wrapper',
+        'paginationWrapperId' => 'pagination-wrapper',
+        'countTextId' => 'count-text',
+    ])
 @endsection

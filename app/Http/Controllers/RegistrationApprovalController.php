@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\RejectRegistrationRequest;
 use App\Models\User;
 use App\Services\PrivilegedAudit;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,18 +14,42 @@ use Illuminate\View\View;
 
 class RegistrationApprovalController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): JsonResponse|View
     {
-        $status = $request->validate(['status' => ['nullable', Rule::in(['pending', 'active', 'rejected'])]])['status'] ?? 'pending';
+        $validated = $request->validate([
+            'status' => ['nullable', Rule::in(['pending', 'approved', 'active', 'rejected'])],
+            'role' => ['nullable', Rule::in(['mahasiswa', 'dosen', 'kaprodi'])],
+        ]);
+        $requestedStatus = $validated['status'] ?? 'pending';
+        $status = in_array($requestedStatus, ['approved', 'active'], true) ? 'approved' : $requestedStatus;
+        $accountStatus = $status === 'approved' ? 'active' : $status;
+        $role = $validated['role'] ?? '';
+        $reviewableRoles = $request->user()->role === 'kaprodi'
+            ? ['mahasiswa', 'dosen']
+            : ['mahasiswa', 'dosen', 'kaprodi'];
+
         $registrations = User::query()
             ->with('studyProgram')
             ->where('registration_method', 'google')
-            ->where('account_status', $status)
+            ->where('account_status', $accountStatus)
+            ->whereIn('role', $reviewableRoles)
+            ->when($role !== '', fn ($query) => $query->where('role', $role))
             ->when($request->user()->role === 'kaprodi', fn ($query) => $query->where('study_program_id', $request->user()->study_program_id))
             ->latest()
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
 
-        return view('kaprodi.registrations.index', compact('registrations', 'status'));
+        $viewData = compact('registrations', 'status', 'role', 'reviewableRoles');
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'table_html' => view('kaprodi.registrations.partials.list', $viewData)->render(),
+                'pagination_html' => view('kaprodi.registrations.partials.pagination', $viewData)->render(),
+                'count_text' => $registrations->total().' pendaftaran ditemukan.',
+            ]);
+        }
+
+        return view('kaprodi.registrations.index', $viewData);
     }
 
     public function approve(Request $request, User $registration): RedirectResponse

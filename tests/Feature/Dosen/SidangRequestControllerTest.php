@@ -3,8 +3,8 @@
 use App\Models\Periode;
 use App\Models\ReviewerAssignment;
 use App\Models\SidangRequest;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -27,7 +27,7 @@ beforeEach(function () {
         'is_aktif' => true,
         'status' => 'active',
     ]);
-    $this->skripsi = Skripsi::query()->create([
+    $this->skripsi = TugasAkhir::query()->create([
         'student_id' => $student->id,
         'periode_id' => $periode->id,
         'title' => 'Ready for Sidang',
@@ -35,17 +35,17 @@ beforeEach(function () {
         'current_phase' => 'bimbingan_skripsi',
     ]);
     ReviewerAssignment::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'lecturer_id' => $this->primaryAdvisor->id,
         'role_type' => 'pembimbing_1',
     ]);
     ReviewerAssignment::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'lecturer_id' => $this->secondaryAdvisor->id,
         'role_type' => 'pembimbing_2',
     ]);
     ReviewerAssignment::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'lecturer_id' => $this->reviewer->id,
         'role_type' => 'penguji_1',
     ]);
@@ -57,7 +57,7 @@ it('allows the primary advisor to submit a sidang request', function () {
         ->assertRedirect(route('dosen.sidang-request.index', ['status' => 'submitted']));
 
     $this->assertDatabaseHas('sidang_requests', [
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'lecturer_id' => $this->primaryAdvisor->id,
         'role_type' => 'pembimbing_1',
         'status' => 'submitted',
@@ -113,7 +113,7 @@ it('does not show kaprodi approval for stale requests from former advisors', fun
 
     foreach ([$this->primaryAdvisor, $formerAdvisor] as $advisor) {
         SidangRequest::query()->create([
-            'skripsi_id' => $this->skripsi->id,
+            'tugas_akhir_id' => $this->skripsi->id,
             'lecturer_id' => $advisor->id,
             'role_type' => 'pembimbing_1',
             'status' => 'submitted',
@@ -139,7 +139,7 @@ it('blocks an assigned non-advisor from submitting a sidang request', function (
 
 it('shows every request status in the dashboard total', function () {
     SidangRequest::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'lecturer_id' => $this->primaryAdvisor->id,
         'role_type' => 'pembimbing_1',
         'status' => 'approved',

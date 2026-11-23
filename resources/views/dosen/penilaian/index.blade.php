@@ -29,6 +29,7 @@
                         <option value="">Semua</option>
                         <option value="sidang_proposal" {{ ($nilaiSidang ?? '') === 'sidang_proposal' ? 'selected' : '' }}>Sidang Proposal</option>
                         <option value="sidang_skripsi" {{ ($nilaiSidang ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Sidang Skripsi</option>
+                        <option value="sidang_non_skripsi" {{ ($nilaiSidang ?? '') === 'sidang_non_skripsi' ? 'selected' : '' }}>Sidang Non-Skripsi</option>
                     </select>
                 </label>
             </form>

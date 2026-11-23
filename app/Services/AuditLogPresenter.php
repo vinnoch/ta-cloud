@@ -12,13 +12,12 @@ use App\Models\FormatPenilaian;
 use App\Models\Grade;
 use App\Models\GradeItem;
 use App\Models\ItemPenilaian;
-use App\Models\NonSkripsiRecord;
 use App\Models\Periode;
 use App\Models\ReviewerAssignment;
 use App\Models\SidangRequest;
-use App\Models\Skripsi;
 use App\Models\StudyProgram;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use App\Models\UserLevel;
 use Illuminate\Database\Eloquent\Builder;
@@ -51,9 +50,9 @@ class AuditLogPresenter
             'actions' => ['%sidang%'],
             'targets' => [SidangRequest::class],
         ],
-        'Skripsi' => [
-            'actions' => ['%skripsi%', '%proposal%', '%final-review%', '%reviewer%', '%non-skripsi%'],
-            'targets' => [Skripsi::class, ReviewerAssignment::class, NonSkripsiRecord::class],
+        'Tugas Akhir' => [
+            'actions' => ['%tugas-akhir%', '%tugas_akhir%', '%skripsi%', '%proposal%', '%final-review%', '%reviewer%', '%non-skripsi%'],
+            'targets' => [TugasAkhir::class, ReviewerAssignment::class],
         ],
         'Akademik' => [
             'actions' => ['%periode%', '%tahun-akademik%', '%program-studi%'],
@@ -216,8 +215,7 @@ class AuditLogPresenter
     private function subjectFor(AuditLog $log): string
     {
         $modelSubjects = [
-            Skripsi::class => 'Skripsi',
-            NonSkripsiRecord::class => 'Data non-skripsi',
+            TugasAkhir::class => 'Tugas Akhir',
             ReviewerAssignment::class => 'Penugasan reviewer',
             Bimbingan::class => 'Bimbingan',
             DocumentVersion::class => 'Versi dokumen',
@@ -248,7 +246,10 @@ class AuditLogPresenter
             '*document*' => 'Dokumen',
             '*dokumen*' => 'Dokumen',
             '*proposal*' => 'Proposal',
-            '*skripsi*' => 'Skripsi',
+            '*tugas-akhir*' => 'Tugas Akhir',
+            '*tugas_akhir*' => 'Tugas Akhir',
+            '*skripsi*' => 'Tugas Akhir',
+            '*non-skripsi*' => 'Tugas Akhir',
             '*periode*' => 'Periode',
             '*tahun-akademik*' => 'Tahun akademik',
             '*registration*' => 'Pendaftaran',

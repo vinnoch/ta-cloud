@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use Illuminate\Support\Facades\Route;
 
 class RoleNavigationService
@@ -20,6 +20,8 @@ class RoleNavigationService
             ['label' => 'Dashboard', 'href' => route('superadmin.dashboard'), 'active' => 'superadmin.dashboard', 'icon' => 'partials.icons.dashboard-monitor'],
             ['label' => 'Users', 'href' => route('superadmin.users.index'), 'active' => 'superadmin.users.*', 'icon' => 'partials.icons.grid'],
             ['label' => 'Pendaftaran', 'href' => route('registrations.index'), 'active' => 'registrations.*', 'icon' => 'partials.icons.clipboard'],
+            ['label' => 'Skripsi', 'href' => route('superadmin.skripsi.index'), 'active' => 'superadmin.skripsi.*', 'icon' => 'partials.icons.file'],
+            ['label' => 'Non-Skripsi', 'href' => route('superadmin.non-skripsi.index'), 'active' => 'superadmin.non-skripsi.*', 'icon' => 'partials.icons.file-plain'],
             ['label' => 'Setting', 'href' => route('superadmin.settings.edit'), 'active' => 'superadmin.settings.*', 'icon' => 'partials.icons.edit'],
             ['label' => 'Log Sistem', 'href' => route('superadmin.audit.index'), 'active' => 'superadmin.audit.*', 'icon' => 'partials.icons.phase-shield'],
         ];
@@ -33,16 +35,16 @@ class RoleNavigationService
             [
                 'label' => 'Monitoring',
                 'href' => route('kaprodi.skripsi.index'),
-                'active' => ['kaprodi.skripsi.index', 'kaprodi.proposal-submissions.*', 'kaprodi.sidang-requests.*', 'kaprodi.final-reviews.*'],
+                'active' => ['kaprodi.skripsi.*', 'kaprodi.non-skripsi.*', 'kaprodi.proposal-submissions.*', 'kaprodi.sidang-requests.*', 'kaprodi.final-reviews.*'],
                 'icon' => 'partials.icons.eye',
                 'children' => [
-                    ['label' => 'Skripsi', 'href' => route('kaprodi.skripsi.index'), 'active' => 'kaprodi.skripsi.index', 'icon' => 'partials.icons.file'],
+                    ['label' => 'Skripsi', 'href' => route('kaprodi.skripsi.index'), 'active' => 'kaprodi.skripsi.*', 'icon' => 'partials.icons.file'],
+                    ['label' => 'Non-Skripsi', 'href' => route('kaprodi.non-skripsi.index'), 'active' => 'kaprodi.non-skripsi.*', 'icon' => 'partials.icons.file-plain'],
                     ['label' => 'Pengajuan Proposal', 'href' => route('kaprodi.proposal-submissions.index'), 'active' => 'kaprodi.proposal-submissions.*', 'icon' => 'partials.icons.clipboard'],
                     ['label' => 'Permohonan Sidang', 'href' => route('kaprodi.sidang-requests.index'), 'active' => 'kaprodi.sidang-requests.*', 'icon' => 'partials.icons.phase-flag'],
                     ['label' => 'Dokumen Final', 'href' => route('kaprodi.final-reviews.index'), 'active' => 'kaprodi.final-reviews.*', 'icon' => 'partials.icons.phase-flag'],
                 ],
             ],
-            ['label' => 'Non-Skripsi', 'href' => route('kaprodi.non-skripsi.index'), 'active' => 'kaprodi.non-skripsi.*', 'icon' => 'partials.icons.file'],
             [
                 'label' => 'Master Data',
                 'href' => route('kaprodi.dosen.index'),
@@ -70,6 +72,7 @@ class RoleNavigationService
             ['label' => 'Dashboard', 'href' => route('dosen.dashboard'), 'active' => 'dosen.dashboard', 'icon' => 'partials.icons.dashboard-monitor'],
             ['label' => 'Proposal', 'href' => route('dosen.proposal.index'), 'active' => 'dosen.proposal.*', 'icon' => 'partials.icons.clipboard'],
             ['label' => 'Skripsi', 'href' => route('dosen.skripsi.index'), 'active' => 'dosen.skripsi.*', 'icon' => 'partials.icons.file'],
+            ['label' => 'Non-Skripsi', 'href' => route('dosen.non-skripsi.index'), 'active' => 'dosen.non-skripsi.*', 'icon' => 'partials.icons.file-plain'],
             ['label' => 'Pengajuan Sidang', 'href' => route('dosen.sidang-request.index'), 'active' => 'dosen.sidang-request.*', 'icon' => 'partials.icons.phase-flag'],
             ['label' => 'Penilaian & Revisi', 'href' => route('dosen.penilaian.index'), 'active' => 'dosen.penilaian.*', 'icon' => 'partials.icons.clipboard'],
         ];
@@ -82,30 +85,43 @@ class RoleNavigationService
         $resolvedSkripsiId = $skripsiId;
 
         if (! $resolvedSkripsiId && $userId && Route::has('mahasiswa.skripsi.bimbingan.index')) {
-            $resolvedSkripsiId = Skripsi::query()->where('student_id', $userId)->value('id');
+            $resolvedSkripsiId = TugasAkhir::query()->where('student_id', $userId)->value('id');
         }
 
-        $items[] = ['label' => 'Tugas Akhir', 'href' => route('mahasiswa.skripsi.index'), 'active' => ['mahasiswa.skripsi.index', 'mahasiswa.skripsi.show', 'mahasiswa.skripsi.create', 'mahasiswa.skripsi.edit'], 'icon' => 'partials.icons.file'];
+        $resolvedTugasAkhir = $resolvedSkripsiId
+            ? TugasAkhir::query()->select(['id', 'type', 'current_phase'])->find($resolvedSkripsiId)
+            : null;
+        $registrationHref = $resolvedTugasAkhir
+            ? app(TugasAkhirRouteService::class)->route('mahasiswa', $resolvedTugasAkhir, 'index')
+            : route('mahasiswa.pendaftaran.create');
+
+        $items[] = [
+            'label' => 'Pendaftaran',
+            'href' => $registrationHref,
+            'active' => ['mahasiswa.pendaftaran.*', 'mahasiswa.skripsi.index', 'mahasiswa.skripsi.create', 'mahasiswa.skripsi.store', 'mahasiswa.non-skripsi.index', 'mahasiswa.non-skripsi.create', 'mahasiswa.non-skripsi.store'],
+            'icon' => 'partials.icons.clipboard',
+        ];
 
         if ($resolvedSkripsiId) {
-            $resolvedSkripsi = Skripsi::query()->select(['id', 'current_phase'])->find($resolvedSkripsiId);
+            $resolvedSkripsi = $resolvedTugasAkhir;
+            $routePrefix = $resolvedSkripsi?->type === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi';
             $canAccessProgressMenus = $resolvedSkripsi
                 && ! in_array($resolvedSkripsi->current_phase, ['proposal', 'sidang_proposal'], true);
 
-            if ($canAccessProgressMenus && Route::has('mahasiswa.skripsi.bimbingan.index')) {
-                $items[] = ['label' => 'Bimbingan', 'href' => route('mahasiswa.skripsi.bimbingan.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.bimbingan.*', 'icon' => 'partials.icons.folder'];
+            if ($canAccessProgressMenus && Route::has($routePrefix.'.bimbingan.index')) {
+                $items[] = ['label' => 'Bimbingan', 'href' => route($routePrefix.'.bimbingan.index', $resolvedSkripsiId), 'active' => [$routePrefix.'.bimbingan.*'], 'icon' => 'partials.icons.folder'];
             }
 
-            if ($canAccessProgressMenus && Route::has('mahasiswa.skripsi.nilai.index')) {
-                $items[] = ['label' => 'Nilai', 'href' => route('mahasiswa.skripsi.nilai.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.nilai.*', 'icon' => 'partials.icons.phase-flag'];
+            if ($canAccessProgressMenus && Route::has($routePrefix.'.nilai.index')) {
+                $items[] = ['label' => 'Nilai', 'href' => route($routePrefix.'.nilai.index', $resolvedSkripsiId), 'active' => [$routePrefix.'.nilai.*'], 'icon' => 'partials.icons.phase-flag'];
             }
 
             if (
                 $resolvedSkripsi
-                && Route::has('mahasiswa.skripsi.final.skripsi.index')
+                && Route::has($routePrefix.'.final.skripsi.index')
                 && in_array($resolvedSkripsi->current_phase, ['revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'], true)
             ) {
-                $items[] = ['label' => 'Dokumen Final', 'href' => route('mahasiswa.skripsi.final.skripsi.index', $resolvedSkripsiId), 'active' => 'mahasiswa.skripsi.final.skripsi.*', 'icon' => 'partials.icons.file-plain'];
+                $items[] = ['label' => 'Dokumen Final', 'href' => route($routePrefix.'.final.skripsi.index', $resolvedSkripsiId), 'active' => [$routePrefix.'.final.skripsi.*'], 'icon' => 'partials.icons.file-plain'];
             }
         }
 

@@ -2,6 +2,9 @@
 
 @section('content')
     @php
+        $taType = $skripsi->type;
+        $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+        $taRoutePrefix = $taType === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi';
         $isProposalPhase = $skripsi->isProposalPhase();
         $hasSubmittedProposal = ($proposalVersions ?? collect())->isNotEmpty();
         $isProposalProcessing = $skripsi->isProposalPhase()
@@ -37,13 +40,14 @@
                                     <div><strong>Sidang Proposal:</strong> {{ $sidangProposalSchedule->translatedFormat('d M Y H:i') }}</div>
                                 @endif
                                 @if ($sidangSkripsiSchedule ?? null)
-                                    <div><strong>Sidang Skripsi:</strong> {{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</div>
+                                    <div><strong>Sidang {{ $taLabel }}:</strong> {{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</div>
                                 @endif
                             </div>
                         @endif
                         
                     </div>
                     <div class="acss-profile-badges">
+                        <span class="pill">{{ $taLabel }}</span>
                         <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
                     </div>
                 </div>
@@ -101,9 +105,9 @@
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Dokumen Final</h3>
-                    <p class="acss-muted">{{ $dokumenFinalStatus['description'] ?? 'Status dokumen final skripsi.' }}</p>
+                    <p class="acss-muted">{{ $dokumenFinalStatus['description'] ?? 'Status dokumen final tugas akhir.' }}</p>
                 </div>
-                <a class="button button--inline" href="{{ $dokumenFinalStatus['href'] ?? route('mahasiswa.skripsi.final.skripsi.index', $skripsi) }}">
+                <a class="button button--inline" href="{{ $dokumenFinalStatus['href'] ?? route($taRoutePrefix.'.final.skripsi.index', $skripsi) }}">
                     {{ ($dokumenFinalStatus['label'] ?? '') === 'Approved' ? 'Approved' : 'Sedang Dicek' }}
                 </a>
             </div>
@@ -113,7 +117,7 @@
     <section class="acss-crud-card" id="riwayat-proposal">
         <div class="acss-crud-head acss-crud-head--inline">
             <div>
-                <h3 class="acss-card-title">Proposal Skripsi</h3>
+                <h3 class="acss-card-title">Proposal Tugas Akhir</h3>
             </div>
             @if (($canProposalUpload ?? false) && !($needsProposalUpload ?? false))
                 <div class="acss-crud-head__actions">
@@ -141,7 +145,7 @@
                     <div class="table-shell__cell">{{ $document->version_number <= 1 ? 'Upload Baru' : 'Revisi ' . ($document->version_number - 1) }}</div>
                     <div class="table-shell__cell table-shell__cell--action">
                         @php
-                            $fileUrl = route('mahasiswa.skripsi.proposal.file', [$skripsi, $document]);
+                            $fileUrl = route($taRoutePrefix.'.proposal.file', [$skripsi, $document]);
                         @endphp
                         <button type="button" class="text-link acss-action-link" data-preview-open data-preview-url="{{ $fileUrl }}" data-preview-title="Proposal v{{ $document->version_number }}">
                             @include('partials.icons.eye')<span>File PDF</span>
@@ -174,7 +178,7 @@
                         <strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong>
                         <div class="text-[10px] acss-muted">{{ $bimbingan->created_at?->format('H:i') ?? '' }}</div>
                         <div class="acss-row-actions">
-                            <a class="text-link acss-action-link" href="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) . '#bimbingan-' . $bimbingan->id }}">@include('partials.icons.eye')<span>Bimbingan</span></a>
+                            <a class="text-link acss-action-link" href="{{ route($taRoutePrefix.'.bimbingan.index', $skripsi) . '#bimbingan-' . $bimbingan->id }}">@include('partials.icons.eye')<span>Bimbingan</span></a>
                         </div>
                     </div>
                     <div class="table-shell__cell">{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
@@ -193,7 +197,7 @@
             @endforelse
         </div>
         <div class="acss-link-gap-top">
-            <a class="acss-link-subtle" href="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) }}">Lihat Semua Histori Bimbingan</a>
+            <a class="acss-link-subtle" href="{{ route($taRoutePrefix.'.bimbingan.index', $skripsi) }}">Lihat Semua Histori Bimbingan</a>
         </div>
         </div>
     </section>

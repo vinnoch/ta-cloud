@@ -6,6 +6,7 @@
             <div>
                 <h1 class="acss-page-title">{{ $skripsi->title }}</h1>
                 <p class="acss-muted">{{ $skripsi->student?->name ?? '-' }} • {{ $skripsi->student?->level?->name ?? 'Sistem Informasi' }}</p>
+                <span class="pill">{{ $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span>
             </div>
         </div>
         <div class="acss-crud-body">

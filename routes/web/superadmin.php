@@ -5,7 +5,9 @@ use App\Http\Controllers\Superadmin\DashboardController;
 use App\Http\Controllers\Superadmin\ReauthenticationController;
 use App\Http\Controllers\Superadmin\SettingController;
 use App\Http\Controllers\Superadmin\SystemInformationController;
+use App\Http\Controllers\Superadmin\TugasAkhirController;
 use App\Http\Controllers\Superadmin\UserController;
+use App\Http\Middleware\EnsureTugasAkhirRouteType;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:superadmin'])->group(function (): void {
@@ -15,6 +17,10 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     Route::get('/reauth/google/callback', [ReauthenticationController::class, 'callback'])->name('reauth.callback');
     Route::get('/reauth/resume', [ReauthenticationController::class, 'resume'])->name('reauth.resume');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/skripsi', [TugasAkhirController::class, 'index'])->name('skripsi.index');
+    Route::get('/skripsi/{skripsi}', [TugasAkhirController::class, 'show'])->middleware(EnsureTugasAkhirRouteType::class)->name('skripsi.show');
+    Route::get('/non-skripsi', [TugasAkhirController::class, 'index'])->name('non-skripsi.index');
+    Route::get('/non-skripsi/{skripsi}', [TugasAkhirController::class, 'show'])->middleware(EnsureTugasAkhirRouteType::class)->name('non-skripsi.show');
     Route::post('/users', [UserController::class, 'store'])->middleware('fresh.superadmin')->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->middleware('fresh.superadmin')->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('fresh.superadmin')->name('users.destroy');

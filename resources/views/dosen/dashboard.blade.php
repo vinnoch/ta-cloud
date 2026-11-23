@@ -26,20 +26,23 @@
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Antrian Penilaian</h3>
-                <p class="acss-muted ">Skripsi sidang yang menunggu draft/final nilai dari Anda.</p>
+                <p class="acss-muted ">Tugas akhir yang menunggu draft/final nilai dari Anda.</p>
             </div>
         </div>
         <div class="acss-section-card__body">
             <div class="table-shell">
                 <div class="table-shell__head table-shell__grid acss-table-cols-dosen-dash-grading">
-                    <span>Mahasiswa</span><span>Judul Skripsi</span><span>Peran</span>
+                    <span>Mahasiswa</span><span>Judul Tugas Akhir</span><span>Peran</span>
                 </div>
                 @forelse ($gradingQueue as $item)
                     <div class="table-shell__row table-shell__grid acss-table-cols-dosen-dash-grading acss-hover-row-group">
                         <div class="table-shell__cell"><strong>{{ $item['student'] }}</strong>
                             <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ $item['href'] }}">@include('partials.icons.clipboard')<span>Isi Nilai</span></a></div>
                         </div>
-                        <div class="table-shell__cell table-shell__cell--title">{{ $item['title'] }}</div>
+                        <div class="table-shell__cell table-shell__cell--title">
+                            <div>{{ $item['title'] }}</div>
+                            <div><span class="pill">{{ $item['type_label'] }}</span></div>
+                        </div>
                         <div class="table-shell__cell"><span class="pill">{{ strtoupper($item['role']) }}</span></div>
                     </div>
                 @empty

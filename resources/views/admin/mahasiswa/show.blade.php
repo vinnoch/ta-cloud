@@ -4,7 +4,7 @@
     @include('partials.crud.show', [
         'title' => 'Detail Mahasiswa',
         'eyebrow' => 'Admin • Detail Mahasiswa',
-        'description' => 'Profil mahasiswa, status akademik, dan keterkaitan ke skripsi aktif.',
+        'description' => 'Profil mahasiswa, status akademik, dan keterkaitan ke tugas akhir aktif.',
         'actions' => [['href' => route('admin.mahasiswa.edit', ['id' => $id]), 'label' => 'Edit Mahasiswa']],
         'cards' => $cards,
         'sideCards' => $sideCards,

@@ -4,14 +4,15 @@
 
 @if ($timelineSkripsi)
     @php
+        $timelineTypeLabel = $timelineSkripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
         $phaseTimeline = [
             ['key' => 'proposal', 'label' => 'Proposal'],
             ['key' => 'sidang_proposal', 'label' => 'Sidang Proposal'],
-            ['key' => 'bimbingan_skripsi', 'label' => 'Bimbingan Skripsi'],
-            ['key' => 'sidang_skripsi', 'label' => 'Sidang Skripsi'],
-            ['key' => 'revisi_sidang_skripsi', 'label' => 'Revisi Skripsi'],
+            ['key' => 'bimbingan_skripsi', 'label' => 'Bimbingan '.$timelineTypeLabel],
+            ['key' => 'sidang_skripsi', 'label' => 'Sidang '.$timelineTypeLabel],
+            ['key' => 'revisi_sidang_skripsi', 'label' => 'Revisi '.$timelineTypeLabel],
             ['key' => 'review_dokumen_final', 'label' => 'Dokumen Final'],
-            ['key' => 'skripsi_selesai', 'label' => 'Skripsi Selesai'],
+            ['key' => 'skripsi_selesai', 'label' => $timelineTypeLabel.' Selesai'],
         ];
         $normalizedPhase = str((string) ($timelineSkripsi->current_phase ?? ''))
             ->lower()
@@ -30,7 +31,7 @@
 
         $currentPhaseIndex = collect($phaseTimeline)->search(fn($item) => $item['key'] === $currentPhaseKey);
         $currentPhaseIndex = $currentPhaseIndex === false ? 0 : $currentPhaseIndex;
-        $timelineTitle = $timelineTitle ?? 'Timeline Fase Skripsi';
+        $timelineTitle = $timelineTitle ?? 'Timeline Fase Tugas Akhir';
     @endphp
 
     <section class="card">

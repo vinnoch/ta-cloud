@@ -17,14 +17,21 @@ class NilaiController extends Controller
         $search = $request->string('q')->toString();
         $sort = $request->string('sort')->toString();
         $direction = strtolower($request->string('direction')->toString()) === 'asc' ? 'asc' : 'desc';
-        $skripsiId = $request->integer('skripsi_id');
+        $skripsiId = $request->integer('tugas_akhir_id');
+        $jenis = $request->string('jenis')->toString();
+        if (! in_array($jenis, ['', 'sidang_proposal', 'sidang_skripsi', 'sidang_non_skripsi'], true)) {
+            $jenis = '';
+        }
 
         $nilai = DB::table('grades as g')
-            ->join('skripsis as s', 's.id', '=', 'g.skripsi_id')
+            ->join('tugas_akhirs as s', 's.id', '=', 'g.tugas_akhir_id')
             ->join('users as students', 'students.id', '=', 's.student_id')
             ->leftJoin('users as reviewers', 'reviewers.id', '=', 'g.reviewer_id')
             ->whereIn('g.grade_event', ['sidang_proposal', 'sidang_skripsi'])
-            ->when($skripsiId > 0, fn ($query) => $query->where('g.skripsi_id', $skripsiId))
+            ->when($jenis === 'sidang_proposal', fn ($query) => $query->where('g.grade_event', 'sidang_proposal'))
+            ->when($jenis === 'sidang_skripsi', fn ($query) => $query->where('g.grade_event', 'sidang_skripsi')->where('s.type', 'skripsi'))
+            ->when($jenis === 'sidang_non_skripsi', fn ($query) => $query->where('g.grade_event', 'sidang_skripsi')->where('s.type', 'non_skripsi'))
+            ->when($skripsiId > 0, fn ($query) => $query->where('g.tugas_akhir_id', $skripsiId))
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($innerQuery) use ($search): void {
                     $innerQuery->where('students.name', 'like', "%{$search}%")
@@ -35,7 +42,7 @@ class NilaiController extends Controller
             })
             ->select([
                 'g.id',
-                'g.skripsi_id',
+                'g.tugas_akhir_id',
                 'g.format_penilaian_id',
                 'g.grade_event',
                 'g.status',
@@ -44,6 +51,7 @@ class NilaiController extends Controller
                 'students.name as student_name',
                 'students.nim as nim',
                 's.title as title',
+                's.type as tugas_akhir_type',
                 's.current_phase as current_phase',
                 'reviewers.name as reviewer_name',
                 'g.updated_at as last_added_at',
@@ -61,7 +69,7 @@ class NilaiController extends Controller
             return response()->json([
                 'table_html' => view('kaprodi.nilai.partials.table', ['data_nilai' => $nilai, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('kaprodi.nilai.partials.pagination', ['data_nilai' => $nilai])->render(),
-                'count_text' => $nilai->total() . ' nilai ditemukan.',
+                'count_text' => $nilai->total().' nilai ditemukan.',
             ]);
         }
 
@@ -72,6 +80,7 @@ class NilaiController extends Controller
             'direction' => $direction,
             'sideCards' => [],
             'skripsiId' => $skripsiId,
+            'jenis' => $jenis,
         ]));
     }
 

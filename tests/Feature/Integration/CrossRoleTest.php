@@ -4,7 +4,7 @@ use App\Models\FormatPenilaian;
 use App\Models\ItemPenilaian;
 use App\Models\Periode;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\TahunAkademik;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,10 +25,10 @@ beforeEach(function () {
         'id' => 1, 'tahun_akademik_id' => $tahun->id, 'kode_periode' => '20251', 'semester' => 1,
         'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01', 'tgl_selesai' => '2026-01-31', 'is_aktif' => true, 'status' => 'active',
     ]);
-    $this->skripsi = Skripsi::query()->create([
+    $this->skripsi = TugasAkhir::query()->create([
         'student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA Integrasi', 'type' => 'skripsi', 'current_phase' => 'sidang_skripsi',
     ]);
-    ReviewerAssignment::query()->create(['skripsi_id' => $this->skripsi->id, 'lecturer_id' => $this->dosen->id, 'role_type' => 'penguji_1']);
+    ReviewerAssignment::query()->create(['tugas_akhir_id' => $this->skripsi->id, 'lecturer_id' => $this->dosen->id, 'role_type' => 'pembimbing_1']);
 
     $this->format = FormatPenilaian::query()->create(['nama' => 'Format Sidang', 'template_type' => 'sidang_skripsi', 'is_published' => true, 'is_locked' => false, 'is_default' => true]);
     DB::table('format_periode')->insert(['format_penilaian_id' => $this->format->id, 'periode_id' => $this->periode->id, 'created_at' => now(), 'updated_at' => now()]);

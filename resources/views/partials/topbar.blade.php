@@ -76,16 +76,20 @@
         $skripsiSearchEndpoint = null;
         $skripsiSearchResultsUrl = null;
         $topbarRole = auth()->user()?->role;
+        $isNonSkripsiSection = request()->routeIs('*.non-skripsi.*');
 
-        if ($topbarRole === 'kaprodi' && \Illuminate\Support\Facades\Route::has('kaprodi.skripsi.index')) {
-            $skripsiSearchEndpoint = route('kaprodi.skripsi.index');
-            $skripsiSearchResultsUrl = route('kaprodi.skripsi.index');
-        } elseif ($topbarRole === 'dosen' && \Illuminate\Support\Facades\Route::has('dosen.skripsi.search')) {
-            $skripsiSearchEndpoint = route('dosen.skripsi.search');
-            $skripsiSearchResultsUrl = \Illuminate\Support\Facades\Route::has('dosen.skripsi.index') ? route('dosen.skripsi.index') : $skripsiSearchEndpoint;
-        } elseif ($topbarRole === 'mahasiswa' && \Illuminate\Support\Facades\Route::has('mahasiswa.skripsi.search')) {
-            $skripsiSearchEndpoint = route('mahasiswa.skripsi.search');
-            $skripsiSearchResultsUrl = \Illuminate\Support\Facades\Route::has('mahasiswa.skripsi.index') ? route('mahasiswa.skripsi.index') : $skripsiSearchEndpoint;
+        if (in_array($topbarRole, ['superadmin', 'kaprodi'], true)) {
+            $routeName = $topbarRole.'.'.($isNonSkripsiSection ? 'non-skripsi' : 'skripsi').'.index';
+            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+                $skripsiSearchEndpoint = route($routeName);
+                $skripsiSearchResultsUrl = route($routeName);
+            }
+        } elseif (in_array($topbarRole, ['dosen', 'mahasiswa'], true)) {
+            $routePrefix = $topbarRole.'.'.($isNonSkripsiSection ? 'non-skripsi' : 'skripsi');
+            if (\Illuminate\Support\Facades\Route::has($routePrefix.'.search')) {
+                $skripsiSearchEndpoint = route($routePrefix.'.search');
+                $skripsiSearchResultsUrl = \Illuminate\Support\Facades\Route::has($routePrefix.'.index') ? route($routePrefix.'.index') : $skripsiSearchEndpoint;
+            }
         }
 
         $skripsiSearchEnabled = !empty($skripsiSearchEndpoint);
@@ -94,7 +98,7 @@
     <div class="workspace-header__actions top-bar__actions">
         <label class="search-box acss-relative workspace-header__search" for="ta-search" @if($skripsiSearchEnabled) data-search-endpoint="{{ $skripsiSearchEndpoint }}" data-search-results-url="{{ $skripsiSearchResultsUrl }}" @endif>
             <span class="search-box__icon">@include('partials.icons.search')</span>
-            <input id="ta-search" class="ta-search" type="text" placeholder="Cari judul TA..." autocomplete="off" />
+            <input id="ta-search" class="ta-search" type="text" placeholder="Cari judul tugas akhir..." autocomplete="off" />
             <div id="topbar-ta-suggestions" class="reviewer-results acss-reviewer-results acss-topbar-results"></div>
         </label>
         @auth

@@ -6,22 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\DocumentSubmission;
 use App\Models\DocumentVersion;
 use App\Models\Periode;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use App\Services\MahasiswaSkripsiDataService;
 use App\Services\NotificationService;
 use App\Services\StudentDocumentPathService;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class SkripsiController extends Controller
+class TugasAkhirController extends Controller
 {
+    public function __construct(private readonly TugasAkhirRouteService $tugasAkhirRoutes) {}
+
     public function index(Request $request, MahasiswaSkripsiDataService $skripsiData): View|JsonResponse
     {
-        $activeSkripsi = $skripsiData->activeForUser($request->user());
+        $type = $this->tugasAkhirRoutes->typeFromRequest($request);
+        $label = $this->tugasAkhirRoutes->label($type);
+        $activeSkripsi = $skripsiData->activeForUser($request->user(), $type);
 
         $latestBimbingans = collect();
         $reviewers = collect();
@@ -38,9 +43,10 @@ class SkripsiController extends Controller
 
             $suggestions = collect();
             if (mb_strlen($query) >= 2) {
-                $suggestions = Skripsi::query()
+                $suggestions = TugasAkhir::query()
                     ->with('student')
                     ->where('student_id', $request->user()->id)
+                    ->where('type', $type)
                     ->where(function ($builder) use ($query): void {
                         $builder->where('title', 'like', "%{$query}%")
                             ->orWhereHas('student', function ($studentQuery) use ($query): void {
@@ -51,12 +57,12 @@ class SkripsiController extends Controller
                     ->orderByDesc('id')
                     ->limit(6)
                     ->get()
-                    ->map(fn (Skripsi $skripsi) => [
+                    ->map(fn (TugasAkhir $skripsi) => [
                         'id' => $skripsi->id,
                         'student_name' => $skripsi->student?->name,
                         'nim' => $skripsi->student?->nim,
                         'title' => $skripsi->title,
-                        'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                        'url' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'show', $skripsi, false),
                     ]);
             }
 
@@ -66,32 +72,34 @@ class SkripsiController extends Controller
         }
 
         return view('mahasiswa.skripsi.index', [
-            'title' => 'Tugas Akhir Saya',
-            'heading' => 'Tugas Akhir Saya',
-            'crumbs' => 'MAHASISWA • TUGAS AKHIR',
+            'title' => $label.' Saya',
+            'heading' => $label.' Saya',
+            'crumbs' => 'MAHASISWA • '.mb_strtoupper($label),
             'activeSkripsi' => $activeSkripsi,
             'latestBimbingans' => $latestBimbingans,
             'reviewers' => $reviewers,
             'documents' => $documents,
-            'canManageNonSkripsi' => $activeSkripsi?->type === 'non_skripsi',
-            'hasNonSkripsiRecord' => $activeSkripsi?->type === 'non_skripsi' ? $activeSkripsi->nonSkripsiRecord()->exists() : false,
             'completedSkripsi' => ! $activeSkripsi
-                ? Skripsi::query()->where('student_id', $request->user()->id)->where('current_phase', 'skripsi_selesai')->latest()->first()
+                ? TugasAkhir::query()->where('student_id', $request->user()->id)->where('type', $type)->where('current_phase', 'skripsi_selesai')->latest()->first()
                 : null,
+            'tugasAkhirType' => $type,
+            'tugasAkhirLabel' => $label,
         ]);
     }
 
     public function search(Request $request, MahasiswaSkripsiDataService $skripsiData): JsonResponse
     {
+        $type = $this->tugasAkhirRoutes->typeFromRequest($request);
         $query = trim((string) $request->query('q', ''));
 
         if (mb_strlen($query) < 2) {
             return response()->json(['suggestions' => []]);
         }
 
-        $suggestions = Skripsi::query()
+        $suggestions = TugasAkhir::query()
             ->with('student')
             ->where('student_id', $request->user()->id)
+            ->where('type', $type)
             ->where(function ($builder) use ($query): void {
                 $builder->where('title', 'like', "%{$query}%")
                     ->orWhereHas('student', function ($studentQuery) use ($query): void {
@@ -102,12 +110,12 @@ class SkripsiController extends Controller
             ->orderByDesc('id')
             ->limit(6)
             ->get()
-            ->map(fn (Skripsi $skripsi) => [
+            ->map(fn (TugasAkhir $skripsi) => [
                 'id' => $skripsi->id,
                 'student_name' => $skripsi->student?->name,
                 'nim' => $skripsi->student?->nim,
                 'title' => $skripsi->title,
-                'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                'url' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'show', $skripsi, false),
             ]);
 
         return response()->json([
@@ -115,49 +123,78 @@ class SkripsiController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
+        if ($request->routeIs('mahasiswa.pendaftaran.create')) {
+            $existing = TugasAkhir::query()
+                ->where('student_id', $request->user()->id)
+                ->latest('id')
+                ->first();
+
+            if ($existing) {
+                return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $existing, 'index'));
+            }
+        }
+
         $periodes = Periode::query()->orderByDesc('id')->get();
-        $selectedType = $request->query('type') === 'non_skripsi' ? 'non_skripsi' : 'skripsi';
-        $heading = $selectedType === 'non_skripsi' ? 'Buat Non-Skripsi Baru' : 'Buat Skripsi Baru';
+        $isUnifiedRegistration = $request->routeIs('mahasiswa.pendaftaran.create');
+        $selectedType = $isUnifiedRegistration
+            ? (string) old('type', $request->query('type', 'skripsi'))
+            : $this->tugasAkhirRoutes->typeFromRequest($request);
+        $selectedType = in_array($selectedType, [TugasAkhirRouteService::SKRIPSI, TugasAkhirRouteService::NON_SKRIPSI], true)
+            ? $selectedType
+            : TugasAkhirRouteService::SKRIPSI;
+        $heading = $isUnifiedRegistration
+            ? 'Pendaftaran Tugas Akhir'
+            : ($selectedType === TugasAkhirRouteService::NON_SKRIPSI ? 'Buat Non-Skripsi Baru' : 'Buat Skripsi Baru');
 
         return view('mahasiswa.skripsi.create', [
             'title' => $heading,
             'heading' => $heading,
             'crumbs' => 'MAHASISWA • CREATE',
             'guides' => [
-                ['eyebrow' => 'Aturan', 'title' => '1 mahasiswa = 1 tugas akhir aktif', 'description' => 'Sistem tahan pengajuan baru jika masih ada tugas akhir aktif.'],
+                ['eyebrow' => 'Skripsi', 'title' => 'Penelitian ilmiah', 'description' => 'Menjelaskan, menguji, mengevaluasi, membandingkan, memprediksi, atau mengembangkan pengetahuan.'],
+                ['eyebrow' => 'Non-Skripsi', 'title' => 'Karya atau proyek', 'description' => 'Menjawab kebutuhan pengguna atau proses bisnis melalui karya yang tetap dievaluasi.'],
             ],
             'periodes' => $periodes,
             'selectedType' => $selectedType,
+            'isUnifiedRegistration' => $isUnifiedRegistration,
         ]);
     }
 
     public function store(Request $request, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse
     {
-        $validated = $request->validate([
+        $isDraft = $request->input('save_mode', 'draft') !== 'published';
+        $rules = [
             'periode_id' => ['required', 'exists:periodes,id'],
             'title' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'in:skripsi,non_skripsi'],
+            'type' => [$request->routeIs('mahasiswa.pendaftaran.store') ? 'required' : 'nullable', 'in:skripsi,non_skripsi'],
             'journal_article_url' => ['nullable', 'url', 'max:500'],
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'max:20480'],
-        ]);
+            'save_mode' => ['nullable', 'in:draft,published'],
+        ];
+        if (! $isDraft) {
+            $rules['understands_tugas_akhir_types'] = ['required', 'accepted'];
+        }
+        $validated = $request->validate($rules);
+        $type = $request->routeIs('mahasiswa.pendaftaran.store')
+            ? $validated['type']
+            : $this->tugasAkhirRoutes->typeFromRequest($request);
+        $validated['type'] = $type;
 
-        $isDraft = $request->input('save_mode', 'draft') !== 'published';
-
-        $existingSkripsi = Skripsi::query()
+        $existingSkripsi = TugasAkhir::query()
             ->where('student_id', $request->user()->id)
             ->latest('id')
             ->first();
 
         if ($existingSkripsi !== null) {
             return redirect()
-                ->route('mahasiswa.skripsi.show', $existingSkripsi)
+                ->to($this->tugasAkhirRoutes->route('mahasiswa', $existingSkripsi, 'show', $existingSkripsi))
                 ->with('error', 'Anda sudah memiliki tugas akhir. Gunakan data yang sudah ada.');
         }
 
         try {
-            $skripsi = Skripsi::query()->create([
+            $skripsi = TugasAkhir::query()->create([
                 'student_id' => $request->user()->id,
                 'periode_id' => $validated['periode_id'],
                 'title' => $validated['title'],
@@ -168,14 +205,14 @@ class SkripsiController extends Controller
             ]);
         } catch (QueryException $exception) {
             if ((int) $exception->getCode() === 23000) {
-                $existingSkripsi = Skripsi::query()
+                $existingSkripsi = TugasAkhir::query()
                     ->where('student_id', $request->user()->id)
                     ->latest('id')
                     ->first();
 
                 if ($existingSkripsi !== null) {
                     return redirect()
-                        ->route('mahasiswa.skripsi.show', $existingSkripsi)
+                        ->to($this->tugasAkhirRoutes->route('mahasiswa', $existingSkripsi, 'show', $existingSkripsi))
                         ->with('error', 'Anda sudah memiliki tugas akhir. Gunakan data yang sudah ada.');
                 }
             }
@@ -190,7 +227,7 @@ class SkripsiController extends Controller
             $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), 'proposal', 1, $file), 'local');
 
             DocumentVersion::query()->create([
-                'skripsi_id' => $skripsi->id,
+                'tugas_akhir_id' => $skripsi->id,
                 'phase' => 'proposal',
                 'version_number' => 1,
                 'file_path' => $path,
@@ -206,22 +243,25 @@ class SkripsiController extends Controller
             $notifications->send($kaprodiUsers, [
                 'type' => 'proposal_submitted',
                 'title' => 'Pengajuan proposal baru',
-                'message' => $request->user()->name.' mengajukan proposal skripsi: '.$skripsi->title,
-                'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                'message' => $request->user()->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
+                'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
                 'actor' => $request->user()->name,
                 'meta' => [
-                    'skripsi_id' => $skripsi->id,
+                    'tugas_akhir_id' => $skripsi->id,
                     'phase' => 'proposal',
                 ],
             ]);
         }
 
-        return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Skripsi berhasil dibuat.');
+        return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', $this->tugasAkhirRoutes->label($type).' berhasil dibuat.');
     }
 
-    public function publish(Skripsi $skripsi, NotificationService $notifications): RedirectResponse
+    public function publish(Request $request, TugasAkhir $skripsi, NotificationService $notifications): RedirectResponse
     {
-        $this->authorizeOwner(request(), $skripsi);
+        $this->authorizeOwner($request, $skripsi);
+        $request->validate([
+            'understands_tugas_akhir_types' => ['required', 'accepted'],
+        ]);
 
         if ($skripsi->isDraft()) {
             $skripsi->update([
@@ -234,23 +274,23 @@ class SkripsiController extends Controller
                 $notifications->send($kaprodiUsers, [
                     'type' => 'proposal_submitted',
                     'title' => 'Pengajuan proposal baru',
-                    'message' => $skripsi->student->name.' mengajukan proposal skripsi: '.$skripsi->title,
-                    'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                    'message' => $skripsi->student->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
+                    'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
                     'actor' => $skripsi->student->name,
                     'meta' => [
-                        'skripsi_id' => $skripsi->id,
+                        'tugas_akhir_id' => $skripsi->id,
                         'phase' => 'proposal',
                     ],
                 ]);
             }
 
-            return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Pengajuan proposal berhasil dikirim.');
+            return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', 'Pengajuan proposal berhasil dikirim.');
         }
 
         return back()->with('error', 'Skripsi ini tidak dalam status draft proposal.');
     }
 
-    public function show(Request $request, Skripsi $skripsi, MahasiswaSkripsiDataService $skripsiData): View
+    public function show(Request $request, TugasAkhir $skripsi, MahasiswaSkripsiDataService $skripsiData): View
     {
         $this->authorizeOwner($request, $skripsi);
 
@@ -270,7 +310,7 @@ class SkripsiController extends Controller
 
         if ($dokumenFinalVisible) {
             $hasDocumentSubmissions = DocumentSubmission::query()
-                ->where('skripsi_id', $skripsi->id)
+                ->where('tugas_akhir_id', $skripsi->id)
                 ->exists();
 
             $dokumenFinalStatus = [
@@ -280,7 +320,7 @@ class SkripsiController extends Controller
                         ? 'Dokumen final sudah divalidasi Kaprodi.'
                         : 'Dokumen final sedang divalidasi Kaprodi.')
                     : 'Belum ada dokumen final yang dikirim.',
-                'href' => route('mahasiswa.skripsi.final.skripsi.index', $skripsi),
+                'href' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'final.skripsi.index', $skripsi),
             ];
         }
 
@@ -289,7 +329,7 @@ class SkripsiController extends Controller
             'proposalVersions' => $proposalVersions,
             'canProposalUpload' => $canProposalUpload,
             'needsProposalUpload' => $needsProposalUpload,
-            'proposalUploadUrl' => route('mahasiswa.skripsi.documents.store', $skripsi),
+            'proposalUploadUrl' => $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'documents.store', $skripsi),
             'openProposalUpload' => $request->boolean('openProposalUpload'),
             'latestBimbingans' => $skripsiData->latestBimbingans($skripsi),
             'reviewers' => $skripsiData->reviewers($skripsi),
@@ -299,11 +339,13 @@ class SkripsiController extends Controller
             'dokumenFinalVisible' => $dokumenFinalVisible,
             'dokumenFinalStatus' => $dokumenFinalStatus,
             'sidangProposalSchedule' => $skripsi->sidang_proposal_datetime,
-            'sidangSkripsiSchedule' => $skripsi->sidang_skripsi_datetime,
+            'sidangSkripsiSchedule' => $skripsi->sidang_tugas_akhir_datetime,
+            'tugasAkhirType' => $skripsi->type,
+            'tugasAkhirLabel' => $this->tugasAkhirRoutes->label($skripsi->type),
         ]);
     }
 
-    public function edit(Request $request, Skripsi $skripsi): View
+    public function edit(Request $request, TugasAkhir $skripsi): View
     {
         $this->authorizeOwner($request, $skripsi);
         abort_unless($skripsi->isDraft(), 403, 'Proposal yang sudah diajukan tidak dapat diedit.');
@@ -314,20 +356,24 @@ class SkripsiController extends Controller
         ]);
     }
 
-    public function update(Request $request, Skripsi $skripsi, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse
+    public function update(Request $request, TugasAkhir $skripsi, StudentDocumentPathService $documentPathService, NotificationService $notifications): RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
         abort_unless($skripsi->isDraft(), 403, 'Proposal yang sudah diajukan tidak dapat diedit.');
 
-        $validated = $request->validate([
+        $publishAfterSave = $request->input('save_mode', 'draft') === 'published';
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'in:skripsi,non_skripsi'],
+            'type' => ['nullable', 'in:skripsi,non_skripsi'],
             'journal_article_url' => ['nullable', 'url', 'max:500'],
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'max:20480'],
             'save_mode' => ['nullable', 'in:draft,published'],
-        ]);
-
-        $publishAfterSave = ($validated['save_mode'] ?? 'draft') === 'published';
+        ];
+        if ($publishAfterSave) {
+            $rules['understands_tugas_akhir_types'] = ['required', 'accepted'];
+        }
+        $validated = $request->validate($rules);
+        $validated['type'] = $this->tugasAkhirRoutes->typeFromRequest($request);
 
         $skripsi->update($validated);
 
@@ -349,7 +395,7 @@ class SkripsiController extends Controller
                 ]);
             } else {
                 DocumentVersion::query()->create([
-                    'skripsi_id' => $skripsi->id,
+                    'tugas_akhir_id' => $skripsi->id,
                     'phase' => 'proposal',
                     'version_number' => 1,
                     'file_path' => $path,
@@ -371,31 +417,32 @@ class SkripsiController extends Controller
                 $notifications->send($kaprodiUsers, [
                     'type' => 'proposal_submitted',
                     'title' => 'Pengajuan proposal baru',
-                    'message' => $skripsi->student->name.' mengajukan proposal skripsi: '.$skripsi->title,
-                    'url' => route('kaprodi.skripsi.show', $skripsi, false),
+                    'message' => $skripsi->student->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
+                    'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
                     'actor' => $skripsi->student->name,
                     'meta' => [
-                        'skripsi_id' => $skripsi->id,
+                        'tugas_akhir_id' => $skripsi->id,
                         'phase' => 'proposal',
                     ],
                 ]);
             }
 
-            return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Pengajuan proposal berhasil dikirim.');
+            return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', 'Pengajuan proposal berhasil dikirim.');
         }
 
-        return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Proposal draft berhasil diperbarui.');
+        return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', 'Proposal draft berhasil diperbarui.');
     }
 
-    public function destroy(Request $request, Skripsi $skripsi): RedirectResponse
+    public function destroy(Request $request, TugasAkhir $skripsi): RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
+        $indexUrl = $this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index');
         $skripsi->delete();
 
-        return redirect()->route('mahasiswa.skripsi.index')->with('success', 'Skripsi berhasil dihapus.');
+        return redirect()->to($indexUrl)->with('success', 'Tugas akhir berhasil dihapus.');
     }
 
-    private function authorizeOwner(Request $request, Skripsi $skripsi): void
+    private function authorizeOwner(Request $request, TugasAkhir $skripsi): void
     {
         if ($skripsi->student_id !== $request->user()->id) {
             abort(403);

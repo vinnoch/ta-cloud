@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -27,7 +27,7 @@ class MahasiswaController extends Controller
             ->when($status === 'archived', fn ($query) => $query->onlyTrashed())
             ->when($status === 'all', fn ($query) => $query->withTrashed())
             ->forRole('mahasiswa')
-            ->withExists(['skripsi as has_running_skripsi' => fn ($query) => $query->where('current_phase', '!=', 'skripsi_selesai')])
+            ->withExists(['tugasAkhir as has_running_skripsi' => fn ($query) => $query->where('current_phase', '!=', 'skripsi_selesai')])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('name', 'like', "%{$search}%")
@@ -86,7 +86,7 @@ class MahasiswaController extends Controller
     {
         $this->ensureMahasiswa($mahasiswa);
 
-        $skripsi = Skripsi::query()
+        $skripsi = TugasAkhir::query()
             ->where('student_id', $mahasiswa->id)
             ->with(['assignments.lecturer', 'bimbingans' => fn ($query) => $query->latest('meeting_date')])
             ->latest()
@@ -128,7 +128,7 @@ class MahasiswaController extends Controller
     {
         $this->ensureMahasiswa($mahasiswa);
 
-        $skripsi = Skripsi::query()->where('student_id', $mahasiswa->id)->latest()->first();
+        $skripsi = TugasAkhir::query()->where('student_id', $mahasiswa->id)->latest()->first();
 
         if (! $skripsi) {
             return redirect()
@@ -242,7 +242,7 @@ class MahasiswaController extends Controller
 
     private function hasRunningSkripsi(User $mahasiswa): bool
     {
-        return Skripsi::query()
+        return TugasAkhir::query()
             ->where('student_id', $mahasiswa->id)
             ->where('current_phase', '!=', 'skripsi_selesai')
             ->exists();

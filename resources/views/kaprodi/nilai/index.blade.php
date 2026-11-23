@@ -16,7 +16,15 @@
                     <span>Cari Nilai</span>
                     <input type="search" id="search-input" name="q" value="{{ $search }}" placeholder="Cari mahasiswa, judul, atau NIM">
                 </label>
-                
+                <label class="form-field acss-field-tight">
+                    <span>Jenis</span>
+                    <select name="jenis" id="jenis-input">
+                        <option value="" {{ ($jenis ?? '') === '' ? 'selected' : '' }}>Semua Jenis</option>
+                        <option value="sidang_proposal" {{ ($jenis ?? '') === 'sidang_proposal' ? 'selected' : '' }}>Proposal</option>
+                        <option value="sidang_skripsi" {{ ($jenis ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Skripsi</option>
+                        <option value="sidang_non_skripsi" {{ ($jenis ?? '') === 'sidang_non_skripsi' ? 'selected' : '' }}>Non-Skripsi</option>
+                    </select>
+                </label>
             </form>
 
             <div id="table-wrapper">@include('kaprodi.nilai.partials.table', ['data_nilai' => $data_nilai, 'sort' => $sort, 'direction' => $direction])</div>

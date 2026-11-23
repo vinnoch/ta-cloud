@@ -8,7 +8,7 @@
                 <div class="profile-card__meta">
                     <div>
                         <h2>{{ $format->name }}</h2>
-                        <p>Jenis Sidang: {{ $format->format_type === 'sidang_skripsi' ? 'Skripsi' : 'Proposal' }}</p>
+                        <p>Jenis Sidang: {{ match ($format->format_type) { 'sidang_non_skripsi' => 'Non-Skripsi', 'sidang_skripsi' => 'Skripsi', default => 'Proposal' } }}</p>
                     </div>
                     <div class="flex gap-2">
                         @if ($format->is_published)
@@ -139,7 +139,7 @@
                     </label>
                 </form>
 
-                <p id="assigned-count-text" class="acss-muted ">{{ $assignedSkripsis->total() }} skripsi terhubung.</p>
+                <p id="assigned-count-text" class="acss-muted ">{{ $assignedSkripsis->total() }} tugas akhir terhubung.</p>
                 
                 <div id="assigned-table-wrapper">
                     @include('kaprodi.format-penilaian.partials.assigned-table', [

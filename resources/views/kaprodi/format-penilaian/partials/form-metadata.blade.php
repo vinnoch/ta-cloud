@@ -9,6 +9,7 @@
         <select name="format_type" required>
             <option value="sidang_proposal" {{ old('format_type', $format->format_type ?? '') === 'sidang_proposal' ? 'selected' : '' }}>Proposal</option>
             <option value="sidang_skripsi" {{ old('format_type', $format->format_type ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Skripsi</option>
+            <option value="sidang_non_skripsi" {{ old('format_type', $format->format_type ?? '') === 'sidang_non_skripsi' ? 'selected' : '' }}>Non-Skripsi</option>
         </select>
     </label>
 

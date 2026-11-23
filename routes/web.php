@@ -110,12 +110,12 @@ $navFactory = function (string $role) use ($sampleId, $footerItems) {
             'navItems' => [
                 ['label' => 'Overview', 'href' => route('dashboard.index'), 'active' => 'dashboard.*', 'icon' => 'partials.icons.grid'],
                 ['label' => 'Admin', 'href' => route('admin.dashboard'), 'active' => 'admin.*', 'icon' => 'partials.icons.phase-shield'],
-                ['label' => 'Master Mahasiswa', 'href' => route('mahasiswa.skripsi.index'), 'active' => 'mahasiswa.*', 'icon' => 'partials.icons.file'],
+                ['label' => 'Master Mahasiswa', 'href' => route('mahasiswa.pendaftaran.create'), 'active' => 'mahasiswa.*', 'icon' => 'partials.icons.file'],
                 ['label' => 'Master Dosen', 'href' => route('dosen.dashboard'), 'active' => 'dosen.*', 'icon' => 'partials.icons.chat'],
                 ['label' => 'Kaprodi', 'href' => route('kaprodi.dashboard'), 'active' => 'kaprodi.*', 'icon' => 'partials.icons.phase-flag'],
                 ['label' => 'Library', 'href' => route('library.index'), 'active' => 'library.*', 'icon' => 'partials.icons.folder'],
             ],
-            'primaryCta' => ['label' => 'Buka Prototype Mahasiswa', 'href' => route('skripsi.detail')],
+            'primaryCta' => null,
             'navFooterItems' => $footerItems,
             'navRole' => 'global',
         ],
@@ -131,52 +131,10 @@ $page = function (string $role, string $heading, string $crumbs, array $extra = 
 };
 
 $dashboardForRole = fn (string $role): string => match ($role) {
-    'mahasiswa' => route('mahasiswa.skripsi.index'),
+    'mahasiswa' => route('mahasiswa.pendaftaran.create'),
     'dosen' => route('dosen.dashboard'),
     'kaprodi' => route('kaprodi.dashboard'),
     default => route('dashboard.index'),
-};
-
-$skripsiDetailPage = function (string $role, string $heading, string $crumbs, string $id = '101', array $overrides = []) use ($page) {
-    $base = [
-        'id' => $id,
-        'student' => [
-            'avatar' => 'AS',
-            'name' => 'Adrian Sterling',
-            'nim' => '2021004592',
-            'program' => 'Sistem Informasi',
-            'status' => 'AKTIF',
-            'title' => '"Analisis Sentimen Pengguna Aplikasi E-Commerce Menggunakan Algoritma Support Vector Machine (SVM)"',
-        ],
-        'advisor' => [
-            'name' => 'Dr. Danang Murdiyanto, S.T,. M.T.',
-            'nidn' => 'NIDN: 0412345678',
-            'sessions' => '12 sesi',
-            'completion' => '65%',
-        ],
-        'phases' => [
-            ['label' => 'Proposal', 'state' => 'done', 'caption' => null],
-            ['label' => 'Bimbingan', 'state' => 'current', 'caption' => 'Tahap Sekarang'],
-            ['label' => 'Pasca Sidang', 'state' => 'review', 'caption' => null],
-            ['label' => 'Hasil Akhir', 'state' => 'upcoming', 'caption' => null],
-        ],
-        'history' => [
-            ['date' => '24 Okt 2023', 'time' => '09:30 WIB', 'topic' => 'Diskusi Metodologi', 'summary' => 'Penentuan parameter SVM dan kernel RBF', 'note' => '"Pastikan dataset sudah di-balancing menggunakan SMOTE sebelum masuk ke tahap training model."', 'status' => 'Selesai'],
-            ['date' => '12 Okt 2023', 'time' => '14:00 WIB', 'topic' => 'Revisi Bab 1', 'summary' => 'Latar belakang dan urgensi penelitian', 'note' => '"Perjelas gap penelitian antara studi terdahulu dengan yang sedang dikerjakan."', 'status' => 'Selesai'],
-        ],
-        'historyAction' => ['label' => 'Unduh Logbook', 'href' => '#'],
-        'historyFooterAction' => ['label' => 'Tampilkan Semua Histori', 'href' => '#'],
-        'validation' => [
-            'title' => 'Validasi Tahap',
-            'message' => 'Minimum 12 pertemuan bimbingan sudah terpenuhi dan progres siap dipantau menuju fase pasca sidang.',
-            'hint' => 'Menuju: Tahap Pasca Sidang',
-            'actionLabel' => 'Lihat Kesiapan Fase',
-            'actionHref' => '#',
-        ],
-        'files' => ['Draf_Skripsi_Rev2.pdf', 'Dataset_SVM.csv'],
-    ];
-
-    return $page($role, $heading, $crumbs, array_merge($base, $overrides));
 };
 
 require __DIR__.'/web/global.php';

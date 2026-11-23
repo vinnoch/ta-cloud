@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\FormatPenilaian;
 use App\Models\Grade;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\RoleNavigationService;
-use Illuminate\Http\RedirectResponse;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,28 +35,31 @@ class PenilaianController extends Controller
 
         $assignments = ReviewerAssignment::query()
             ->select('reviewer_assignments.*')
-            ->leftJoin('skripsis as s_sort', 's_sort.id', '=', 'reviewer_assignments.skripsi_id')
+            ->leftJoin('tugas_akhirs as s_sort', 's_sort.id', '=', 'reviewer_assignments.tugas_akhir_id')
             ->leftJoin('users as students_sort', 'students_sort.id', '=', 's_sort.student_id')
             ->leftJoin('periodes as periodes_sort', 'periodes_sort.id', '=', 's_sort.periode_id')
             ->with([
-                'skripsi.student',
-                'skripsi.periode.tahunAkademik',
-                'skripsi.grades' => fn ($query) => $query
+                'tugasAkhir.student',
+                'tugasAkhir.periode.tahunAkademik',
+                'tugasAkhir.grades' => fn ($query) => $query
                     ->with('items')
                     ->where('reviewer_id', $lecturerId)
                     ->whereIn('grade_event', ['sidang_proposal', 'sidang_skripsi']),
             ])
             ->where('reviewer_assignments.lecturer_id', $lecturerId)
             ->whereIn('reviewer_assignments.role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
-            ->whereHas('skripsi', function ($query) use ($nilaiSidang) {
+            ->whereHas('tugasAkhir', function ($query) use ($nilaiSidang) {
                 $query->where(function ($phaseQuery) use ($nilaiSidang) {
                     if ($nilaiSidang === 'sidang_proposal') {
                         $phaseQuery->where('current_phase', 'sidang_proposal');
+
                         return;
                     }
 
-                    if ($nilaiSidang === 'sidang_skripsi') {
-                        $phaseQuery->whereIn('current_phase', ['sidang_skripsi', 'revisi_sidang_skripsi']);
+                    if (in_array($nilaiSidang, ['sidang_skripsi', 'sidang_non_skripsi'], true)) {
+                        $phaseQuery->whereIn('current_phase', ['sidang_skripsi', 'revisi_sidang_skripsi'])
+                            ->where('type', $nilaiSidang === 'sidang_non_skripsi' ? 'non_skripsi' : 'skripsi');
+
                         return;
                     }
 
@@ -87,7 +91,7 @@ class PenilaianController extends Controller
 
         $gradingQueue = $assignments->getCollection()
             ->map(function (ReviewerAssignment $assignment) {
-                $skripsi = $assignment->skripsi;
+                $skripsi = $assignment->tugasAkhir;
                 $gradeEvent = $skripsi ? $this->resolveGradeEvent($skripsi) : 'sidang_skripsi';
                 $existingGrade = $skripsi?->grades->firstWhere('grade_event', $gradeEvent);
 
@@ -115,15 +119,16 @@ class PenilaianController extends Controller
                     'nim' => $skripsi->student?->nim ?? '-',
                     'title' => $skripsi->title ?? 'Tanpa Judul',
                     'date' => $assignment->created_at,
-                    'fase' => in_array($skripsi->current_phase, ['sidang_proposal']) ? 'Sidang Proposal' : 'Sidang Skripsi',
+                    'type_label' => $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi',
+                    'fase' => in_array($skripsi->current_phase, ['sidang_proposal']) ? 'Sidang Proposal' : ($skripsi->type === 'non_skripsi' ? 'Sidang Non-Skripsi' : 'Sidang Skripsi'),
                     'role' => str($assignment->role_type)->replace('_', ' ')->title()->toString(),
                     'status' => $existingGrade?->status ?? 'draft',
                     'has_grade' => (bool) $existingGrade,
                     'is_locked' => (bool) $existingGrade?->locked_at,
                     'unlock_requested' => (bool) $existingGrade?->unlock_requested_at,
-                    'modal_id' => 'dosen-grade-modal-' . $assignment->id,
+                    'modal_id' => 'dosen-grade-modal-'.$assignment->id,
                     'href' => route('dosen.penilaian.show', $skripsi),
-                    'skripsi_href' => route('dosen.skripsi.show', $skripsi),
+                    'skripsi_href' => app(TugasAkhirRouteService::class)->route('dosen', $skripsi, 'show', $skripsi),
                     'store_url' => route('dosen.penilaian.store', $skripsi),
                     'unlock_url' => route('dosen.penilaian.request-unlock', $skripsi),
                 ];
@@ -137,7 +142,7 @@ class PenilaianController extends Controller
             return response()->json([
                 'table_html' => view('dosen.penilaian.partials.table', ['gradingQueue' => $assignments, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('dosen.penilaian.partials.pagination', ['gradingQueue' => $assignments])->render(),
-                'count_text' => $assignments->total() . ' antrian penilaian ditemukan.',
+                'count_text' => $assignments->total().' antrian penilaian ditemukan.',
             ]);
         }
 
@@ -150,7 +155,7 @@ class PenilaianController extends Controller
         ]));
     }
 
-    public function show(Skripsi $skripsi): View
+    public function show(TugasAkhir $skripsi): View
     {
         $assignment = $this->findAssignmentOrFail($skripsi);
         $format = $this->resolveSidangSkripsiFormatOrFail($skripsi);
@@ -162,7 +167,7 @@ class PenilaianController extends Controller
 
         $grade = Grade::query()
             ->with('items')
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('format_penilaian_id', $format->id)
             ->where('reviewer_id', Auth::id())
             ->where('grade_event', $gradeEvent)
@@ -183,7 +188,7 @@ class PenilaianController extends Controller
         ]));
     }
 
-    public function store(Request $request, Skripsi $skripsi): RedirectResponse
+    public function store(Request $request, TugasAkhir $skripsi): RedirectResponse
     {
         $assignment = $this->findAssignmentOrFail($skripsi);
         $format = $this->resolveSidangSkripsiFormatOrFail($skripsi);
@@ -192,7 +197,7 @@ class PenilaianController extends Controller
         $rules = [];
 
         foreach ($format->items as $item) {
-            $rules['scores.' . $item->id] = ['required', 'numeric', 'min:0', 'max:100'];
+            $rules['scores.'.$item->id] = ['required', 'numeric', 'min:0', 'max:100'];
         }
         $rules['notes'] = ['nullable', 'string', 'max:2000'];
         $rules['save_mode'] = ['required', 'in:draft,publish_lock'];
@@ -206,7 +211,7 @@ class PenilaianController extends Controller
 
         $gradeEvent = $this->resolveGradeEvent($skripsi);
         $existingGrade = Grade::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('format_penilaian_id', $format->id)
             ->where('reviewer_id', Auth::id())
             ->where('grade_event', $gradeEvent)
@@ -219,7 +224,8 @@ class PenilaianController extends Controller
         }
 
         $weightedScore = collect($format->items)->sum(function ($item) use ($validated) {
-            $score = (float) data_get($validated, 'scores.' . $item->id, 0);
+            $score = (float) data_get($validated, 'scores.'.$item->id, 0);
+
             return $score * ((float) $item->bobot / 100);
         });
 
@@ -229,7 +235,7 @@ class PenilaianController extends Controller
         DB::transaction(function () use ($skripsi, $format, $assignment, $validated, $weightedScore, $gradeEvent): void {
             $grade = Grade::query()->updateOrCreate(
                 [
-                    'skripsi_id' => $skripsi->id,
+                    'tugas_akhir_id' => $skripsi->id,
                     'format_penilaian_id' => $format->id,
                     'reviewer_id' => Auth::id(),
                     'grade_event' => $gradeEvent,
@@ -247,7 +253,7 @@ class PenilaianController extends Controller
             foreach ($format->items as $item) {
                 $grade->items()->updateOrCreate(
                     ['item_penilaian_id' => $item->id],
-                    ['score' => (float) data_get($validated, 'scores.' . $item->id)]
+                    ['score' => (float) data_get($validated, 'scores.'.$item->id)]
                 );
             }
         });
@@ -258,14 +264,14 @@ class PenilaianController extends Controller
                 : 'Draft nilai berhasil disimpan.');
     }
 
-    public function requestUnlock(Skripsi $skripsi, NotificationService $notifications): RedirectResponse
+    public function requestUnlock(TugasAkhir $skripsi, NotificationService $notifications): RedirectResponse
     {
         $assignment = $this->findAssignmentOrFail($skripsi);
         $format = $this->resolveSidangSkripsiFormatOrFail($skripsi);
         $gradeEvent = $this->resolveGradeEvent($skripsi);
 
         $grade = Grade::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('format_penilaian_id', $format->id)
             ->where('reviewer_id', Auth::id())
             ->where('grade_event', $gradeEvent)
@@ -303,10 +309,10 @@ class PenilaianController extends Controller
         return back()->with('success', 'Permintaan buka kunci nilai telah dikirim ke Kaprodi.');
     }
 
-    private function findAssignmentOrFail(Skripsi $skripsi): ReviewerAssignment
+    private function findAssignmentOrFail(TugasAkhir $skripsi): ReviewerAssignment
     {
         $assignment = ReviewerAssignment::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('lecturer_id', Auth::id())
             ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'])
             ->first();
@@ -326,7 +332,7 @@ class PenilaianController extends Controller
         return $assignment;
     }
 
-    private function resolveSidangSkripsiFormatOrFail(Skripsi $skripsi): FormatPenilaian
+    private function resolveSidangSkripsiFormatOrFail(TugasAkhir $skripsi): FormatPenilaian
     {
         $format = $this->resolveSidangSkripsiFormat($skripsi);
 
@@ -339,9 +345,10 @@ class PenilaianController extends Controller
         return $format;
     }
 
-    private function resolveSidangSkripsiFormat(Skripsi $skripsi): ?FormatPenilaian
+    private function resolveSidangSkripsiFormat(TugasAkhir $skripsi): ?FormatPenilaian
     {
-        $type = $this->resolveGradeEvent($skripsi);
+        $type = $this->resolveFormatType($skripsi);
+
         return $skripsi->periode?->formats()
             ->where('template_type', $type)
             ->where('is_published', true)
@@ -350,9 +357,18 @@ class PenilaianController extends Controller
             ->first();
     }
 
-    private function resolveGradeEvent(Skripsi $skripsi): string
+    private function resolveGradeEvent(TugasAkhir $skripsi): string
     {
         return in_array($skripsi->current_phase, ['sidang_proposal'], true) ? 'sidang_proposal' : 'sidang_skripsi';
+    }
+
+    private function resolveFormatType(TugasAkhir $skripsi): string
+    {
+        if ($this->resolveGradeEvent($skripsi) === 'sidang_proposal') {
+            return 'sidang_proposal';
+        }
+
+        return $skripsi->type === 'non_skripsi' ? 'sidang_non_skripsi' : 'sidang_skripsi';
     }
 
     private function page(string $heading, string $crumbs, array $extra = []): array

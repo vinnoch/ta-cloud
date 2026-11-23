@@ -5,8 +5,8 @@ use App\Models\FormatPenilaian;
 use App\Models\Grade;
 use App\Models\Periode;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -30,9 +30,9 @@ function workflowPeriod(bool $active): Periode
     ]);
 }
 
-function workflowSkripsi(User $student, Periode $periode, string $phase = 'review_dokumen_final'): Skripsi
+function workflowSkripsi(User $student, Periode $periode, string $phase = 'review_dokumen_final'): TugasAkhir
 {
-    return Skripsi::query()->create([
+    return TugasAkhir::query()->create([
         'student_id' => $student->id,
         'periode_id' => $periode->id,
         'title' => 'Workflow Final Review',
@@ -55,7 +55,7 @@ it('does not complete final review without the required workflow evidence', func
         'is_aktif' => true,
         'status' => 'active',
     ]);
-    $skripsi = Skripsi::query()->create([
+    $skripsi = TugasAkhir::query()->create([
         'student_id' => $student->id,
         'periode_id' => $periode->id,
         'title' => 'Incomplete Final Review',
@@ -76,13 +76,13 @@ it('completes an eligible normal final review', function () {
     $reviewer = User::factory()->dosen()->create();
     $skripsi = workflowSkripsi($student, workflowPeriod(true));
     $assignment = ReviewerAssignment::query()->create([
-        'skripsi_id' => $skripsi->id,
+        'tugas_akhir_id' => $skripsi->id,
         'lecturer_id' => $reviewer->id,
         'role_type' => 'pembimbing_1',
     ]);
     $format = FormatPenilaian::query()->create(['nama' => 'Sidang Skripsi', 'template_type' => 'sidang_skripsi']);
     Grade::query()->create([
-        'skripsi_id' => $skripsi->id,
+        'tugas_akhir_id' => $skripsi->id,
         'format_penilaian_id' => $format->id,
         'reviewer_id' => $reviewer->id,
         'role_type' => $assignment->role_type,
@@ -91,7 +91,7 @@ it('completes an eligible normal final review', function () {
         'score' => 85,
     ]);
     DocumentVersion::query()->create([
-        'skripsi_id' => $skripsi->id,
+        'tugas_akhir_id' => $skripsi->id,
         'phase' => 'skripsi_final',
         'version_number' => 1,
         'file_path' => 'documents/final.pdf',
@@ -122,7 +122,7 @@ it('stores and completes an inactive-period legacy final document', function () 
         ])
         ->assertSessionHas('success');
 
-    $document = DocumentVersion::query()->where('skripsi_id', $skripsi->id)->sole();
+    $document = DocumentVersion::query()->where('tugas_akhir_id', $skripsi->id)->sole();
     expect($skripsi->fresh()->current_phase)->toBe('skripsi_selesai')
         ->and($document->phase)->toBe('skripsi_final')
         ->and($document->uploaded_by)->toBe($kaprodi->id);

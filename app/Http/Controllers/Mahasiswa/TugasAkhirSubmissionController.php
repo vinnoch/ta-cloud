@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\Periode;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class SkripsiSubmissionController extends Controller
+class TugasAkhirSubmissionController extends Controller
 {
+    public function __construct(private readonly TugasAkhirRouteService $tugasAkhirRoutes) {}
+
     public function store(Request $request, NotificationService $notifications): RedirectResponse
     {
         $validated = $request->validate([
@@ -24,7 +27,7 @@ class SkripsiSubmissionController extends Controller
 
         $period = Periode::query()->where('kode_periode', $validated['kode_periode'])->firstOrFail();
 
-        $skripsi = Skripsi::query()->firstOrNew([
+        $skripsi = TugasAkhir::query()->firstOrNew([
             'student_id' => (int) $request->user()->id,
         ]);
 
@@ -44,16 +47,16 @@ class SkripsiSubmissionController extends Controller
             'type' => 'proposal_submitted',
             'title' => 'Proposal baru dikirim',
             'message' => "{$studentName} mengirim proposal skripsi: {$skripsi->title}",
-            'url' => route('kaprodi.skripsi.show', ['id' => $skripsi->id], false),
+            'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
             'actor' => $studentName,
             'meta' => [
-                'skripsi_id' => $skripsi->id,
+                'tugas_akhir_id' => $skripsi->id,
                 'phase' => 'proposal',
             ],
         ]);
 
         return redirect()
-            ->route('mahasiswa.skripsi.index')
+            ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))
             ->with('success', 'Proposal berhasil dikirim.');
     }
 }

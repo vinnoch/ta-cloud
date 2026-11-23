@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 class Bimbingan extends Model
 {
     protected $fillable = [
-        'skripsi_id',
+        'tugas_akhir_id',
         'reviewer_id',
         'phase',
         'meeting_date',
@@ -23,9 +23,9 @@ class Bimbingan extends Model
         'meeting_date' => 'date',
     ];
 
-    public function skripsi(): BelongsTo
+    public function tugasAkhir(): BelongsTo
     {
-        return $this->belongsTo(Skripsi::class);
+        return $this->belongsTo(TugasAkhir::class);
     }
 
     public function reviewer(): BelongsTo

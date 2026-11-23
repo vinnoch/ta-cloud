@@ -6,6 +6,7 @@
         $groupedGrades = $grades->groupBy('grade_event');
         $proposalAverage = optional($groupedGrades->get('sidang_proposal', collect()))->whereNotNull('score')->avg('score');
         $skripsiAverage = optional($groupedGrades->get('sidang_skripsi', collect()))->whereNotNull('score')->avg('score');
+        $taLabel = $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
     @endphp
     <section class="card card--profile">
         <div class="profile-card">
@@ -24,7 +25,7 @@
                         </div>
                         <div class="acss-score-stack">
                             <span class="pill pill--score-circle pill--score-circle-neutral">{{ $skripsiAverage !== null ? rtrim(rtrim(number_format((float) $skripsiAverage, 2, '.', ''), '0'), '.') : '-' }}</span>
-                            <small class="acss-score-stack__label">Skripsi</small>
+                            <small class="acss-score-stack__label">{{ $taLabel }}</small>
                         </div>
                     </div>
                 </div>
@@ -49,7 +50,7 @@
                         <a class="button button--inline" href="{{ route('mahasiswa.final.index', [$skripsi, 'sidang_proposal']) }}">Final Proposal</a>
                     @endif
                     @if ($skripsiFinalSubmission['allowed'] ?? false)
-                        <a class="button button--inline" href="{{ route('mahasiswa.final.index', [$skripsi, 'sidang_skripsi']) }}">Final Skripsi</a>
+                        <a class="button button--inline" href="{{ route('mahasiswa.final.index', [$skripsi, 'sidang_skripsi']) }}">Final {{ $taLabel }}</a>
                     @endif
                 </div>
             </div>

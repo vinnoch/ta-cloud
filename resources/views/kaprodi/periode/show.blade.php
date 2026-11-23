@@ -80,8 +80,8 @@
     <section class="acss-crud-card" id="assigned-list-root" data-endpoint="{{ route('kaprodi.periode.show', $periode) }}">
         <div class="acss-crud-head">
             <div>
-                <h3 class="acss-card-title">Skripsi Aktif</h3>
-                <p class="acss-muted " id="assigned-count-text">{{ $assignedSkripsis->total() }} skripsi aktif terhubung.</p>
+                <h3 class="acss-card-title">Tugas Akhir Aktif</h3>
+                <p class="acss-muted " id="assigned-count-text">{{ $assignedSkripsis->total() }} tugas akhir aktif terhubung.</p>
             </div>
         </div>
         <div class="acss-crud-body">
@@ -89,10 +89,10 @@
                 <input type="hidden" id="assigned-sort-input" name="sort" value="{{ $assignedSort ?? '' }}">
                 <input type="hidden" id="assigned-direction-input" name="direction" value="{{ $assignedDirection ?? 'desc' }}">
                 <label class="form-field acss-search-field">
-                    <span>Cari Mahasiswa/Judul Skripsi</span>
-                    <input id="assigned-search-input" type="search" name="q" value="{{ $assignedSearch ?? '' }}" placeholder="Cari nama, NIM, atau judul skripsi">
+                    <span>Cari Mahasiswa/Judul Tugas Akhir</span>
+                    <input id="assigned-search-input" type="search" name="q" value="{{ $assignedSearch ?? '' }}" placeholder="Cari nama, NIM, atau judul tugas akhir">
                 </label>
-                <label class="form-field"><span>Fase</span><select name="fase" id="assigned-fase-filter"><option value="">Semua Fase</option><option value="proposal" {{ ($assignedFase ?? '') === 'proposal' ? 'selected' : '' }}>Sidang Proposal</option><option value="bimbingan" {{ ($assignedFase ?? '') === 'bimbingan' ? 'selected' : '' }}>Bimbingan Skripsi</option><option value="sidang_skripsi" {{ ($assignedFase ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Sidang Skripsi</option><option value="review_dokumen_final" {{ ($assignedFase ?? '') === 'review_dokumen_final' ? 'selected' : '' }}>Review Dokumen Final</option></select></label>
+                <label class="form-field"><span>Fase</span><select name="fase" id="assigned-fase-filter"><option value="">Semua Fase</option><option value="proposal" {{ ($assignedFase ?? '') === 'proposal' ? 'selected' : '' }}>Sidang Proposal</option><option value="bimbingan" {{ ($assignedFase ?? '') === 'bimbingan' ? 'selected' : '' }}>Bimbingan Tugas Akhir</option><option value="sidang_skripsi" {{ ($assignedFase ?? '') === 'sidang_skripsi' ? 'selected' : '' }}>Sidang Tugas Akhir</option><option value="review_dokumen_final" {{ ($assignedFase ?? '') === 'review_dokumen_final' ? 'selected' : '' }}>Review Dokumen Final</option></select></label>
             </form>
             <div id="assigned-table-wrapper">
                 @include('kaprodi.periode.partials.assigned-table', ['periode' => $periode, 'assignedSkripsis' => $assignedSkripsis, 'assignedSort' => $assignedSort ?? '', 'assignedDirection' => $assignedDirection ?? 'desc', 'assignedFase' => $assignedFase ?? ''])

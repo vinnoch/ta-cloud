@@ -10,7 +10,7 @@ class DocumentVersion extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'skripsi_id',
+        'tugas_akhir_id',
         'phase',
         'version_number',
         'file_path',
@@ -23,9 +23,9 @@ class DocumentVersion extends Model
         'created_at' => 'datetime',
     ];
 
-    public function skripsi(): BelongsTo
+    public function tugasAkhir(): BelongsTo
     {
-        return $this->belongsTo(Skripsi::class);
+        return $this->belongsTo(TugasAkhir::class);
     }
 
     public function uploader(): BelongsTo

@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Periode;
+use App\Models\ReviewerAssignment;
+use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -45,12 +49,36 @@ test('kaprodi can view dosen detail with mahasiswa bimbingan list', function () 
         'role' => 'dosen',
     ]);
 
-    User::query()->create([
+    $mahasiswa = User::query()->create([
         'name' => 'Adrian Sterling',
         'email' => 'adrian.detail@example.test',
         'password' => 'password',
         'role' => 'mahasiswa',
         'nim' => '2021004592',
+    ]);
+
+    $tahunAkademik = TahunAkademik::query()->create(['tahun_awal' => 2025, 'tahun_akhir' => 2026]);
+    $periode = Periode::query()->create([
+        'tahun_akademik_id' => $tahunAkademik->id,
+        'kode_periode' => '20251',
+        'semester' => 1,
+        'sk_nomor' => 'SK-1',
+        'tgl_mulai' => '2025-08-01',
+        'tgl_selesai' => '2026-01-31',
+        'is_aktif' => true,
+        'status' => 'active',
+    ]);
+    $tugasAkhir = TugasAkhir::query()->create([
+        'student_id' => $mahasiswa->id,
+        'periode_id' => $periode->id,
+        'title' => 'Sistem Informasi Desa',
+        'type' => 'non_skripsi',
+        'current_phase' => 'bimbingan_skripsi',
+    ]);
+    ReviewerAssignment::query()->create([
+        'tugas_akhir_id' => $tugasAkhir->id,
+        'lecturer_id' => $dosen->id,
+        'role_type' => 'pembimbing_1',
     ]);
 
     $this->actingAs($kaprodi)
@@ -59,7 +87,10 @@ test('kaprodi can view dosen detail with mahasiswa bimbingan list', function () 
         ->assertSee('Mahasiswa Bimbingan')
         ->assertSee('Adrian Sterling')
         ->assertSee('2021004592')
-        ->assertSee('Hapus');
+        ->assertSee('Judul Tugas Akhir')
+        ->assertSee('Sistem Informasi Desa')
+        ->assertSee('Non-Skripsi')
+        ->assertSee('Arsipkan');
 });
 
 test('kaprodi create dosen form shows password toggle controls', function () {

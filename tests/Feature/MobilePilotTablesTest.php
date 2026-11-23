@@ -2,7 +2,7 @@
 
 use App\Models\Periode;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\TahunAkademik;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,9 +25,9 @@ function mobilePilotPeriod(): Periode
     ]);
 }
 
-function mobilePilotSkripsi(User $student): Skripsi
+function mobilePilotSkripsi(User $student): TugasAkhir
 {
-    return Skripsi::query()->create([
+    return TugasAkhir::query()->create([
         'student_id' => $student->id,
         'periode_id' => mobilePilotPeriod()->id,
         'title' => 'Mobile Card Thesis',
@@ -66,7 +66,7 @@ it('renders the Dosen skripsi pilot as mobile record cards', function () {
     $dosen = User::factory()->dosen()->create();
     $skripsi = mobilePilotSkripsi(User::factory()->mahasiswa()->create());
     ReviewerAssignment::query()->create([
-        'skripsi_id' => $skripsi->id,
+        'tugas_akhir_id' => $skripsi->id,
         'lecturer_id' => $dosen->id,
         'role_type' => 'pembimbing_1',
     ]);

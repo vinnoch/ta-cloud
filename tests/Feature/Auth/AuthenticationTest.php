@@ -22,7 +22,7 @@ test('login redirects users to their role dashboard', function () {
         'password' => 'password',
     ]);
 
-    $response->assertRedirect(route('mahasiswa.skripsi.index'));
+    $response->assertRedirect(route('mahasiswa.pendaftaran.create'));
     $this->assertAuthenticatedAs($user);
     expect($user->fresh()->last_login_at)->not->toBeNull();
 });

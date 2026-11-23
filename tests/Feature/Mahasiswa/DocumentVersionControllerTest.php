@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Periode;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -19,7 +19,7 @@ beforeEach(function () {
         'semester' => 1, 'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01',
         'tgl_selesai' => '2026-01-31', 'is_aktif' => true, 'status' => 'active',
     ]);
-    $this->skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'proposal']);
+    $this->skripsi = TugasAkhir::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'proposal']);
     Storage::fake('local');
 });
 
@@ -34,7 +34,7 @@ it('uploads valid pdf', function () {
         ->assertRedirect();
 
     $this->assertDatabaseHas('document_versions', [
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'phase' => 'proposal',
         'version_number' => 1,
     ]);

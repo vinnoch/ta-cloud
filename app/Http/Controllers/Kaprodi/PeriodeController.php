@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Periode;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,7 +27,7 @@ class PeriodeController extends Controller
 
         $periode = Periode::query()
             ->with('tahunAkademik')
-            ->withExists(['skripsis as has_skripsis', 'formats as has_formats'])
+            ->withExists(['tugasAkhirs as has_skripsis', 'formats as has_formats'])
             ->when($search !== '', function ($query) use ($search, $normalizedSearch): void {
                 $query->where(function ($query) use ($search, $normalizedSearch): void {
                     $query->where('kode_periode', 'like', "%{$search}%")
@@ -118,7 +118,7 @@ class PeriodeController extends Controller
         $assignedDirection = strtolower((string) $request->query('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
         $assignedFase = trim((string) $request->query('fase', ''));
 
-        $skripsis = Skripsi::query()
+        $skripsis = TugasAkhir::query()
             ->where('periode_id', $periode->id)
             ->with(['student'])
             ->when($assignedSearch !== '', function ($query) use ($assignedSearch): void {
@@ -142,9 +142,9 @@ class PeriodeController extends Controller
                 $query->whereIn('current_phase', $phases);
             })
             ->when(in_array($assignedSort, ['nim', 'mahasiswa'], true), function ($query) use ($assignedSort, $assignedDirection): void {
-                $query->join('users', 'users.id', '=', 'skripsis.student_id')
+                $query->join('users', 'users.id', '=', 'tugas_akhirs.student_id')
                     ->orderBy($assignedSort === 'nim' ? 'users.nim' : 'users.name', $assignedDirection)
-                    ->select('skripsis.*');
+                    ->select('tugas_akhirs.*');
             })
             ->when($assignedSort === 'judul', fn ($query) => $query->orderBy('title', $assignedDirection))
             ->when($assignedSort === 'fase', fn ($query) => $query->orderBy('current_phase', $assignedDirection))
@@ -164,7 +164,7 @@ class PeriodeController extends Controller
                 'pagination_html' => view('kaprodi.periode.partials.assigned-pagination', [
                     'assignedSkripsis' => $skripsis,
                 ])->render(),
-                'count_text' => $skripsis->total().' skripsi aktif terhubung.',
+                'count_text' => $skripsis->total().' tugas akhir aktif terhubung.',
             ]);
         }
 
@@ -259,7 +259,7 @@ class PeriodeController extends Controller
 
     private function hasLinkedData(Periode $periode): bool
     {
-        return $periode->skripsis()->exists() || $periode->formats()->exists();
+        return $periode->tugasAkhirs()->exists() || $periode->formats()->exists();
     }
 
     private function closeOtherActivePeriods(?int $exceptId = null): void

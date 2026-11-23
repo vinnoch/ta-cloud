@@ -19,7 +19,7 @@
                 <input type="hidden" name="periode_id" value="{{ ($periodeId ?? 0) > 0 ? $periodeId : "" }}">
                 <label class="form-field acss-search-field">
                     <span>Cari Dokumen Final</span>
-                    <input id="final-review-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari NIM, nama, atau judul skripsi">
+                    <input id="final-review-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari NIM, nama, atau judul tugas akhir">
                 </label>
                 <label class="form-field acss-field-tight">
                     <span>Filter Approval</span>

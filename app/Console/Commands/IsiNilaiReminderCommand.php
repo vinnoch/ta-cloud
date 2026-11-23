@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Grade;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Services\NotificationService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -15,12 +15,12 @@ class IsiNilaiReminderCommand extends Command
 {
     public function handle(NotificationService $notifications): int
     {
-        $skripsis = Skripsi::query()
+        $skripsis = TugasAkhir::query()
             ->with(['student', 'assignments.lecturer'])
             ->where('current_phase', 'sidang_skripsi')
-            ->whereNotNull('sidang_skripsi_datetime')
-            ->where('sidang_skripsi_datetime', '<=', now())
-            ->whereNull('sidang_skripsi_grade_notified_at')
+            ->whereNotNull('sidang_tugas_akhir_datetime')
+            ->where('sidang_tugas_akhir_datetime', '<=', now())
+            ->whereNull('sidang_tugas_akhir_grade_notified_at')
             ->get();
 
         $sentCount = 0;
@@ -38,7 +38,7 @@ class IsiNilaiReminderCommand extends Command
                 }
 
                 $alreadyPublished = Grade::query()
-                    ->where('skripsi_id', $skripsi->id)
+                    ->where('tugas_akhir_id', $skripsi->id)
                     ->where('reviewer_id', $lecturer->id)
                     ->where('role_type', $assignment->role_type)
                     ->where('grade_event', 'sidang_skripsi')
@@ -55,9 +55,9 @@ class IsiNilaiReminderCommand extends Command
                     'message' => "Waktu sidang skripsi {$skripsi->student?->name} sudah tiba. Silakan isi nilai sidang skripsi.",
                     'url' => route('dosen.skripsi.show', $skripsi, false),
                     'meta' => [
-                        'skripsi_id' => $skripsi->id,
+                        'tugas_akhir_id' => $skripsi->id,
                         'role_type' => $assignment->role_type,
-                        'scheduled_at' => optional($skripsi->sidang_skripsi_datetime)->toIso8601String(),
+                        'scheduled_at' => optional($skripsi->sidang_tugas_akhir_datetime)->toIso8601String(),
                     ],
                 ]);
 
@@ -65,7 +65,7 @@ class IsiNilaiReminderCommand extends Command
             }
 
             $skripsi->forceFill([
-                'sidang_skripsi_grade_notified_at' => now(),
+                'sidang_tugas_akhir_grade_notified_at' => now(),
             ])->save();
         }
 

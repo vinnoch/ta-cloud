@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\DocumentVersion;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Services\NotificationService;
 use App\Services\StudentDocumentPathService;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -31,21 +32,21 @@ class FinalReviewController extends Controller
             $sort = 'tanggal';
         }
 
-        $skripsis = Skripsi::query()
-            ->select('skripsis.*')
-            ->leftJoin('users as students_sort', 'students_sort.id', '=', 'skripsis.student_id')
-            ->leftJoin('periodes as periodes_sort', 'periodes_sort.id', '=', 'skripsis.periode_id')
+        $skripsis = TugasAkhir::query()
+            ->select('tugas_akhirs.*')
+            ->leftJoin('users as students_sort', 'students_sort.id', '=', 'tugas_akhirs.student_id')
+            ->leftJoin('periodes as periodes_sort', 'periodes_sort.id', '=', 'tugas_akhirs.periode_id')
             ->withMin(['documentVersions as final_submitted_at' => function ($q) {
                 $q->where('phase', 'skripsi_final');
             }], 'created_at')
             ->whereIn('current_phase', ['review_dokumen_final', 'skripsi_selesai'])
-            ->when($periodeId > 0, fn ($query) => $query->where('skripsis.periode_id', $periodeId))
+            ->when($periodeId > 0, fn ($query) => $query->where('tugas_akhirs.periode_id', $periodeId))
             ->whereHas('assignments')
             ->whereDoesntHave('assignments', function ($assignmentQuery) {
                 $assignmentQuery->whereNotExists(function ($gradeQuery) {
                     $gradeQuery->selectRaw('1')
                         ->from('grades')
-                        ->whereColumn('grades.skripsi_id', 'skripsis.id')
+                        ->whereColumn('grades.tugas_akhir_id', 'tugas_akhirs.id')
                         ->whereColumn('grades.reviewer_id', 'reviewer_assignments.lecturer_id')
                         ->whereColumn('grades.role_type', 'reviewer_assignments.role_type')
                         ->where('grades.grade_event', 'sidang_skripsi')
@@ -76,13 +77,13 @@ class FinalReviewController extends Controller
             'tanggal' => 'final_submitted_at',
             'nim' => 'students_sort.nim',
             'mahasiswa' => 'students_sort.name',
-            'judul' => 'skripsis.title',
+            'judul' => 'tugas_akhirs.title',
             'periode' => 'periodes_sort.kode_periode',
         ];
 
         $skripsis = $skripsis
             ->orderBy($sortMap[$sort], $direction)
-            ->orderBy('skripsis.id', 'desc')
+            ->orderBy('tugas_akhirs.id', 'desc')
             ->paginate(10)
             ->withQueryString();
 
@@ -111,7 +112,7 @@ class FinalReviewController extends Controller
         ]));
     }
 
-    public function approve(Request $request, Skripsi $skripsi, NotificationService $notifications): RedirectResponse
+    public function approve(Request $request, TugasAkhir $skripsi, NotificationService $notifications): RedirectResponse
     {
         if ($skripsi->current_phase === 'review_dokumen_final' && $this->eligibleForCompletion($skripsi)) {
             $skripsi->update(['current_phase' => 'skripsi_selesai']);
@@ -120,18 +121,18 @@ class FinalReviewController extends Controller
                 'type' => 'skripsi_finished',
                 'title' => 'Skripsi Selesai',
                 'message' => 'Selamat! Skripsi Anda telah divalidasi Kaprodi dan dinyatakan selesai.',
-                'url' => route('mahasiswa.skripsi.show', $skripsi, false),
+                'url' => app(TugasAkhirRouteService::class)->route('mahasiswa', $skripsi, 'show', $skripsi, false),
                 'actor' => auth()->user()->name,
-                'meta' => ['skripsi_id' => $skripsi->id],
+                'meta' => ['tugas_akhir_id' => $skripsi->id],
             ]);
 
-            return redirect()->route('kaprodi.skripsi.show', $skripsi)->with('success', 'Skripsi berhasil divalidasi dan dinyatakan selesai.');
+            return redirect()->to(app(TugasAkhirRouteService::class)->route('kaprodi', $skripsi, 'show', $skripsi))->with('success', 'Skripsi berhasil divalidasi dan dinyatakan selesai.');
         }
 
         return back()->with('error', 'Dokumen final atau nilai reviewer belum lengkap.');
     }
 
-    public function completeLegacy(Request $request, Skripsi $skripsi, StudentDocumentPathService $documentPathService): RedirectResponse
+    public function completeLegacy(Request $request, TugasAkhir $skripsi, StudentDocumentPathService $documentPathService): RedirectResponse
     {
         $skripsi->loadMissing(['periode', 'student']);
 
@@ -148,7 +149,7 @@ class FinalReviewController extends Controller
         $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi, 'skripsi_final', $nextVersion, $file), 'local');
 
         DocumentVersion::query()->create([
-            'skripsi_id' => $skripsi->id,
+            'tugas_akhir_id' => $skripsi->id,
             'phase' => 'skripsi_final',
             'version_number' => $nextVersion,
             'file_path' => $path,
@@ -159,11 +160,11 @@ class FinalReviewController extends Controller
 
         $skripsi->update(['current_phase' => 'skripsi_selesai']);
 
-        return redirect()->route('kaprodi.skripsi.show', $skripsi)
+        return redirect()->to(app(TugasAkhirRouteService::class)->route('kaprodi', $skripsi, 'show', $skripsi))
             ->with('success', 'Dokumen final historis tersimpan dan skripsi dinyatakan selesai.');
     }
 
-    private function eligibleForCompletion(Skripsi $skripsi): bool
+    private function eligibleForCompletion(TugasAkhir $skripsi): bool
     {
         $document = $skripsi->documentVersions()->where('phase', 'skripsi_final')->latest('version_number')->first();
         $assignments = $skripsi->assignments()->get();

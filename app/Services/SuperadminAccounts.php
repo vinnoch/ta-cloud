@@ -64,7 +64,7 @@ class SuperadminAccounts
             }
 
             foreach ([
-                ['skripsis', 'student_id'],
+                ['tugas_akhirs', 'student_id'],
                 ['reviewer_assignments', 'lecturer_id'],
                 ['grades', 'reviewer_id'],
                 ['bimbingans', 'reviewer_id'],

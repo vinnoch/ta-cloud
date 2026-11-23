@@ -3,7 +3,7 @@
 use App\Models\ApplicationSetting;
 use App\Models\AuditLog;
 use App\Models\Grade;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -153,25 +153,25 @@ it('filters audit logs by topic', function () {
     $actor = auditSuperadmin();
     AuditLog::query()->create(['actor_id' => $actor->id, 'action' => 'demo.login']);
     AuditLog::query()->create(['actor_id' => $actor->id, 'action' => 'settings.updated']);
-    AuditLog::query()->create(['actor_id' => $actor->id, 'action' => 'model.created', 'target_type' => Skripsi::class, 'target_id' => 91]);
+    AuditLog::query()->create(['actor_id' => $actor->id, 'action' => 'model.created', 'target_type' => TugasAkhir::class, 'target_id' => 91]);
     AuditLog::query()->create(['actor_id' => $actor->id, 'action' => 'model.updated', 'target_type' => Grade::class, 'target_id' => 92]);
 
     $this->actingAs($actor)->get(route('superadmin.audit.index', ['topic' => 'Keamanan']))
         ->assertOk()
         ->assertSee('Demo Login')
         ->assertDontSee('memperbarui nama aplikasi atau logo')
-        ->assertDontSee('Skripsi disimpan')
+        ->assertDontSee('Tugas Akhir disimpan')
         ->assertDontSee('Penilaian diubah');
 
-    $this->actingAs($actor)->get(route('superadmin.audit.index', ['topic' => 'Skripsi']))
+    $this->actingAs($actor)->get(route('superadmin.audit.index', ['topic' => 'Tugas Akhir']))
         ->assertOk()
-        ->assertSee('Skripsi disimpan')
+        ->assertSee('Tugas Akhir disimpan')
         ->assertDontSee('Penilaian diubah');
 
     $this->actingAs($actor)->get(route('superadmin.audit.index', ['topic' => 'Penilaian']))
         ->assertOk()
         ->assertSee('Penilaian diubah')
-        ->assertDontSee('Skripsi disimpan');
+        ->assertDontSee('Tugas Akhir disimpan');
 });
 
 it('filters audit logs by actor text without loading a user dropdown', function () {

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php $taRoutePrefix = $skripsi->type === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi'; @endphp
     <section class="card card--profile">
         <div class="profile-card">
             <div class="profile-card__avatar">{{ mb_strtoupper(mb_substr($skripsi->student->name ?? 'M', 0, 1)) }}</div>
@@ -11,7 +12,10 @@
                         <p>{{ str($skripsi->student->name ?? '-')->title() }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
                     </div>
-                    <span class="status-pill">LOGBOOK</span>
+                    <div class="acss-profile-badges">
+                        <span class="pill">{{ $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span>
+                        <span class="status-pill">LOGBOOK</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -21,7 +25,7 @@
         <div class="acss-crud-head acss-crud-head--inline">
             <div><h3 class="acss-card-title">Riwayat Pertemuan</h3></div>
             <div class="acss-crud-head__actions">
-                <form method="GET" action="{{ route('mahasiswa.skripsi.bimbingan.index', $skripsi) }}" class="acss-inline-filter-form">
+                <form method="GET" action="{{ route($taRoutePrefix.'.bimbingan.index', $skripsi) }}" class="acss-inline-filter-form">
                     <label class="field field--inline">
                         <select name="reviewer_id" class="input acss-filter-select-bordered" onchange="this.form.submit()">
                             <option value="0">Semua Dosen</option>
@@ -32,14 +36,14 @@
                     </label>
                 </form>
                 <div class="acss-export-actions">
-                    <a href="{{ route('mahasiswa.skripsi.bimbingan.export.pdf', ['skripsi' => $skripsi->id, 'reviewer_id' => (int) ($selectedReviewerId ?? 0)]) }}" class="acss-export-link acss-export-link--pdf" target="_blank" aria-label="Download PDF">
+                    <a href="{{ route($taRoutePrefix.'.bimbingan.export.pdf', ['skripsi' => $skripsi->id, 'reviewer_id' => (int) ($selectedReviewerId ?? 0)]) }}" class="acss-export-link acss-export-link--pdf" target="_blank" aria-label="Download PDF">
                         <span class="acss-export-doc-icon" aria-hidden="true">
                             @include('partials.icons.file-plain')
                             <span class="acss-export-doc-badge acss-export-doc-badge--pdf">PDF</span>
                             <span class="acss-export-doc-arrow">@include('partials.icons.download-arrow')</span>
                         </span>
                     </a>
-                    <a href="{{ route('mahasiswa.skripsi.bimbingan.export.csv', ['skripsi' => $skripsi->id, 'reviewer_id' => (int) ($selectedReviewerId ?? 0)]) }}" class="acss-export-link acss-export-link--csv" aria-label="Download CSV">
+                    <a href="{{ route($taRoutePrefix.'.bimbingan.export.csv', ['skripsi' => $skripsi->id, 'reviewer_id' => (int) ($selectedReviewerId ?? 0)]) }}" class="acss-export-link acss-export-link--csv" aria-label="Download CSV">
                         <span class="acss-export-doc-icon" aria-hidden="true">
                             @include('partials.icons.file-plain')
                             <span class="acss-export-doc-badge acss-export-doc-badge--csv">XLS</span>

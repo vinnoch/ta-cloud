@@ -8,8 +8,8 @@
     <section class="acss-crud-card" id="dosen-sidang-list-root" data-endpoint="{{ route('dosen.sidang-request.index') }}">
         <div class="acss-crud-head">
             <div>
-                <h1 class="acss-page-title">Pengajuan Sidang Skripsi</h1>
-                <p id="dosen-sidang-count-text" class="acss-muted ">{{ $requests->total() }} pengajuan sidang skripsi ditemukan.</p>
+                <h1 class="acss-page-title">Pengajuan Sidang Tugas Akhir</h1>
+                <p id="dosen-sidang-count-text" class="acss-muted ">{{ $requests->total() }} pengajuan sidang tugas akhir ditemukan.</p>
             </div>
         </div>
 
@@ -19,7 +19,7 @@
                 <input type="hidden" name="direction" value="{{ $direction ?? 'desc' }}">
                 <label class="form-field acss-search-field">
                     <span>Cari Pengajuan</span>
-                    <input id="dosen-sidang-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari mahasiswa atau judul skripsi">
+                    <input id="dosen-sidang-search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari mahasiswa atau judul tugas akhir">
                 </label>
                 <label class="form-field acss-field-tight">
                     <span>Status</span>

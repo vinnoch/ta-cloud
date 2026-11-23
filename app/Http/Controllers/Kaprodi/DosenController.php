@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Skripsi;
+use App\Services\TugasAkhirRouteService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,8 @@ use Illuminate\View\View;
 class DosenController extends Controller
 {
     use BuildsKaprodiPage;
-    public function index(Request $request): View|\Illuminate\Http\JsonResponse
+
+    public function index(Request $request): View|JsonResponse
     {
         $search = $request->string('q')->toString();
         $sort = $request->string('sort')->toString();
@@ -42,11 +44,11 @@ class DosenController extends Controller
             return response()->json([
                 'table_html' => view('kaprodi.dosen.partials.table', ['dosen' => $dosen, 'sort' => $sort, 'direction' => $direction])->render(),
                 'pagination_html' => view('kaprodi.dosen.partials.pagination', ['dosen' => $dosen])->render(),
-                'count_text' => $dosen->total() . ' akun dosen ditemukan.',
+                'count_text' => $dosen->total().' akun dosen ditemukan.',
             ]);
         }
 
-                $archivedCount = User::onlyTrashed()->forRole('dosen')->count();
+        $archivedCount = User::onlyTrashed()->forRole('dosen')->count();
 
         return view('kaprodi.dosen.index', $this->page('Master Dosen', 'KAPRODI • DOSEN', [
             'dosen' => $dosen,
@@ -91,22 +93,22 @@ class DosenController extends Controller
         $mahasiswaBimbingan = $dosen->reviewerAssignments()
             ->whereIn('role_type', ['pembimbing_1', 'pembimbing_2'])
             ->with([
-                'skripsi.student',
-                'skripsi.bimbingans' => fn ($query) => $query
+                'tugasAkhir.student',
+                'tugasAkhir.bimbingans' => fn ($query) => $query
                     ->where('reviewer_id', $dosen->id)
                     ->latest('meeting_date'),
             ])
             ->get()
-            ->map(function ($assignment) use ($dosen): array {
-                $skripsi = $assignment->skripsi;
+            ->map(function ($assignment): array {
+                $skripsi = $assignment->tugasAkhir;
                 $student = $skripsi?->student;
                 $latestBimbingan = $skripsi?->bimbingans?->first();
 
                 return [
                     'student' => $student,
                     'skripsi' => $skripsi,
-                    'skripsi_url' => $skripsi ? route('kaprodi.skripsi.show', $skripsi) : null,
-                    'bimbingan_url' => $skripsi ? route('kaprodi.skripsi.bimbingan', $skripsi) : null,
+                    'skripsi_url' => $skripsi ? app(TugasAkhirRouteService::class)->route('kaprodi', $skripsi, 'show', $skripsi) : null,
+                    'bimbingan_url' => $skripsi ? app(TugasAkhirRouteService::class)->route('kaprodi', $skripsi, 'bimbingan', $skripsi) : null,
                     'skripsi_topic' => $skripsi?->title ?? '-',
                     'guidance_count' => $skripsi?->bimbingans?->count() ?? 0,
                     'last_guidance_title' => $latestBimbingan?->lecturer_notes ?? '-',
@@ -166,9 +168,9 @@ class DosenController extends Controller
             'dosen' => $dosen,
             'hasRelatedRecords' => $hasRelatedRecords,
             'identity' => [
-                'avatar' => collect(explode(' ', $dosen->name))->map(fn(string $part): string => mb_substr($part, 0, 1))->take(2)->implode(''),
+                'avatar' => collect(explode(' ', $dosen->name))->map(fn (string $part): string => mb_substr($part, 0, 1))->take(2)->implode(''),
                 'name' => $dosen->name,
-                'nidn' => $dosen->nidn_nip ? 'NIDN/NIP: ' . $dosen->nidn_nip : 'NIDN/NIP: -',
+                'nidn' => $dosen->nidn_nip ? 'NIDN/NIP: '.$dosen->nidn_nip : 'NIDN/NIP: -',
                 'program' => 'Sistem Informasi',
             ],
             'search' => $search,

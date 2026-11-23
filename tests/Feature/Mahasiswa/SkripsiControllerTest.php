@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Periode;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -19,9 +19,17 @@ beforeEach(function () {
     ]);
 });
 
+it('shows the tugas akhir understanding checklist on the skripsi form', function () {
+    $this->actingAs($this->mahasiswa)
+        ->get(route('mahasiswa.skripsi.create'))
+        ->assertOk()
+        ->assertSee('Saya memahami perbedaan Skripsi dan Non-Skripsi')
+        ->assertSee('name="understands_tugas_akhir_types"', false);
+});
+
 it('lists own skripsi', function () {
-    Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Mine', 'type' => 'skripsi', 'current_phase' => 'proposal']);
-    Skripsi::query()->create(['student_id' => $this->otherMahasiswa->id, 'periode_id' => 1, 'title' => 'Theirs', 'type' => 'skripsi', 'current_phase' => 'proposal']);
+    TugasAkhir::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Mine', 'type' => 'skripsi', 'current_phase' => 'proposal']);
+    TugasAkhir::query()->create(['student_id' => $this->otherMahasiswa->id, 'periode_id' => 1, 'title' => 'Theirs', 'type' => 'skripsi', 'current_phase' => 'proposal']);
 
     $this->actingAs($this->mahasiswa)
         ->get(route('mahasiswa.skripsi.index'))
@@ -39,7 +47,7 @@ it('stores new skripsi', function () {
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('skripsis', [
+    $this->assertDatabaseHas('tugas_akhirs', [
         'student_id' => $this->mahasiswa->id,
         'title' => 'New Skripsi',
         'type' => 'skripsi',
@@ -59,7 +67,7 @@ it('ignores forged ownership and workflow fields', function () {
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('skripsis', [
+    $this->assertDatabaseHas('tugas_akhirs', [
         'title' => 'Protected Skripsi',
         'student_id' => $this->mahasiswa->id,
         'current_phase' => 'proposal',
@@ -67,8 +75,8 @@ it('ignores forged ownership and workflow fields', function () {
     ]);
 });
 
-it('shows edit updates softdeletes own skripsi', function () {
-    $skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Old', 'type' => 'skripsi', 'current_phase' => 'proposal', 'proposal_review_status' => 'draft']);
+it('shows edit updates softdeletes own skripsi without allowing a forged type switch', function () {
+    $skripsi = TugasAkhir::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Old', 'type' => 'skripsi', 'current_phase' => 'proposal', 'proposal_review_status' => 'draft']);
 
     $this->actingAs($this->mahasiswa)
         ->get(route('mahasiswa.skripsi.show', $skripsi))
@@ -83,16 +91,16 @@ it('shows edit updates softdeletes own skripsi', function () {
             'title' => 'Updated', 'type' => 'non_skripsi',
         ])
         ->assertRedirect();
-    $this->assertDatabaseHas('skripsis', ['id' => $skripsi->id, 'title' => 'Updated', 'type' => 'non_skripsi']);
+    $this->assertDatabaseHas('tugas_akhirs', ['id' => $skripsi->id, 'title' => 'Updated', 'type' => 'skripsi']);
 
     $this->actingAs($this->mahasiswa)
         ->delete(route('mahasiswa.skripsi.destroy', $skripsi))
         ->assertRedirect();
-    expect(Skripsi::withTrashed()->find($skripsi->id)->deleted_at)->not->toBeNull();
+    expect(TugasAkhir::withTrashed()->find($skripsi->id)->deleted_at)->not->toBeNull();
 });
 
 it('blocks editing a published proposal through direct routes', function () {
-    $skripsi = Skripsi::query()->create([
+    $skripsi = TugasAkhir::query()->create([
         'student_id' => $this->mahasiswa->id,
         'periode_id' => 1,
         'title' => 'Submitted Proposal',
@@ -119,7 +127,7 @@ it('blocks editing a published proposal through direct routes', function () {
 });
 
 it('blocks other mahasiswa', function () {
-    $skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Mine', 'type' => 'skripsi', 'current_phase' => 'proposal']);
+    $skripsi = TugasAkhir::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'Mine', 'type' => 'skripsi', 'current_phase' => 'proposal']);
     $this->actingAs($this->otherMahasiswa)->get(route('mahasiswa.skripsi.show', $skripsi))->assertForbidden();
     $this->actingAs($this->otherMahasiswa)->get(route('mahasiswa.skripsi.edit', $skripsi))->assertForbidden();
     $this->actingAs($this->otherMahasiswa)->put(route('mahasiswa.skripsi.update', $skripsi), ['title' => 'A', 'type' => 'skripsi'])->assertForbidden();

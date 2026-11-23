@@ -2,16 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
 class MahasiswaSkripsiDataService
 {
-    public function activeForUser(User $user): ?Skripsi
+    public function activeForUser(User $user, ?string $type = null): ?TugasAkhir
     {
-        return Skripsi::query()
+        return TugasAkhir::query()
             ->where('student_id', $user->id)
+            ->when($type, fn ($query) => $query->where('type', $type))
             ->whereNull('deleted_at')
             ->where('current_phase', '!=', 'skripsi_selesai')
             ->with([
@@ -25,7 +26,7 @@ class MahasiswaSkripsiDataService
             ->first();
     }
 
-    public function latestBimbingans(Skripsi $skripsi, int $limit = 5): Collection
+    public function latestBimbingans(TugasAkhir $skripsi, int $limit = 5): Collection
     {
         return $skripsi->bimbingans
             ->sortByDesc(fn ($item) => $item->meeting_date?->timestamp ?? 0)
@@ -33,7 +34,7 @@ class MahasiswaSkripsiDataService
             ->values();
     }
 
-    public function reviewers(Skripsi $skripsi): Collection
+    public function reviewers(TugasAkhir $skripsi): Collection
     {
         return $skripsi->assignments
             ->map(function ($assignment) {
@@ -45,7 +46,7 @@ class MahasiswaSkripsiDataService
             ->values();
     }
 
-    public function documents(Skripsi $skripsi, int $limit = 5): Collection
+    public function documents(TugasAkhir $skripsi, int $limit = 5): Collection
     {
         return $skripsi->documentVersions
             ->sortByDesc(fn ($item) => $item->created_at?->timestamp ?? 0)

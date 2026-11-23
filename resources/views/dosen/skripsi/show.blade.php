@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php $taLabel = $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi'; @endphp
     @if(session('success'))
         <div class="notice notice--success">{{ session('success') }}</div>
     @endif
@@ -12,7 +13,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <strong>Waktu Sidang Sudah Tiba</strong>
-                    <div class="">Sidang skripsi mahasiswa ini sudah berjalan. Segera isi nilai sidang skripsi Anda.</div>
+                    <div>Sidang {{ $taLabel }} mahasiswa ini sudah berjalan. Segera isi nilai sidang.</div>
                 </div>
                 <a class="button button--small button--success" href="{{ route('dosen.penilaian.show', $skripsi) }}">Isi Nilai</a>
             </div>
@@ -20,6 +21,7 @@
     @endif
 
     @php
+        $taRoutePrefix = $skripsi->type === 'non_skripsi' ? 'dosen.non-skripsi' : 'dosen';
         $mySidangRequest = $skripsi->sidangRequests
             ->where('lecturer_id', auth()->id())
             ->where('role_type', $myRoleType ?? null)
@@ -102,12 +104,15 @@
                                     <div><strong>Sidang Proposal:</strong> {{ $sidangProposalSchedule->translatedFormat('d M Y H:i') }}</div>
                                 @endif
                                 @if ($sidangSkripsiSchedule ?? null)
-                                    <div><strong>Sidang Skripsi:</strong> {{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</div>
+                                    <div><strong>Sidang {{ $taLabel }}:</strong> {{ $sidangSkripsiSchedule->translatedFormat('d M Y H:i') }}</div>
                                 @endif
                             </div>
                         @endif
                     </div>
-                    <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    <div class="acss-profile-badges">
+                        <span class="pill">{{ $taLabel }}</span>
+                        <span class="status-pill">{{ str($skripsi->current_phase)->replace(['_', '-'], ' ')->upper() }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,7 +129,7 @@
     </div>
     @endif
 
-    @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Fase Skripsi'])
+    @include('partials.skripsi-phase-timeline', ['skripsiTimelineRecord' => $skripsi, 'timelineTitle' => 'Timeline Fase Tugas Akhir'])
 
     <section class="acss-crud-card">
             <div class="acss-crud-head acss-crud-head--inline">
@@ -245,7 +250,7 @@
                 </div>
                 <button type="button" class="acss-modal__close" data-bimbingan-create-modal-close aria-label="Tutup">×</button>
             </div>
-            <form method="POST" action="{{ route('dosen.bimbingan.store', $skripsi) }}" class="acss-form-stack-tight">
+            <form method="POST" action="{{ route($taRoutePrefix.'.bimbingan.store', $skripsi) }}" class="acss-form-stack-tight">
                 @csrf
                 <div class="acss-master-form-shell">
                     <label class="form-field">
@@ -274,7 +279,7 @@
                 </div>
                 <button type="button" class="acss-modal__close" data-sidang-create-modal-close aria-label="Tutup">×</button>
             </div>
-            <form method="POST" action="{{ route('dosen.sidang-request.store', $skripsi) }}" class="acss-form-stack-tight">
+            <form method="POST" action="{{ route($taRoutePrefix.'.sidang-request.store', $skripsi) }}" class="acss-form-stack-tight">
                 @csrf
                 <div class="acss-master-form-shell">
                     <label class="form-field">
@@ -298,7 +303,7 @@
                     <h3 class="acss-card-title" id="sidang-cancel-modal-title">Batalkan Pengajuan Sidang</h3>
                     <button type="button" class="acss-modal__close" data-sidang-cancel-modal-close aria-label="Tutup">×</button>
                 </div>
-                <form method="POST" action="{{ route('dosen.sidang-request.destroy', [$skripsi, $mySidangRequest]) }}" class="acss-form-stack-tight">
+                <form method="POST" action="{{ route($taRoutePrefix.'.sidang-request.destroy', [$skripsi, $mySidangRequest]) }}" class="acss-form-stack-tight">
                     @csrf
                     @method('DELETE')
                     <div class="acss-master-form-shell">

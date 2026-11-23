@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Skripsi;
 use App\Models\Periode;
+use App\Models\TugasAkhir;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CardPresenter
@@ -32,9 +31,9 @@ class CardPresenter
 
         $periodeName = $activePeriode?->name ?? 'Tidak ada';
 
-        $skripsiStats = DB::table('skripsis')
+        $skripsiStats = DB::table('tugas_akhirs')
             ->select('current_phase', DB::raw('count(*) as total'))
-            ->when($activePeriode, fn($q) => $q->where('periode_id', $activePeriode->id))
+            ->when($activePeriode, fn ($q) => $q->where('periode_id', $activePeriode->id))
             ->groupBy('current_phase')
             ->pluck('total', 'current_phase')
             ->toArray();
@@ -61,14 +60,14 @@ class CardPresenter
             ],
             [
                 'eyebrow' => 'Dosen',
-                'title' => User::query()->forRole('dosen')->count() . ' Dosen',
+                'title' => User::query()->forRole('dosen')->count().' Dosen',
                 'subtitle' => 'Terdaftar di sistem',
                 'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
                 'href' => route('kaprodi.dosen.index'),
             ],
             [
                 'eyebrow' => 'Mahasiswa',
-                'title' => User::query()->forRole('mahasiswa')->count() . ' Mahasiswa',
+                'title' => User::query()->forRole('mahasiswa')->count().' Mahasiswa',
                 'subtitle' => 'Terdaftar di sistem',
                 'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
                 'href' => route('kaprodi.mahasiswa.index'),
@@ -83,9 +82,9 @@ class CardPresenter
             ->count();
 
         $pendingGrades = DB::table('reviewer_assignments as ra')
-            ->join('skripsis as s', 's.id', '=', 'ra.skripsi_id')
+            ->join('tugas_akhirs as s', 's.id', '=', 'ra.tugas_akhir_id')
             ->leftJoin('grades as g', function ($join) use ($user) {
-                $join->on('g.skripsi_id', '=', 's.id')
+                $join->on('g.tugas_akhir_id', '=', 's.id')
                     ->on('g.reviewer_id', '=', DB::raw((int) $user->id))
                     ->where('g.grade_event', '=', 'sidang_skripsi');
             })
@@ -115,7 +114,7 @@ class CardPresenter
 
     private function mahasiswaCards(User $user): array
     {
-        $skripsi = Skripsi::query()
+        $skripsi = TugasAkhir::query()
             ->where('student_id', $user->id)
             ->whereNull('deleted_at')
             ->first();
@@ -131,7 +130,7 @@ class CardPresenter
                 'subtitle' => "Periode: {$periodeName}",
                 'badge' => strtoupper(str_replace('_', ' ', $skripsi->current_phase)),
                 'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>',
-                'href' => route('mahasiswa.skripsi.show', $skripsi),
+                'href' => app(TugasAkhirRouteService::class)->route('mahasiswa', $skripsi, 'show', $skripsi),
                 'status' => 'active',
             ];
         } else {
@@ -151,7 +150,7 @@ class CardPresenter
                 'title' => 'Riwayat Bimbingan',
                 'subtitle' => 'Lihat semua sesi bimbingan',
                 'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-                'href' => route('mahasiswa.skripsi.bimbingan.index', $skripsi),
+                'href' => app(TugasAkhirRouteService::class)->route('mahasiswa', $skripsi, 'bimbingan.index', $skripsi),
             ];
 
             $cards[] = [
@@ -159,7 +158,7 @@ class CardPresenter
                 'title' => 'Nilai Akhir',
                 'subtitle' => 'Lihat nilai akhir skripsi',
                 'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-                'href' => route('mahasiswa.skripsi.nilai.index', $skripsi),
+                'href' => app(TugasAkhirRouteService::class)->route('mahasiswa', $skripsi, 'nilai.index', $skripsi),
             ];
         }
 

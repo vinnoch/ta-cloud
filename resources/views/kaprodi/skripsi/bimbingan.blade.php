@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php $taRoutePrefix = $skripsi->type === 'non_skripsi' ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi'; @endphp
     <section class="card card--profile">
         <div class="profile-card">
             <div class="profile-card__avatar">{{ mb_substr($skripsi->student->name ?? 'M', 0, 1) }}</div>
@@ -11,6 +12,7 @@
                         <p>{{ $skripsi->student->name ?? '-' }} • {{ $skripsi->student->nim ?? '-' }}</p>
                         <div class="acss-quote-title">{{ $skripsi->title }}</div>
                     </div>
+                    <span class="pill">{{ $skripsi->type === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi' }}</span>
                 </div>
             </div>
         </div>
@@ -37,7 +39,7 @@
                         <div class="table-shell__cell">
                             <strong>{{ $bimbingan->meeting_date?->format('d/m/Y') ?? '-' }}</strong>
                             <div class="text-[10px] acss-muted">{{ $bimbingan->created_at?->format('H:i') ?? '' }}</div>
-                            <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ route('kaprodi.skripsi.bimbingan.show', [$skripsi, $bimbingan]) }}">@include('partials.icons.eye')<span>Detail</span></a></div>
+                            <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ route($taRoutePrefix.'.bimbingan.show', [$skripsi, $bimbingan]) }}">@include('partials.icons.eye')<span>Detail</span></a></div>
                         </div>
                         <div class="table-shell__cell">{{ str($bimbingan->phase)->replace('_', ' ')->title() }}</div>
                         <div class="table-shell__cell">{{ $bimbingan->reviewer?->name ?? '-' }}</div>

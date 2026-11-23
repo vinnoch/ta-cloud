@@ -8,25 +8,28 @@ use App\Models\DocumentTemplate;
 use App\Models\DocumentVersion;
 use App\Models\Grade;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\RoleNavigationService;
 use App\Services\StudentDocumentPathService;
+use App\Services\TugasAkhirRouteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class FinalSubmissionController extends Controller
 {
-    public function skripsiFinal(Request $request, Skripsi $skripsi): View|RedirectResponse
+    public function __construct(private readonly TugasAkhirRouteService $tugasAkhirRoutes) {}
+
+    public function skripsiFinal(Request $request, TugasAkhir $skripsi): View|RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
 
         $allowedPhases = ['revisi_sidang_skripsi', 'review_dokumen_final', 'skripsi_selesai'];
         if (! in_array($skripsi->current_phase, $allowedPhases, true)) {
             return redirect()
-                ->route('mahasiswa.skripsi.show', $skripsi)
+                ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'show', $skripsi))
                 ->with('warning', 'Halaman dokumen final belum tersedia untuk fase saat ini.');
         }
 
@@ -35,13 +38,13 @@ class FinalSubmissionController extends Controller
         $skripsi->loadMissing(['student', 'periode']);
 
         $documents = DocumentVersion::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('phase', 'skripsi_final')
             ->orderByDesc('version_number')
             ->get();
 
         $existingSubmissions = DocumentSubmission::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->whereIn('document_template_item_id', ($submission['template_items'] ?? collect())->pluck('id'))
             ->with('documentVersion')
             ->get()
@@ -68,19 +71,19 @@ class FinalSubmissionController extends Controller
         ]);
     }
 
-    public function storeSkripsiFinal(Request $request, Skripsi $skripsi, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
+    public function storeSkripsiFinal(Request $request, TugasAkhir $skripsi, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
     {
         return $this->storeForEvent($request, $skripsi, 'sidang_skripsi', $notifications, $documentPathService);
     }
 
-    public function index(Request $request, Skripsi $skripsi, string $event): View|RedirectResponse
+    public function index(Request $request, TugasAkhir $skripsi, string $event): View|RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
 
         $submission = $this->buildSubmissionState($skripsi, $event);
         if (! ($submission['phase_allowed'] ?? false) && ! ($submission['already_submitted'] ?? false)) {
             return redirect()
-                ->route('mahasiswa.skripsi.show', $skripsi)
+                ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'show', $skripsi))
                 ->with('warning', $submission['message']);
         }
 
@@ -93,19 +96,19 @@ class FinalSubmissionController extends Controller
         ]);
     }
 
-    public function store(Request $request, Skripsi $skripsi, string $event, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
+    public function store(Request $request, TugasAkhir $skripsi, string $event, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
     {
         return $this->storeForEvent($request, $skripsi, $event, $notifications, $documentPathService);
     }
 
-    private function storeForEvent(Request $request, Skripsi $skripsi, string $event, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
+    private function storeForEvent(Request $request, TugasAkhir $skripsi, string $event, NotificationService $notifications, StudentDocumentPathService $documentPathService): RedirectResponse
     {
         $this->authorizeOwner($request, $skripsi);
 
         $submission = $this->buildSubmissionState($skripsi, $event);
         if (! $submission['allowed']) {
             return redirect()
-                ->route('mahasiswa.skripsi.show', $skripsi)
+                ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'show', $skripsi))
                 ->with('warning', $submission['message']);
         }
 
@@ -134,7 +137,7 @@ class FinalSubmissionController extends Controller
 
                         DocumentSubmission::query()->updateOrCreate(
                             [
-                                'skripsi_id' => $skripsi->id,
+                                'tugas_akhir_id' => $skripsi->id,
                                 'document_template_item_id' => $item->id,
                             ],
                             [
@@ -152,14 +155,14 @@ class FinalSubmissionController extends Controller
                     }
 
                     $nextVersion = ((int) DocumentVersion::query()
-                        ->where('skripsi_id', $skripsi->id)
+                        ->where('tugas_akhir_id', $skripsi->id)
                         ->where('phase', 'skripsi_final')
                         ->max('version_number')) + 1;
 
                     $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), 'skripsi_final', $nextVersion, $file), 'local');
 
                     $document = DocumentVersion::query()->create([
-                        'skripsi_id' => $skripsi->id,
+                        'tugas_akhir_id' => $skripsi->id,
                         'phase' => 'skripsi_final',
                         'version_number' => $nextVersion,
                         'file_path' => $path,
@@ -170,7 +173,7 @@ class FinalSubmissionController extends Controller
 
                     DocumentSubmission::query()->updateOrCreate(
                         [
-                            'skripsi_id' => $skripsi->id,
+                            'tugas_akhir_id' => $skripsi->id,
                             'document_template_item_id' => $item->id,
                         ],
                         [
@@ -194,11 +197,11 @@ class FinalSubmissionController extends Controller
                 'type' => 'skripsi_final_submitted',
                 'title' => 'Dokumen final skripsi dikirim',
                 'message' => $request->user()->name.' mengirim dokumen final skripsi: '.$skripsi->title,
-                'url' => route('kaprodi.skripsi.show', ['skripsi' => $skripsi->id], false),
+                'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
             ]);
 
             return redirect()
-                ->route('mahasiswa.skripsi.final.skripsi.index', $skripsi)
+                ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'final.skripsi.index', $skripsi))
                 ->with('success', 'Dokumen final skripsi berhasil dikirim.');
         }
 
@@ -210,7 +213,7 @@ class FinalSubmissionController extends Controller
 
         $phase = $submission['document_phase'];
         $nextVersion = ((int) DocumentVersion::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('phase', $phase)
             ->max('version_number')) + 1;
 
@@ -219,7 +222,7 @@ class FinalSubmissionController extends Controller
         $path = $file->storeAs('', $documentPathService->buildStoragePath($skripsi->loadMissing('student'), $phase, $nextVersion, $file), 'local');
 
         $document = DocumentVersion::query()->create([
-            'skripsi_id' => $skripsi->id,
+            'tugas_akhir_id' => $skripsi->id,
             'phase' => $phase,
             'version_number' => $nextVersion,
             'file_path' => $path,
@@ -247,10 +250,10 @@ class FinalSubmissionController extends Controller
             'type' => $event === 'sidang_proposal' ? 'proposal_final_submitted' : 'skripsi_final_submitted',
             'title' => $event === 'sidang_proposal' ? 'Final proposal dikirim' : 'Dokumen final skripsi dikirim',
             'message' => $request->user()->name.' mengirim '.($event === 'sidang_proposal' ? 'proposal final' : 'dokumen final skripsi').': '.$skripsi->title,
-            'url' => route('kaprodi.skripsi.show', ['skripsi' => $skripsi->id], false),
+            'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
             'actor' => $request->user()->name,
             'meta' => [
-                'skripsi_id' => $skripsi->id,
+                'tugas_akhir_id' => $skripsi->id,
                 'document_version_id' => $document->id,
                 'phase' => $phase,
                 'notes' => $validated['notes'] ?? null,
@@ -258,20 +261,20 @@ class FinalSubmissionController extends Controller
         ]);
 
         return redirect()
-            ->route('mahasiswa.skripsi.show', $skripsi)
+            ->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'show', $skripsi))
             ->with('success', $event === 'sidang_proposal'
                 ? 'Proposal final berhasil dikirim.'
                 : 'Dokumen final skripsi berhasil dikirim.');
     }
 
-    private function authorizeOwner(Request $request, Skripsi $skripsi): void
+    private function authorizeOwner(Request $request, TugasAkhir $skripsi): void
     {
         if ($skripsi->student_id !== $request->user()->id) {
             abort(403);
         }
     }
 
-    public static function buildSubmissionState(Skripsi $skripsi, string $event): array
+    public static function buildSubmissionState(TugasAkhir $skripsi, string $event): array
     {
         if (! in_array($event, ['sidang_proposal', 'sidang_skripsi'], true)) {
             return [
@@ -285,12 +288,12 @@ class FinalSubmissionController extends Controller
             : ['pembimbing_1', 'pembimbing_2', 'penguji_1', 'penguji_2'];
 
         $assignedReviewerCount = ReviewerAssignment::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->whereIn('role_type', $assignmentRoles)
             ->count();
 
         $finalGrades = Grade::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('grade_event', $event)
             ->where('status', 'published')
             ->with('reviewer')
@@ -298,7 +301,7 @@ class FinalSubmissionController extends Controller
 
         $documentPhase = $event === 'sidang_proposal' ? 'proposal_final' : 'skripsi_final';
         $latestDocument = DocumentVersion::query()
-            ->where('skripsi_id', $skripsi->id)
+            ->where('tugas_akhir_id', $skripsi->id)
             ->where('phase', $documentPhase)
             ->orderByDesc('version_number')
             ->first();
@@ -379,7 +382,7 @@ class FinalSubmissionController extends Controller
         ];
     }
 
-    private static function resolveTemplateItems(Skripsi $skripsi)
+    private static function resolveTemplateItems(TugasAkhir $skripsi)
     {
         $template = DocumentTemplate::query()
             ->where('is_published', true)

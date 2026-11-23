@@ -1,20 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
-    <form class="acss-form-stack acss-form-stack--sm" method="POST" action="{{ route('mahasiswa.skripsi.store') }}"
+    @php
+        $taType = $taType ?? $selectedType ?? (request()->routeIs('mahasiswa.non-skripsi.*') ? 'non_skripsi' : 'skripsi');
+        $taLabel = $taType === 'non_skripsi' ? 'Non-Skripsi' : 'Skripsi';
+        $taRoutePrefix = $taType === 'non_skripsi' ? 'mahasiswa.non-skripsi' : 'mahasiswa.skripsi';
+        $formRoute = !empty($isUnifiedRegistration) ? 'mahasiswa.pendaftaran.store' : $taRoutePrefix.'.store';
+    @endphp
+    <form class="acss-form-stack acss-form-stack--sm" method="POST" action="{{ route($formRoute) }}"
         enctype="multipart/form-data">
         @csrf
         <section class="acss-crud-card">
             <div class="acss-crud-head">
                 <div>
-                    <h1 class="acss-page-title">{{ $heading ?? 'Buat Skripsi Baru' }}</h1>
+                    <h1 class="acss-page-title">{{ $heading ?? 'Buat '.$taLabel.' Baru' }}</h1>
                 </div>
             </div>
 
             <div class="acss-crud-body acss-form-stack acss-form-stack--sm">
                 <label class="form-field">
-                    <span>Judul Penelitian</span>
-                    <input type="text" name="title" value="{{ old('title') }}" placeholder="Masukkan judul skripsi"
+                    <span>Judul Tugas Akhir</span>
+                    <input type="text" name="title" value="{{ old('title') }}" placeholder="Masukkan judul tugas akhir"
                         required>
                     @error('title')
                         <small class="field-error">{{ $message }}</small>
@@ -23,11 +29,16 @@
 
                 <div class="acss-form-split">
                     <label class="form-field">
-                        <span>Tipe</span>
-                        <select name="type" required>
-                            <option value="skripsi" @selected(old('type', $selectedType ?? 'skripsi') === 'skripsi')>Skripsi</option>
-                            <option value="non_skripsi" @selected(old('type', $selectedType ?? 'skripsi') === 'non_skripsi')>Non Skripsi</option>
-                        </select>
+                        <span>Tipe Tugas Akhir</span>
+                        @if (!empty($isUnifiedRegistration))
+                            <select name="type" required>
+                                <option value="skripsi" @selected(old('type', $taType) === 'skripsi')>Skripsi</option>
+                                <option value="non_skripsi" @selected(old('type', $taType) === 'non_skripsi')>Non-Skripsi</option>
+                            </select>
+                        @else
+                            <input type="hidden" name="type" value="{{ $taType }}">
+                            <input type="text" value="{{ $taLabel }}" readonly aria-readonly="true">
+                        @endif
                         @error('type')
                             <small class="field-error">{{ $message }}</small>
                         @enderror
@@ -63,16 +74,7 @@
                     @enderror
                 </div>
 
-                <label class="form-field">
-                    <span>Link Artikel Jurnal (opsional)</span>
-                    <input type="url" name="journal_article_url" value="{{ old('journal_article_url') }}"
-                        placeholder="https://jurnal.university.ac.id/article/123">
-                    <small class="acss-muted  block">Isi jika memilih Non Skripsi dan sudah terpublikasi di
-                        jurnal</small>
-                    @error('journal_article_url')
-                        <small class="field-error">{{ $message }}</small>
-                    @enderror
-                </label>
+                @include('mahasiswa.skripsi.partials.type-understanding')
 
             </div>
         </section>
@@ -83,7 +85,9 @@
                 <strong>Draft</strong>
             </div>
             <div class="acss-form-actions">
-                <a class="button button--muted button--inline" href="{{ route('mahasiswa.skripsi.index') }}">Batal</a>
+                @if (empty($isUnifiedRegistration))
+                    <a class="button button--muted button--inline" href="{{ route($taRoutePrefix.'.index') }}">Batal</a>
+                @endif
                 <button class="button button--muted button--inline" type="submit" name="save_mode" value="draft">Simpan Draft</button>
                 <button class="button button--primary button--inline" type="submit" name="save_mode" value="published">Ajukan Proposal</button>
             </div>

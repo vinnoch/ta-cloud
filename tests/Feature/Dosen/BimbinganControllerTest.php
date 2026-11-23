@@ -3,8 +3,8 @@
 use App\Models\Bimbingan;
 use App\Models\Periode;
 use App\Models\ReviewerAssignment;
-use App\Models\Skripsi;
 use App\Models\TahunAkademik;
+use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -19,8 +19,8 @@ beforeEach(function () {
         'id' => 1, 'tahun_akademik_id' => $tahun->id, 'kode_periode' => '20251', 'semester' => 1,
         'sk_nomor' => 'SK-1', 'tgl_mulai' => '2025-08-01', 'tgl_selesai' => '2026-01-31', 'is_aktif' => true, 'status' => 'active',
     ]);
-    $this->skripsi = Skripsi::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'bimbingan_skripsi']);
-    ReviewerAssignment::query()->create(['skripsi_id' => $this->skripsi->id, 'lecturer_id' => $this->dosen->id, 'role_type' => 'pembimbing_1']);
+    $this->skripsi = TugasAkhir::query()->create(['student_id' => $this->mahasiswa->id, 'periode_id' => 1, 'title' => 'TA', 'type' => 'skripsi', 'current_phase' => 'bimbingan_skripsi']);
+    ReviewerAssignment::query()->create(['tugas_akhir_id' => $this->skripsi->id, 'lecturer_id' => $this->dosen->id, 'role_type' => 'pembimbing_1']);
 });
 
 it('creates updates deletes bimbingan for assigned dosen', function () {
@@ -52,14 +52,29 @@ it('blocks unassigned dosen', function () {
     ])->assertForbidden();
 });
 
+it('blocks an assigned examiner from creating bimbingan', function () {
+    ReviewerAssignment::query()->create([
+        'tugas_akhir_id' => $this->skripsi->id,
+        'lecturer_id' => $this->otherDosen->id,
+        'role_type' => 'penguji_1',
+    ]);
+
+    $this->actingAs($this->otherDosen)->post(route('dosen.bimbingan.store', $this->skripsi), [
+        'meeting_date' => '2026-05-05',
+        'lecturer_notes' => 'Unauthorized notes',
+    ])->assertForbidden();
+
+    $this->assertDatabaseCount('bimbingans', 0);
+});
+
 it('blocks an assigned dosen from changing another dosen bimbingan', function () {
     ReviewerAssignment::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'lecturer_id' => $this->otherDosen->id,
         'role_type' => 'pembimbing_2',
     ]);
     $bimbingan = Bimbingan::query()->create([
-        'skripsi_id' => $this->skripsi->id,
+        'tugas_akhir_id' => $this->skripsi->id,
         'reviewer_id' => $this->dosen->id,
         'phase' => 'bimbingan_skripsi',
         'meeting_date' => '2026-05-05',

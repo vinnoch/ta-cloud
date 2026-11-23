@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php $taRoutePrefix = request()->routeIs('kaprodi.non-skripsi.*') ? 'kaprodi.non-skripsi' : 'kaprodi.skripsi'; @endphp
     <section class="acss-crud-card">
         <div class="acss-crud-head">
             <div>
@@ -10,7 +11,7 @@
         </div>
 
         <div class="acss-crud-body">
-            <form class="acss-export-form" method="GET" action="{{ route('kaprodi.skripsi.export.csv') }}" target="_blank">
+            <form class="acss-export-form" method="GET" action="{{ route($taRoutePrefix.'.export.csv') }}" target="_blank">
                 <div class="acss-export-form__fields">
                     <label class="form-field acss-search-field">
                         <span>Pencarian</span>
