@@ -237,20 +237,8 @@ class TugasAkhirController extends Controller
             ]);
         }
 
-        $kaprodiUsers = User::query()->forRole('kaprodi')->get();
-
-        if ($hasProposalFile && ! $isDraft && $kaprodiUsers->isNotEmpty()) {
-            $notifications->send($kaprodiUsers, [
-                'type' => 'proposal_submitted',
-                'title' => 'Pengajuan proposal baru',
-                'message' => $request->user()->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
-                'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
-                'actor' => $request->user()->name,
-                'meta' => [
-                    'tugas_akhir_id' => $skripsi->id,
-                    'phase' => 'proposal',
-                ],
-            ]);
+        if ($hasProposalFile && ! $isDraft) {
+            $this->notifyProposalSubmitted($notifications, $skripsi);
         }
 
         return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', $this->tugasAkhirRoutes->label($type).' berhasil dibuat.');
@@ -268,21 +256,7 @@ class TugasAkhirController extends Controller
                 'proposal_review_status' => 'published',
             ]);
 
-            $kaprodiUsers = User::query()->forRole('kaprodi')->get();
-
-            if ($kaprodiUsers->isNotEmpty()) {
-                $notifications->send($kaprodiUsers, [
-                    'type' => 'proposal_submitted',
-                    'title' => 'Pengajuan proposal baru',
-                    'message' => $skripsi->student->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
-                    'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
-                    'actor' => $skripsi->student->name,
-                    'meta' => [
-                        'tugas_akhir_id' => $skripsi->id,
-                        'phase' => 'proposal',
-                    ],
-                ]);
-            }
+            $this->notifyProposalSubmitted($notifications, $skripsi);
 
             return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', 'Pengajuan proposal berhasil dikirim.');
         }
@@ -411,26 +385,37 @@ class TugasAkhirController extends Controller
                 'proposal_review_status' => 'published',
             ]);
 
-            $kaprodiUsers = User::query()->forRole('kaprodi')->get();
-
-            if ($kaprodiUsers->isNotEmpty()) {
-                $notifications->send($kaprodiUsers, [
-                    'type' => 'proposal_submitted',
-                    'title' => 'Pengajuan proposal baru',
-                    'message' => $skripsi->student->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
-                    'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
-                    'actor' => $skripsi->student->name,
-                    'meta' => [
-                        'tugas_akhir_id' => $skripsi->id,
-                        'phase' => 'proposal',
-                    ],
-                ]);
-            }
+            $this->notifyProposalSubmitted($notifications, $skripsi);
 
             return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', 'Pengajuan proposal berhasil dikirim.');
         }
 
         return redirect()->to($this->tugasAkhirRoutes->route('mahasiswa', $skripsi, 'index'))->with('success', 'Proposal draft berhasil diperbarui.');
+    }
+
+    private function notifyProposalSubmitted(NotificationService $notifications, TugasAkhir $skripsi): void
+    {
+        $student = $skripsi->student;
+        $payload = [
+            'type' => 'proposal_submitted',
+            'title' => 'Pengajuan proposal baru',
+            'message' => $student->name.' mengajukan proposal '.$this->tugasAkhirRoutes->label($skripsi->type).': '.$skripsi->title,
+            'actor' => $student->name,
+            'meta' => ['tugas_akhir_id' => $skripsi->id, 'phase' => 'proposal'],
+        ];
+
+        $recipients = fn (string $role) => User::query()
+            ->forRole($role)
+            ->where('account_status', 'active')
+            ->where('study_program_id', $student->study_program_id)
+            ->get();
+
+        $notifications->send($recipients('kaprodi'), $payload + [
+            'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
+        ]);
+        $notifications->send($recipients('dosen'), $payload + [
+            'url' => route('dosen.proposal.index', absolute: false),
+        ]);
     }
 
     public function destroy(Request $request, TugasAkhir $skripsi): RedirectResponse

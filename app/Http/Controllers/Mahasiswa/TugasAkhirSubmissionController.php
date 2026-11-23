@@ -41,18 +41,27 @@ class TugasAkhirSubmissionController extends Controller
         $skripsi->save();
 
         $studentName = $request->user()->name;
-        $recipients = User::query()->forRole('kaprodi')->get()->concat(User::query()->forRole('dosen')->get());
-
-        $notifications->send($recipients, [
+        $payload = [
             'type' => 'proposal_submitted',
             'title' => 'Proposal baru dikirim',
             'message' => "{$studentName} mengirim proposal skripsi: {$skripsi->title}",
-            'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
             'actor' => $studentName,
             'meta' => [
                 'tugas_akhir_id' => $skripsi->id,
                 'phase' => 'proposal',
             ],
+        ];
+        $recipients = fn (string $role) => User::query()
+            ->forRole($role)
+            ->where('account_status', 'active')
+            ->where('study_program_id', $request->user()->study_program_id)
+            ->get();
+
+        $notifications->send($recipients('kaprodi'), $payload + [
+            'url' => $this->tugasAkhirRoutes->route('kaprodi', $skripsi, 'show', $skripsi, false),
+        ]);
+        $notifications->send($recipients('dosen'), $payload + [
+            'url' => route('dosen.proposal.index', absolute: false),
         ]);
 
         return redirect()

@@ -5,6 +5,7 @@ use App\Models\TahunAkademik;
 use App\Models\TugasAkhir;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -121,6 +122,48 @@ it('requires understanding confirmation before publishing a saved draft', functi
         ->assertRedirect(route('mahasiswa.non-skripsi.index'));
 
     expect($draft->fresh()->proposal_review_status)->toBe('published');
+});
+
+it('notifies only active kaprodi and dosen in the student study program', function () {
+    $departmentId = DB::table('departments')->insertGetId([
+        'code' => 'FT', 'name' => 'Fakultas Teknik', 'is_active' => true,
+    ]);
+    $programId = DB::table('study_programs')->insertGetId([
+        'department_id' => $departmentId, 'code' => 'SI', 'name' => 'Sistem Informasi', 'is_active' => true,
+    ]);
+    $otherProgramId = DB::table('study_programs')->insertGetId([
+        'department_id' => $departmentId, 'code' => 'TI', 'name' => 'Teknik Informatika', 'is_active' => true,
+    ]);
+    $this->mahasiswa->update(['study_program_id' => $programId]);
+
+    $kaprodi = User::factory()->kaprodi()->create(['study_program_id' => $programId]);
+    $dosen = User::factory()->dosen()->create(['study_program_id' => $programId]);
+    $otherProgramDosen = User::factory()->dosen()->create(['study_program_id' => $otherProgramId]);
+    $pendingDosen = User::factory()->dosen()->create([
+        'study_program_id' => $programId,
+        'account_status' => 'pending',
+    ]);
+    $draft = TugasAkhir::query()->create([
+        'student_id' => $this->mahasiswa->id,
+        'periode_id' => $this->periode->id,
+        'title' => 'Scoped Proposal',
+        'type' => 'non_skripsi',
+        'current_phase' => 'proposal',
+        'proposal_review_status' => 'draft',
+    ]);
+
+    $this->actingAs($this->mahasiswa)
+        ->post(route('mahasiswa.non-skripsi.publish', $draft), [
+            'understands_tugas_akhir_types' => '1',
+        ])
+        ->assertRedirect(route('mahasiswa.non-skripsi.index'));
+
+    expect($kaprodi->notifications()->count())->toBe(1)
+        ->and($dosen->notifications()->count())->toBe(1)
+        ->and($otherProgramDosen->notifications()->count())->toBe(0)
+        ->and($pendingDosen->notifications()->count())->toBe(0)
+        ->and($kaprodi->notifications()->sole()->data['url'])->toContain('/kaprodi/')
+        ->and($dosen->notifications()->sole()->data['url'])->toBe('/dosen/proposal');
 });
 
 it('stores non skripsi through the unified tugas akhir route', function () {

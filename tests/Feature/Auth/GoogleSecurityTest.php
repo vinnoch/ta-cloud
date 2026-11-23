@@ -37,6 +37,8 @@ beforeEach(function () {
         $table->string('role')->nullable();
         $table->string('nim')->nullable();
         $table->string('nidn_nip')->nullable();
+        $table->string('account_status')->default('active');
+        $table->string('registration_method')->nullable();
         $table->softDeletes();
         $table->timestamps();
     });
@@ -87,6 +89,7 @@ function createUserForGoogle(string $role = 'kaprodi', array $overrides = []): U
         'password' => 'password',
         'role' => $role,
         'nim' => $role === 'mahasiswa' ? '2021004592' : null,
+        'account_status' => 'active',
     ], $overrides));
 }
 
@@ -160,12 +163,12 @@ test('google callback accepts uppercase valid domain and links existing user by 
     $this->assertAuthenticatedAs($user);
 });
 
-test('google callback rejects unknown allowed-domain user', function () {
+test('google callback starts registration for unknown allowed-domain user', function () {
     stubGoogleUser(makeGoogleUser('new.student@widyakarya.ac.id', 'google-new', null, 'New Student'));
 
     $this->get(route('auth.google.callback'))
-        ->assertRedirect(route('login'))
-        ->assertSessionHas('status', 'Akun belum terdaftar. Hubungi Superadmin atau Kaprodi.');
+        ->assertRedirect(route('register'))
+        ->assertSessionHas('registration.google_identity.email', 'new.student@widyakarya.ac.id');
 
     $this->assertGuest();
     $this->assertDatabaseMissing('users', ['email' => 'new.student@widyakarya.ac.id']);
@@ -206,7 +209,7 @@ test('google callback rejects soft deleted user', function () {
     $this->assertGuest();
 });
 
-test('google callback preserves existing google id for known user', function () {
+test('google callback rejects a changed google id for known user', function () {
     $user = createUserForGoogle('kaprodi', [
         'email' => 'known@widyakarya.ac.id',
         'email_verified_at' => now()->subDay(),
@@ -220,14 +223,15 @@ test('google callback preserves existing google id for known user', function () 
     stubGoogleUser(makeGoogleUser('known@widyakarya.ac.id', 'new-google-id', 'https://avatar.example.test/new.png'));
 
     $this->get(route('auth.google.callback'))
-        ->assertRedirect(route('kaprodi.dashboard'));
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'Identitas Google tidak cocok dengan akun terdaftar.');
 
     $user->refresh();
 
     expect($user->google_id)->toBe('existing-google-id')
-        ->and($user->google_avatar)->toBe('https://avatar.example.test/new.png');
+        ->and($user->google_avatar)->toBe('https://avatar.example.test/original.png');
 
-    $this->assertAuthenticatedAs($user);
+    $this->assertGuest();
 });
 
 test('google callback regenerates session after successful login', function () {
