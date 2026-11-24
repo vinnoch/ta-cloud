@@ -5,7 +5,6 @@
         <div class="profile-card acss-dashboard-header">
             <div>
                 <h1 class="acss-page-title">Dashboard Dosen</h1>
-                <p class="acss-muted">Ringkasan bimbingan, antrian penilaian, dan persetujuan dokumen final.</p>
             </div>
         </div>
     </section>
@@ -26,24 +25,28 @@
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Antrian Penilaian</h3>
-                <p class="acss-muted ">Tugas akhir yang menunggu draft/final nilai dari Anda.</p>
             </div>
         </div>
         <div class="acss-section-card__body">
-            <div class="table-shell">
-                <div class="table-shell__head table-shell__grid acss-table-cols-dosen-dash-grading">
-                    <span>Mahasiswa</span><span>Judul Tugas Akhir</span><span>Peran</span>
-                </div>
+            <div class="table-shell pilot-table">
+                @if ($gradingQueue->isNotEmpty())
+                    <div class="table-shell__head table-shell__grid acss-table-cols-dosen-dash-grading">
+                        <span>Mahasiswa</span><span>Judul Tugas Akhir</span><span>Peran</span>
+                    </div>
+                @endif
                 @forelse ($gradingQueue as $item)
-                    <div class="table-shell__row table-shell__grid acss-table-cols-dosen-dash-grading acss-hover-row-group">
-                        <div class="table-shell__cell"><strong>{{ $item['student'] }}</strong>
-                            <div class="acss-row-actions"><a class="text-link acss-action-link" href="{{ $item['href'] }}">@include('partials.icons.clipboard')<span>Isi Nilai</span></a></div>
+                    <div class="table-shell__row table-shell__grid acss-table-cols-dosen-dash-grading acss-hover-row-group pilot-record-card pilot-record-card--dosen-dashboard">
+                        <div class="table-shell__cell pilot-record-card__identity"><strong>{{ $item['student'] }}</strong>
+                            <div class="acss-row-actions pilot-record-card__desktop-actions"><a class="text-link acss-action-link" href="{{ $item['href'] }}">@include('partials.icons.clipboard')<span>Isi Nilai</span></a></div>
                         </div>
-                        <div class="table-shell__cell table-shell__cell--title">
+                        <div class="table-shell__cell table-shell__cell--title pilot-record-card__title">
                             <div>{{ $item['title'] }}</div>
                             <div><span class="pill">{{ $item['type_label'] }}</span></div>
                         </div>
-                        <div class="table-shell__cell"><span class="pill">{{ strtoupper($item['role']) }}</span></div>
+                        <div class="table-shell__cell pilot-record-card__meta" data-mobile-label="Peran"><span class="pill">{{ strtoupper($item['role']) }}</span></div>
+                        <div class="pilot-record-card__mobile-actions">
+                            <a class="pilot-record-card__primary-action" href="{{ $item['href'] }}">@include('partials.icons.clipboard')<span>Isi Nilai</span></a>
+                        </div>
                     </div>
                 @empty
                     <div class="empty-state">Belum ada antrian penilaian.</div>

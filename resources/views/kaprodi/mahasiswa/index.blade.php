@@ -6,10 +6,9 @@
     @endif
 
     <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.mahasiswa.index') }}">
-        <div class="section-heading acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">Master Mahasiswa</h1>
-                <p class="acss-muted " id="count-text">{{ $mahasiswa->total() }} akun mahasiswa ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 @if (Route::has('registrations.index'))
@@ -131,7 +130,6 @@
     'searchInputId' => 'search-input',
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
-    'countTextId' => 'count-text',
 ])
 
 

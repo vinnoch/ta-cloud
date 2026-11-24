@@ -54,12 +54,15 @@ it('rejects non-exact institutional bootstrap domains', function (string $email)
 it('isolates superadmin routes from other roles', function () {
     $kaprodi = User::factory()->kaprodi()->create();
     $superadmin = superadminUser();
+    AuditLog::query()->create(['actor_id' => $superadmin->id, 'action' => 'demo.login']);
 
     $this->actingAs($kaprodi)->get(route('superadmin.dashboard'))->assertForbidden();
     $this->actingAs($superadmin)->get(route('superadmin.dashboard'))
         ->assertOk()
         ->assertSee('Database terkoneksi')
-        ->assertSee('acss-dashboard-metric__status-icon', false);
+        ->assertSee('acss-dashboard-metric__status-icon', false)
+        ->assertSee('pilot-record-card--superadmin-dashboard', false)
+        ->assertSee('data-mobile-label="Aktivitas"', false);
     $this->actingAs($superadmin)->get(route('kaprodi.dashboard'))->assertForbidden();
 });
 

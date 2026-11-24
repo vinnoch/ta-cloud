@@ -6,10 +6,9 @@
     @endif
 
     <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.dosen.index') }}">
-        <div class="section-heading acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">{{ $heading }}</h1>
-                <p class="acss-muted " id="count-text">{{ $dosen->total() }} akun dosen ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <button type="button" class="button button--primary button--inline" data-dosen-create-open>@include('partials.icons.plus')<span>Tambah Dosen</span></button>
@@ -124,7 +123,6 @@
     'searchInputId' => 'search-input',
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
-    'countTextId' => 'count-text',
 ])
 
 

@@ -11,6 +11,11 @@
         default => 'acss-table-auto-cols',
     };
 @endphp
+@if (isset($paginator))
+    <div class="pagination-shell acss-pagination-top">{{ $paginator->links() }}</div>
+@else
+    @include('partials.pagination.single-page', ['total' => count($rows ?? []), 'position' => 'top'])
+@endif
 <div class="table-shell">
     @if (! isset($rows) || count($rows) > 0)
     <div class="table-shell__head table-shell__grid {{ $colsClass }}">
@@ -27,3 +32,8 @@
     @endforeach
     @endif
 </div>
+@if (isset($paginator))
+    <div class="pagination-shell acss-pagination-spacer">{{ $paginator->links() }}</div>
+@else
+    @include('partials.pagination.single-page', ['total' => count($rows ?? []), 'position' => 'bottom'])
+@endif

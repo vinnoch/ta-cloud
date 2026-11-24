@@ -6,10 +6,9 @@
     @endif
 
     <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.formats.index') }}">
-        <div class="section-heading acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">Format Penilaian</h1>
-                <p id="count-text" class="acss-muted ">{{ $formats->total() }} format ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <a class="button button--primary button--inline" href="{{ route('kaprodi.formats.create') }}">@include('partials.icons.plus')<span>Tambah Format</span></a>
@@ -44,7 +43,6 @@
     'searchInputId' => 'search-input',
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
-    'countTextId' => 'count-text',
 ])
 
 <script>

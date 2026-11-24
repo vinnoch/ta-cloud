@@ -4,7 +4,7 @@
     $nextDirection = fn (string $column) => $sort === $column && $direction === 'asc' ? 'desc' : 'asc';
     $indicator = fn (string $column) => $sort !== $column ? '↕' : ($direction === 'asc' ? '↑' : '↓');
 @endphp
-<div class="table-shell">
+<div class="table-shell pilot-table">
     @if (count($gradingQueue) > 0)
         <div class="table-shell__head table-shell__grid acss-table-cols-dosen-grade">
             <button type="button" class="acss-sort-button" data-sort-column="tanggal" data-sort-direction="{{ $nextDirection('tanggal') }}">Tanggal <span>{{ $indicator('tanggal') }}</span></button>
@@ -15,11 +15,11 @@
         </div>
     @endif
     @forelse($gradingQueue as $item)
-        <div class="table-shell__row table-shell__grid acss-table-cols-dosen-grade acss-hover-row-group">
-            <div class="table-shell__cell">
+        <div class="table-shell__row table-shell__grid acss-table-cols-dosen-grade acss-hover-row-group pilot-record-card pilot-record-card--dosen-grading">
+            <div class="table-shell__cell pilot-record-card__date" data-mobile-label="Tanggal">
                 <strong>{{ $item['date'] ? $item['date']->format('d/m/Y') : '-' }}</strong>
                 <div class="text-[10px] acss-muted">{{ $item['date'] ? $item['date']->format('H:i') : '' }}</div>
-                <div class="acss-row-actions">
+                <div class="acss-row-actions pilot-record-card__desktop-actions">
                     @if ($item['is_locked'])
                         <button type="button" class="text-link acss-action-link" data-grade-modal-open="{{ $item['modal_id'] }}">@include('partials.icons.eye')<span>Lihat Nilai</span></button>
                     @else
@@ -30,13 +30,19 @@
                     @endif
                 </div>
             </div>
-            <div class="table-shell__cell"><strong>{{ $item['student'] }}</strong></div>
-            <div class="table-shell__cell table-shell__cell--title">
+            <div class="table-shell__cell pilot-record-card__identity"><strong>{{ $item['student'] }}</strong></div>
+            <div class="table-shell__cell table-shell__cell--title pilot-record-card__title">
                 <a class="text-link acss-title-link" href="{{ $item['skripsi_href'] }}">{{ $item['title'] }}</a>
                 <div><span class="pill">{{ $item['type_label'] }}</span></div>
             </div>
-            <div class="table-shell__cell"><span class="pill">{{ $item['fase'] }}</span></div>
-            <div class="table-shell__cell"><span class="pill pill--blue">{{ $item['role'] }}</span></div>
+            <div class="table-shell__cell pilot-record-card__meta" data-mobile-label="Nilai Sidang"><span class="pill">{{ $item['fase'] }}</span></div>
+            <div class="table-shell__cell pilot-record-card__meta" data-mobile-label="Peran"><span class="pill pill--blue">{{ $item['role'] }}</span></div>
+            <div class="pilot-record-card__mobile-actions">
+                <button type="button" class="pilot-record-card__primary-action" data-grade-modal-open="{{ $item['modal_id'] }}">
+                    @include($item['is_locked'] ? 'partials.icons.eye' : ($item['has_grade'] ? 'partials.icons.edit' : 'partials.icons.plus'))
+                    <span>{{ $item['is_locked'] ? 'Lihat Nilai' : ($item['has_grade'] ? 'Edit Nilai' : 'Isi Nilai') }}</span>
+                </button>
+            </div>
         </div>
     @empty
         <div class="empty-state">Belum ada antrian penilaian.</div>

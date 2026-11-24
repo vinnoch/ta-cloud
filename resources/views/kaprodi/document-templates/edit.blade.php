@@ -18,7 +18,6 @@
                 <div class="acss-crud-head">
                     <div>
                         <h1 class="acss-page-title">Edit Dokumen Final</h1>
-                        <p class="acss-muted">Perbarui periode terhubung dan struktur dokumen final.</p>
                     </div>
                 </div>
                 <div class="acss-crud-body">
@@ -30,7 +29,6 @@
                 <div class="acss-crud-head">
                     <div>
                         <h3 class="acss-card-title">Item Dokumen</h3>
-                        <p class="acss-muted">Kelola daftar dokumen final pada template ini.</p>
                     </div>
                 </div>
                 <div class="acss-crud-body">

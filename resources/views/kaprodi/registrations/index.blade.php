@@ -9,14 +9,11 @@
         <div class="notice notice--danger" role="alert">{{ $errors->first() }}</div>
     @endif
 
-    <section class="card registration-review-card" id="registration-list-root" data-endpoint="{{ route('registrations.index') }}">
-        <div class="section-heading acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
-                <p class="registration-eyebrow">Manajemen Akun</p>
+    <section class="card" id="registration-list-root" data-endpoint="{{ route('registrations.index') }}">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">Pendaftaran pengguna</h1>
-                <p class="acss-muted" id="count-text">{{ $registrations->total() }} pendaftaran ditemukan.</p>
             </div>
-            <a class="button button--muted button--inline" href="{{ route('home') }}">Kembali</a>
         </div>
 
         <form class="filter-bar acss-filter-form-relative" id="filter-form" method="GET" action="{{ route('registrations.index') }}" autocomplete="off">
@@ -49,6 +46,5 @@
         'statusSelectId' => 'status-select',
         'tableWrapperId' => 'table-wrapper',
         'paginationWrapperId' => 'pagination-wrapper',
-        'countTextId' => 'count-text',
     ])
 @endsection

@@ -28,18 +28,18 @@
             <a class="acss-link-subtle" href="{{ route('superadmin.audit.index') }}">Lihat semua log</a>
         </div>
         <div class="acss-section-card__body">
-            <div class="table-shell">
+            <div class="table-shell pilot-table">
                 @if ($recentLogs->isNotEmpty())
                     <div class="table-shell__head table-shell__grid acss-table-cols-superadmin-audit">
                         <span>Waktu</span><span>Aktivitas</span><span>User</span>
                     </div>
                 @endif
                 @forelse ($recentLogs as $log)
-                    <div class="table-shell__row table-shell__grid acss-table-cols-superadmin-audit">
-                        <div class="table-shell__cell"><strong>{{ $log->created_at->translatedFormat('d M Y') }}</strong><small>{{ $log->created_at->format('H:i') }} WIB</small></div>
-                        <div class="table-shell__cell"><span class="pill pill--blue">{{ str($log->action)->replace(['.', '_'], ' ')->title() }}</span></div>
-                        <div class="table-shell__cell">{{ $log->actor?->name ?? $log->actor_email ?? 'Terminal' }}</div>
-                    </div>
+                    <article class="table-shell__row table-shell__grid acss-table-cols-superadmin-audit pilot-record-card pilot-record-card--superadmin-dashboard">
+                        <div class="table-shell__cell pilot-record-card__date" data-mobile-label="Waktu"><strong>{{ $log->created_at->translatedFormat('d M Y') }}</strong><small>{{ $log->created_at->format('H:i') }} WIB</small></div>
+                        <div class="table-shell__cell pilot-record-card__phase" data-mobile-label="Aktivitas"><span class="pill pill--blue">{{ str($log->action)->replace(['.', '_'], ' ')->title() }}</span></div>
+                        <div class="table-shell__cell pilot-record-card__identity"><strong>{{ $log->actor?->name ?? $log->actor_email ?? 'Terminal' }}</strong></div>
+                    </article>
                 @empty
                     <div class="empty-state">Belum ada log sistem.</div>
                 @endforelse

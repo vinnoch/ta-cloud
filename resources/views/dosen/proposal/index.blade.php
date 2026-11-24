@@ -1,15 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-crud-card acss-crud-card--topflush" id="proposal-list-root" data-endpoint="{{ route('dosen.proposal.index') }}">
-        <div class="acss-crud-head">
+    <section class="card" id="proposal-list-root" data-endpoint="{{ route('dosen.proposal.index') }}">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Proposal</h1>
-                <p id="proposal-count-text" class="acss-muted">{{ $proposals->total() }} proposal ditemukan.</p>
             </div>
         </div>
 
-        <div class="acss-crud-body">
             <form class="filter-bar" id="proposal-filter-form" method="GET" action="{{ route('dosen.proposal.index') }}">
                 <input type="hidden" id="proposal-sort-input" name="sort" value="{{ $sort }}">
                 <input type="hidden" id="proposal-direction-input" name="direction" value="{{ $direction }}">
@@ -30,7 +28,6 @@
 
             <div id="proposal-table-wrapper">@include('dosen.proposal.partials.table', compact('proposals', 'sort', 'direction'))</div>
             <div id="proposal-pagination-wrapper">@include('dosen.proposal.partials.pagination', compact('proposals'))</div>
-        </div>
     </section>
 
     @include('partials.ajax-list-script', [
@@ -40,6 +37,5 @@
         'statusSelectId' => 'proposal-status-input',
         'tableWrapperId' => 'proposal-table-wrapper',
         'paginationWrapperId' => 'proposal-pagination-wrapper',
-        'countTextId' => 'proposal-count-text',
     ])
 @endsection

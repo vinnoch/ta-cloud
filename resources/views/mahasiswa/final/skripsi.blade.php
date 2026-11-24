@@ -89,7 +89,6 @@
             <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Form Dokumen Final</h3>
-                    <p class="acss-muted">Lengkapi semua dokumen sesuai template periode aktif.</p>
                 </div>
             </div>
             <div class="acss-crud-body">

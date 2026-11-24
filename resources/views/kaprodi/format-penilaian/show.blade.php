@@ -139,7 +139,6 @@
                     </label>
                 </form>
 
-                <p id="assigned-count-text" class="acss-muted ">{{ $assignedSkripsis->total() }} tugas akhir terhubung.</p>
                 
                 <div id="assigned-table-wrapper">
                     @include('kaprodi.format-penilaian.partials.assigned-table', [
@@ -176,7 +175,6 @@
     'searchInputId' => 'assigned-search-input', 
     'tableWrapperId' => 'assigned-table-wrapper', 
     'paginationWrapperId' => 'assigned-pagination-wrapper', 
-    'countTextId' => 'assigned-count-text'
 ])
 
 <script>

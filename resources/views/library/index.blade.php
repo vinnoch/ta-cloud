@@ -1,12 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    @include('partials.page-header', [
-        'title' => 'Library Tugas Akhir',
-        'eyebrow' => 'Common Module',
-        'description' => 'Koleksi read-only dokumen final yang telah dipublikasikan oleh prodi. Layar ini menampilkan eksplorasi karya, metadata, dan akses ringkas ke detail.',
-    ])
-
     <section class="three-column">
         @foreach ($libraryStats as $stat)
             @include('partials.cards.metric', $stat)
@@ -17,13 +11,14 @@
         <article class="card">
             <div class="section-heading">
                 <div>
-                    <h3>Koleksi terbaru</h3>
+                    <h1 class="acss-page-title">Library Tugas Akhir</h1>
                 </div>
             </div>
             @include('partials.tables.data-table', [
                 'cols' => '1.4fr 1.2fr 0.8fr 0.8fr 0.8fr',
                 'columns' => ['Judul Tugas Akhir', 'Mahasiswa', 'Tipe', 'Program', 'Aksi'],
                 'rows' => $rows,
+                'paginator' => $skripsis,
             ])
         </article>
 

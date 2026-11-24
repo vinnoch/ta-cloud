@@ -84,7 +84,6 @@
         <div class="acss-section-card__head">
             <div>
                 <h3 class="acss-card-title">Distribusi Tugas Akhir Aktif</h3>
-                <p class="acss-muted ">Distribusi fase Skripsi dan Non-Skripsi pada periode aktif.</p>
             </div>
         </div>
 

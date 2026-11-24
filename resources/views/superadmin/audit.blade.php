@@ -1,16 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-crud-card acss-crud-card--topflush">
-        <div class="acss-crud-head acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
+    <section class="card">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">Log Sistem</h1>
-                <p class="acss-muted">Riwayat aktivitas penting di dalam sistem.</p>
             </div>
             <a class="button button--primary button--inline" href="{{ route('superadmin.audit.settings') }}">@include('partials.icons.settings')<span>Pengaturan Log</span></a>
         </div>
 
-        <div class="acss-crud-body">
             <form method="GET" action="{{ route('superadmin.audit.index') }}" class="filter-bar acss-audit-filters" data-audit-filter-form>
                 <label class="form-field">
                     <span class="sr-only">Rentang waktu</span>
@@ -44,7 +42,8 @@
             </form>
 
             <div data-audit-results aria-live="polite">
-                <div class="table-shell">
+                <div class="pagination-shell acss-pagination-top">{{ $logs->links() }}</div>
+                <div class="table-shell acss-audit-table">
                     @if ($logs->isNotEmpty())
                         <div class="table-shell__head table-shell__grid acss-table-cols-superadmin-audit">
                             <span>Waktu</span><span>Pengguna</span><span>Topik</span><span>Konteks</span><span>Sumber</span>
@@ -71,15 +70,15 @@
                                     @endif
                                 </span>
                             </div>
-                            <div class="table-shell__cell acss-audit-activity">
+                            <div class="table-shell__cell acss-audit-activity" data-mobile-label="Topik">
                                 <span class="acss-topic-chip">{{ $display['category'] }}</span>
                                 <small>{{ $display['summary'] }}</small>
                             </div>
-                            <div class="table-shell__cell acss-audit-context">
+                            <div class="table-shell__cell acss-audit-context" data-mobile-label="Konteks">
                                 <strong>{{ $display['target'] }}</strong>
                                 <small>{{ $display['reference'] }}</small>
                             </div>
-                            <div class="table-shell__cell acss-audit-source">
+                            <div class="table-shell__cell acss-audit-source" data-mobile-label="Sumber">
                                 <strong>{{ $display['ip_address'] ?? '—' }}</strong>
                             </div>
                             <dl class="acss-audit-details" id="audit-detail-{{ $log->id }}" hidden>
@@ -95,7 +94,6 @@
                 </div>
                 <div class="pagination-shell acss-pagination-spacer">{{ $logs->links() }}</div>
             </div>
-        </div>
     </section>
 @endsection
 

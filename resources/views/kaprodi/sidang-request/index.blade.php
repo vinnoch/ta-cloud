@@ -9,7 +9,6 @@
         <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Permohonan Sidang</h1>
-                <p id="sidang-count-text" class="acss-muted ">{{ $requests->total() }} permohonan sidang ditemukan.</p>
             </div>
         </div>
 
@@ -52,6 +51,5 @@
     'searchInputId' => 'sidang-search-input',
     'tableWrapperId' => 'sidang-table-wrapper',
     'paginationWrapperId' => 'sidang-pagination-wrapper',
-    'countTextId' => 'sidang-count-text',
 ])
 @endsection

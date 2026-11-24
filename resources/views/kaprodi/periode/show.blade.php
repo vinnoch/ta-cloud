@@ -81,7 +81,6 @@
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Tugas Akhir Aktif</h3>
-                <p class="acss-muted " id="assigned-count-text">{{ $assignedSkripsis->total() }} tugas akhir aktif terhubung.</p>
             </div>
         </div>
         <div class="acss-crud-body">
@@ -118,7 +117,7 @@
             </form>
         @endif
     </div>
-@include('partials.ajax-list-script', ['rootId' => 'assigned-list-root', 'formId' => 'assigned-filter-form', 'searchInputId' => 'assigned-search-input', 'tableWrapperId' => 'assigned-table-wrapper', 'paginationWrapperId' => 'assigned-pagination-wrapper', 'countTextId' => 'assigned-count-text'])
+@include('partials.ajax-list-script', ['rootId' => 'assigned-list-root', 'formId' => 'assigned-filter-form', 'searchInputId' => 'assigned-search-input', 'tableWrapperId' => 'assigned-table-wrapper', 'paginationWrapperId' => 'assigned-pagination-wrapper'])
 <script>
 (() => {
     const form = document.getElementById('assigned-filter-form');
@@ -165,7 +164,6 @@
                         <div class="acss-crud-head">
                             <div>
                                 <h3 class="acss-card-title">Tahun Akademik</h3>
-                                <p class="acss-muted ">Pilih tahun akademik dan semester periode.</p>
                             </div>
                         </div>
                         <div class="acss-crud-body">
@@ -192,7 +190,6 @@
                         <div class="acss-crud-head">
                             <div>
                                 <h3 class="acss-card-title">Dokumen SK</h3>
-                                <p class="acss-muted ">Lengkapi dokumen SK dan masa berlaku periode.</p>
                             </div>
                         </div>
                         <div class="acss-crud-body">

@@ -42,7 +42,6 @@
                 <div class="acss-crud-head">
                     <div>
                         <h3 class="acss-card-title">Item Dokumen</h3>
-                        <p class="acss-muted">Tambahkan daftar dokumen final seperti skripsi, dataset, atau surat pendukung.</p>
                     </div>
                 </div>
                 <div class="acss-crud-body">

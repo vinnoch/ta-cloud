@@ -9,8 +9,8 @@
         </div>
     @endif
 
-    <section class="acss-crud-card acss-crud-card--topflush">
-        <div class="acss-crud-head acss-crud-head--inline">
+    <section class="card">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Users</h1>
             </div>
@@ -18,7 +18,7 @@
                 <button class="button button--primary button--inline" type="button" data-account-create-open>@include('partials.icons.plus')<span>Buat Akun</span></button>
             </div>
         </div>
-        <div class="acss-crud-body">
+            <div class="pagination-shell acss-pagination-top">{{ $users->links() }}</div>
             <div class="table-shell">
                 @if ($users->isNotEmpty())
                     <div class="table-shell__head table-shell__grid acss-table-cols-superadmin-users">
@@ -81,7 +81,6 @@
                 @endforelse
             </div>
             <div class="pagination-shell acss-pagination-spacer">{{ $users->links() }}</div>
-        </div>
     </section>
 
     <div class="acss-modal" data-account-create-modal role="dialog" aria-modal="true" aria-labelledby="account-create-modal-title" hidden>

@@ -5,10 +5,9 @@
     @endif
 
     <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.periode.index') }}">
-        <div class="section-heading acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">Daftar Periode</h1>
-                <p class="acss-muted " id="count-text">{{ $periode->total() }} periode akademik tersedia.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <button type="button" class="button button--primary button--inline" data-periode-create-open>@include('partials.icons.plus')<span>Tambah Periode</span></button>
@@ -35,7 +34,6 @@
     'searchInputId' => 'search-input',
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
-    'countTextId' => 'count-text',
 ])
 
 <script>
@@ -106,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="section-heading">
                             <div>
                                 <h3 class="acss-card-title">Tahun Akademik</h3>
-                                <p class="acss-muted ">Pilih tahun akademik dan semester periode.</p>
                             </div>
                         </div>
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -132,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="section-heading">
                             <div>
                                 <h3 class="acss-card-title">Dokumen SK</h3>
-                                <p class="acss-muted ">Lengkapi dokumen SK dan masa berlaku periode.</p>
                             </div>
                         </div>
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">

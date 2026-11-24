@@ -12,7 +12,6 @@
     <section class="acss-page-card">
         <div class="acss-page-card__body">
             <h1 class="acss-page-title">Form Penilaian dan Revisi Sidang</h1>
-            <p class="acss-muted ">Input nilai sidang skripsi untuk mahasiswa yang Anda bimbing atau uji.</p>
         </div>
     </section>
 
@@ -39,7 +38,6 @@
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Item Penilaian</h3>
-                <p class="acss-muted ">Isi seluruh skor sesuai bobot format nilai sidang.</p>
             </div>
         </div>
         <div class="acss-crud-body">

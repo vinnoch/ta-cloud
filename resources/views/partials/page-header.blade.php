@@ -3,9 +3,6 @@
         <p class="eyebrow">{{ $eyebrow }}</p>
     @endif
     <h2>{{ $title }}</h2>
-    @if (!empty($description))
-        <p>{{ $description }}</p>
-    @endif
     @if (!empty($actions))
         <div class="page-header-actions">
             @foreach ($actions as $action)

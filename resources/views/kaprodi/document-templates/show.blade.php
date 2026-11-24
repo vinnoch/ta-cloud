@@ -77,7 +77,6 @@
             <div class="acss-crud-head">
                 <div>
                     <h3 class="acss-card-title">Daftar Item Dokumen</h3>
-                    <p class="acss-muted">{{ $template->items->count() }} item dokumen terdaftar.</p>
                 </div>
             </div>
             <div class="acss-crud-body">
@@ -202,7 +201,6 @@
                     </label>
                 </form>
 
-                <p id="assigned-count-text" class="acss-muted">{{ $assignedSkripsis->total() }} tugas akhir terhubung.</p>
 
                 <div id="assigned-table-wrapper">@include('kaprodi.document-templates.partials.assigned-table', ['template' => $template, 'assignedSkripsis' => $assignedSkripsis, 'assignedSort' => $assignedSort, 'assignedDirection' => $assignedDirection])</div>
                 <div id="assigned-pagination-wrapper" class="acss-pagination-spacer">@include('kaprodi.document-templates.partials.assigned-pagination', ['assignedSkripsis' => $assignedSkripsis])</div>
@@ -226,7 +224,6 @@
         'searchInputId' => 'assigned-search-input',
         'tableWrapperId' => 'assigned-table-wrapper',
         'paginationWrapperId' => 'assigned-pagination-wrapper',
-        'countTextId' => 'assigned-count-text',
     ])
 
     <script>

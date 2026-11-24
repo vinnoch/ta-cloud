@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="acss-section-card">
-        <div class="acss-section-card__head"><div><h3 class="acss-card-title">Publish to Library</h3></div></div>
-        <div class="acss-section-card__body">
+    <section class="card">
+        <div class="section-heading"><div><h1 class="acss-page-title">Publish to Library</h1></div></div>
+            @include('partials.pagination.single-page', ['total' => count($items ?? []), 'position' => 'top'])
             <div class="table-shell table-shell--format-assigned">
                 <div class="table-shell__head table-shell__grid table-shell__grid--format-assigned"><span>Mahasiswa</span><span>Judul Tugas Akhir</span><span>Dokumen</span><span>Status</span></div>
                 @foreach(($items ?? []) as $item)
@@ -18,6 +18,6 @@
                     </div>
                 @endforeach
             </div>
-        </div>
+            @include('partials.pagination.single-page', ['total' => count($items ?? []), 'position' => 'bottom'])
     </section>
 @endsection

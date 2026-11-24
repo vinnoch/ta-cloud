@@ -5,7 +5,6 @@
         <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Nilai</h1>
-                <p class="acss-muted " id="count-text">{{ $data_nilai->total() }} nilai ditemukan.</p>
             </div>
         </div>
 
@@ -37,6 +36,5 @@
     'searchInputId' => 'search-input',
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
-    'countTextId' => 'count-text',
 ])
 @endsection

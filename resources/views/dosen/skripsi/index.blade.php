@@ -7,14 +7,12 @@
             ? 'dosen.tugas-akhir.index'
             : ($taType === 'non_skripsi' ? 'dosen.non-skripsi.index' : 'dosen.skripsi.index');
     @endphp
-    <section class="acss-crud-card" id="skripsi-list-root" data-endpoint="{{ route($taIndexRoute) }}">
-        <div class="acss-crud-head">
+    <section class="card" id="skripsi-list-root" data-endpoint="{{ route($taIndexRoute) }}">
+        <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">{{ $taLabel }} Mahasiswa Bimbingan</h1>
-                <p id="skripsi-count-text" class="acss-muted ">{{ $skripsis->total() }} {{ str($taLabel)->lower() }} ditemukan.</p>
             </div>
         </div>
-        <div class="acss-crud-body">
             <div id="skripsi-stats-wrapper">@include('dosen.skripsi.partials.stats', ['chartData' => $chartData])</div>
 
             <form class="filter-bar" id="skripsi-filter-form" method="GET" action="{{ route($taIndexRoute) }}">
@@ -48,7 +46,6 @@
             </form>
             <div id="skripsi-table-wrapper">@include('dosen.skripsi.partials.table', ['skripsis' => $skripsis, 'sort' => $sort, 'direction' => $direction, 'taType' => $taType])</div>
             <div id="skripsi-pagination-wrapper">@include('dosen.skripsi.partials.pagination', ['skripsis' => $skripsis])</div>
-        </div>
     </section>
-    @include('partials.ajax-list-script', ['rootId'=>'skripsi-list-root','formId'=>'skripsi-filter-form','searchInputId'=>'skripsi-search-input','statusSelectId'=>'skripsi-fase-select','tableWrapperId'=>'skripsi-table-wrapper','paginationWrapperId'=>'skripsi-pagination-wrapper','statsWrapperId'=>'skripsi-stats-wrapper','countTextId'=>'skripsi-count-text'])
+    @include('partials.ajax-list-script', ['rootId'=>'skripsi-list-root','formId'=>'skripsi-filter-form','searchInputId'=>'skripsi-search-input','statusSelectId'=>'skripsi-fase-select','tableWrapperId'=>'skripsi-table-wrapper','paginationWrapperId'=>'skripsi-pagination-wrapper','statsWrapperId'=>'skripsi-stats-wrapper'])
 @endsection

@@ -6,7 +6,6 @@
         <div class="acss-crud-head">
             <div>
                 <h1 class="acss-page-title">Export Skripsi</h1>
-                <p class="acss-muted">Export data skripsi ke CSV berdasarkan filter yang dipilih.</p>
             </div>
         </div>
 

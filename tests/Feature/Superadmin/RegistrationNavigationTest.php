@@ -70,7 +70,12 @@ it('lists and filters every publicly reviewable account role', function () {
         ->assertSee('Semua User Level')
         ->assertSee('id="filter-form"', false)
         ->assertSee('id="status-select"', false)
-        ->assertSee('id="role-select"', false);
+        ->assertSee('id="role-select"', false)
+        ->assertSee('<section class="card" id="registration-list-root"', false)
+        ->assertSee('<div class="section-heading">', false)
+        ->assertSee('class="table-shell pilot-table"', false)
+        ->assertDontSee('3 pendaftaran ditemukan.')
+        ->assertDontSee('registration-review-list', false);
 
     $this->get(route('registrations.index', ['role' => 'dosen']))
         ->assertOk()

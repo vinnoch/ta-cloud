@@ -40,7 +40,6 @@
             <div class="acss-modal__head">
                 <div>
                     <h3 class="acss-card-title" id="{{ $modalId }}-title">Edit Fase Tugas Akhir</h3>
-                    <p class="acss-muted">Perbarui fase tugas akhir mahasiswa.</p>
                 </div>
                 <button type="button" class="acss-modal__close" data-status-modal-close aria-label="Tutup">×</button>
             </div>

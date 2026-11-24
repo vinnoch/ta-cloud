@@ -20,9 +20,21 @@
     const statusSelect = @if($statusSelectId) document.getElementById('{{ $statusSelectId }}') @else null @endif;
     const tableWrapper = document.getElementById('{{ $tableWrapperId }}');
     const paginationWrapper = document.getElementById('{{ $paginationWrapperId }}');
+    let topPaginationWrapper = document.getElementById('{{ $paginationWrapperId }}-top');
     const statsWrapper = @if($statsWrapperId) document.getElementById('{{ $statsWrapperId }}') @else null @endif;
     const countText = document.getElementById('{{ $countTextId }}');
     let debounceTimer;
+
+    const syncTopPagination = () => {
+        if (!form || !paginationWrapper || !tableWrapper) return;
+        if (!topPaginationWrapper) {
+            topPaginationWrapper = document.createElement('div');
+            topPaginationWrapper.id = '{{ $paginationWrapperId }}-top';
+            topPaginationWrapper.className = `${paginationWrapper.className} acss-pagination-top`.trim();
+            form.insertAdjacentElement('afterend', topPaginationWrapper);
+        }
+        topPaginationWrapper.innerHTML = paginationWrapper.innerHTML;
+    };
 
     const syncActiveStatCard = () => {
         if (!statsWrapper || !statusSelect) return;
@@ -69,7 +81,10 @@
         const payload = await response.json();
         
         if (tableWrapper && payload.table_html) tableWrapper.innerHTML = payload.table_html;
-        if (paginationWrapper && payload.pagination_html) paginationWrapper.innerHTML = payload.pagination_html;
+        if (paginationWrapper && payload.pagination_html) {
+            paginationWrapper.innerHTML = payload.pagination_html;
+            syncTopPagination();
+        }
         if (statsWrapper && payload.stats_html) statsWrapper.innerHTML = payload.stats_html;
         if (countText && payload.count_text) countText.textContent = payload.count_text;
 
@@ -115,14 +130,15 @@
         });
     }
 
-    if (paginationWrapper) {
-        paginationWrapper.addEventListener('click', (event) => {
+    const handlePaginationClick = (event) => {
             const link = event.target.closest('a');
             if (!link) return;
             event.preventDefault();
             fetchData(link.href);
-        });
-    }
+    };
+
+    paginationWrapper?.addEventListener('click', handlePaginationClick);
+    topPaginationWrapper?.addEventListener('click', handlePaginationClick);
 
     if (tableWrapper) {
         tableWrapper.addEventListener('click', (event) => {
@@ -137,6 +153,8 @@
         });
     }
 
+    syncTopPagination();
+    topPaginationWrapper?.addEventListener('click', handlePaginationClick);
     syncActiveStatCard();
 })();
 </script>

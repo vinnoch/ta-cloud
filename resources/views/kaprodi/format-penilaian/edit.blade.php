@@ -15,7 +15,6 @@
                 <div class="acss-crud-head">
                     <div>
                         <h1 class="acss-page-title">Edit Format Nilai</h1>
-                        <p class="acss-muted ">Perbarui metadata format dan bobot item penilaian.</p>
                     </div>
                 </div>
                 <div class="acss-crud-body">
@@ -28,7 +27,6 @@
                 <div class="acss-crud-head">
                     <div>
                         <h3 class="acss-card-title">Item Penilaian</h3>
-                        <p class="acss-muted ">Susun item penilaian sidang dan persentase bobotnya.</p>
                     </div>
 
                 </div>

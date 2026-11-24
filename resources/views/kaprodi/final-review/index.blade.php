@@ -9,7 +9,6 @@
         <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Pengajuan Dokumen Final</h1>
-                <p id="final-review-count-text" class="acss-muted ">{{ $skripsis->total() }} dokumen final ditemukan.</p>
             </div>
         </div>
 
@@ -42,6 +41,5 @@
     'searchInputId' => 'final-review-search-input',
     'tableWrapperId' => 'final-review-table-wrapper',
     'paginationWrapperId' => 'final-review-pagination-wrapper',
-    'countTextId' => 'final-review-count-text',
 ])
 @endsection

@@ -7,7 +7,6 @@
             <div class="section-heading">
                 <div>
                     <h1 class="acss-page-title">{{ $title }}</h1>
-                    <p class="acss-muted">{{ $description }}</p>
                     <small class="inline-block  p-1 px-3 border border-[var(--primary)] rounded text-[var(--primary)] font-medium bg-[var(--primary-soft)]"><a class="no-underline" href="{{ asset('import-templates/' . $templateName) }}" download>Download {{ $templateName }}</a></small>
                 </div>
             </div>

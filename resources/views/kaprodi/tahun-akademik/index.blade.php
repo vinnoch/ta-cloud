@@ -5,10 +5,9 @@
     @endif
 
     <section class="card" id="list-root" data-endpoint="{{ route('kaprodi.tahun-akademik.index') }}">
-        <div class="section-heading acss-crud-head--inline">
-            <div class="acss-crud-head__title-group">
+        <div class="section-heading">
+            <div>
                 <h1 class="acss-page-title">Tahun Akademik</h1>
-                <p class="acss-muted " id="count-text">{{ $tahunAkademik->total() }} tahun akademik ditemukan.</p>
             </div>
             <div class="acss-crud-head__actions">
                 <button type="button" class="button button--primary button--inline" data-ta-create-open>@include('partials.icons.plus')<span>Tambah Tahun Akademik</span></button>
@@ -35,7 +34,6 @@
     'searchInputId' => 'search-input',
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
-    'countTextId' => 'count-text',
 ])
 
 <script>

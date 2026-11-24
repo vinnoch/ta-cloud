@@ -8,6 +8,7 @@ use App\Services\CardPresenter;
 use App\Services\PrivilegedAudit;
 use App\Services\RoleNavigationService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
@@ -22,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Paginator::defaultView('pagination.tacloud');
+
         foreach (['created', 'updated', 'deleted', 'restored'] as $event) {
             Event::listen("eloquent.{$event}: *", function (string $eventName, array $models) use ($event): void {
                 $model = $models[0] ?? null;

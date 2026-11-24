@@ -25,7 +25,6 @@
         <div class="section-heading">
             <div>
                 <h1 class="acss-page-title">Monitoring {{ $taLabel }}</h1>
-                <p class="acss-muted " id="count-text">{{ $skripsis->total() }} {{ str($taLabel)->lower() }} ditemukan.</p>
             </div>
         </div>
 
@@ -72,7 +71,6 @@
     'tableWrapperId' => 'table-wrapper',
     'paginationWrapperId' => 'pagination-wrapper',
     'statsWrapperId' => 'stats-wrapper',
-    'countTextId' => 'count-text',
 ])
 
 <script>

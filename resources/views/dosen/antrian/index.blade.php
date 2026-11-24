@@ -1,19 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    @include('partials.page-header', [
-        'title' => 'Antrian Tugas Akhir',
-        'eyebrow' => 'Dosen • Queue',
-        'description' => 'Daftar tugas akhir yang ditugaskan kepada dosen sebagai pembimbing atau penguji.',
-    ])
-
-    <section class="acss-crud-card">
-        <div class="acss-crud-body">
-            @include('partials.tables.data-table', [
-                'cols' => '1.5fr 1fr 0.9fr 0.9fr',
-                'columns' => ['Mahasiswa / Judul', 'Peran', 'Status', 'Aksi'],
-                'rows' => $rows,
-            ])
+    <section class="card">
+        <div class="section-heading">
+            <div><h1 class="acss-page-title">Antrian Tugas Akhir</h1></div>
         </div>
+        @include('partials.tables.data-table', [
+            'cols' => '1.5fr 1fr 0.9fr 0.9fr',
+            'columns' => ['Mahasiswa / Judul', 'Peran', 'Status', 'Aksi'],
+            'rows' => $rows,
+        ])
     </section>
 @endsection

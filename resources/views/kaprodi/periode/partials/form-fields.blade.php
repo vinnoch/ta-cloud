@@ -3,7 +3,6 @@
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Tahun Akademik</h3>
-                <p class="acss-muted ">Pilih tahun akademik dan semester periode.</p>
             </div>
         </div>
 
@@ -37,7 +36,6 @@
         <div class="acss-crud-head">
             <div>
                 <h3 class="acss-card-title">Dokumen SK</h3>
-                <p class="acss-muted ">Lengkapi dokumen SK dan masa berlaku periode.</p>
             </div>
         </div>
 

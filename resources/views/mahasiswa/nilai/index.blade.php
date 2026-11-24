@@ -41,7 +41,6 @@
             <div class="acss-section-card__head">
                 <div>
                     <h3 class="acss-card-title">Final Submission Tersedia</h3>
-                    <p class="acss-muted ">Lanjutkan pengiriman dokumen final sesuai tahap yang sudah selesai dinilai.</p>
                 </div>
             </div>
             <div class="acss-section-card__body">
